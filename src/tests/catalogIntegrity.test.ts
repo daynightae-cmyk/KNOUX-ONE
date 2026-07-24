@@ -15,7 +15,7 @@ describe('KNOUX ONE Catalog Integrity', () => {
   it('contains exactly 190 registered capabilities (10 per module)', () => {
     let totalCapabilities = 0;
     MODULES_CATALOG.forEach(mod => {
-      expect(mod.services.length).toBe(10);
+      expect(mod.services.length, `${mod.id} must contain exactly ten services`).toBe(10);
       totalCapabilities += mod.services.length;
     });
     expect(totalCapabilities).toBe(190);
@@ -26,9 +26,9 @@ describe('KNOUX ONE Catalog Integrity', () => {
     expect(m01).toBeDefined();
 
     m01?.services.forEach(svc => {
-      expect(['implemented', 'partial', 'planned']).toContain(svc.implementationState);
-      expect(svc.handlerId).toBeDefined();
-      expect(svc.handlerId).toMatch(/^m01\./);
+      expect(['implemented', 'partial', 'planned'], `${svc.id} has an invalid implementation state`).toContain(svc.implementationState);
+      expect(svc.handlerId, `${svc.id} must keep its explicit native handler registration`).toBeDefined();
+      expect(svc.handlerId, `${svc.id} handler must remain inside Module 01`).toMatch(/^m01\./);
     });
   });
 
@@ -37,8 +37,8 @@ describe('KNOUX ONE Catalog Integrity', () => {
 
     otherModules.forEach(mod => {
       mod.services.forEach(svc => {
-        expect(svc.implementationState).toBe('planned');
-        expect(svc.handlerId).toBeUndefined();
+        expect(svc.implementationState, `${mod.id}/${svc.id} must not claim partial or complete native execution`).toBe('planned');
+        expect(svc.handlerId, `${mod.id}/${svc.id} must not expose a native handler before implementation`).toBeUndefined();
       });
     });
   });
@@ -46,10 +46,10 @@ describe('KNOUX ONE Catalog Integrity', () => {
   it('ensures all capabilities have non-empty bilingual names and descriptions', () => {
     MODULES_CATALOG.forEach(mod => {
       mod.services.forEach(svc => {
-        expect(svc.nameEn).toBeTruthy();
-        expect(svc.nameAr).toBeTruthy();
-        expect(svc.descriptionEn).toBeTruthy();
-        expect(svc.descriptionAr).toBeTruthy();
+        expect(svc.nameEn, `${svc.id} requires an English name`).toBeTruthy();
+        expect(svc.nameAr, `${svc.id} requires an Arabic name`).toBeTruthy();
+        expect(svc.descriptionEn, `${svc.id} requires an English description`).toBeTruthy();
+        expect(svc.descriptionAr, `${svc.id} requires an Arabic description`).toBeTruthy();
       });
     });
   });
