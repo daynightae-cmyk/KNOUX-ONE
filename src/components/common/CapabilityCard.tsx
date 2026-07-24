@@ -1,162 +1,111 @@
-/**
- * KNOUX ONE — Universal Capability Card Component
- * Honest state display for Implemented vs Planned capabilities
- */
-
 import React, { useState } from 'react';
-import { KnouxCapability } from '../../types';
-import { useKnoux } from '../../context/KnouxContext';
-import { OperationService } from '../../services/operationService';
-import { 
-  Play, 
-  Eye, 
-  ShieldAlert, 
-  CheckCircle2, 
-  Code, 
-  ChevronDown, 
-  ChevronUp, 
-  Copy, 
-  Check,
-  Clock,
-  Info
+import {
+  ArrowUpRight,
+  CheckCircle2,
+  ChevronDown,
+  ChevronUp,
+  Clock3,
+  Monitor,
+  Settings2,
+  ShieldAlert,
 } from 'lucide-react';
+import type { KnouxCapability } from '../../types';
+import { useKnoux } from '../../context/KnouxContext';
+import {
+  MODULE_ACCENTS,
+  getActionLabel,
+  getImplementationIcon,
+  getImplementationLabel,
+  getServiceIcon,
+} from '../workspace/workspaceMeta';
 
 interface CapabilityCardProps {
   capability: KnouxCapability;
+  onOpen?: (capability: KnouxCapability) => void;
+  featured?: boolean;
 }
 
-export const CapabilityCard: React.FC<CapabilityCardProps> = ({ capability }) => {
-  const { addLog, requestElevation, language, t } = useKnoux();
+export const CapabilityCard: React.FC<CapabilityCardProps> = ({ capability, onOpen, featured = false }) => {
+  const { language, t } = useKnoux();
+  const [expanded, setExpanded] = useState(false);
+  const Icon = getServiceIcon(capability);
+  const StateIcon = getImplementationIcon(capability.implementationState);
+  const accent = MODULE_ACCENTS[capability.moduleId] ?? 'violet';
+  const executable = capability.implementationState === 'implemented' && capability.status === 'available' && Boolean(capability.handlerId);
 
-  const [expandedCode, setExpandedCode] = useState(false);
-  const [copiedCode, setCopiedCode] = useState(false);
-  const [isRunning, setIsRunning] = useState(false);
-  const [lastExecutedMessage, setLastExecutedMessage] = useState<string | null>(null);
-
-  const isImplemented = capability.implementationState === 'implemented';
-
-  const handleRun = () => {
-    if (!isImplemented) {
-      const plannedMsg = language === 'ar'
-        ? (capability.availabilityReasonAr || 'المحرك المحلي لهذه الخدمة مخطط له في المرحلة التالية.')
-        : (capability.availabilityReasonEn || 'Native engine implementation scheduled for subsequent phase.');
-      setLastExecutedMessage(plannedMsg);
+  const openDetails = () => {
+    if (onOpen) {
+      onOpen(capability);
       return;
     }
-
-    if (capability.requiresAdmin) {
-      requestElevation(
-        capability.nameEn,
-        capability.nameAr,
-        `Execution of ${capability.nameEn} requires administrative privileges on Windows.`,
-        `تتطلب أداة ${capability.nameAr} صلاحيات المسؤول للتنفيذ على ويندوز.`,
-        capability.riskLevel,
-        () => executeDirectly()
-      );
-    } else {
-      executeDirectly();
-    }
-  };
-
-  const executeDirectly = async () => {
-    setIsRunning(true);
-    setLastExecutedMessage(null);
-
-    try {
-      const result = await OperationService.executeCapability(capability);
-      setIsRunning(false);
-
-      const msg = language === 'ar' ? result.summaryAr : result.summaryEn;
-      setLastExecutedMessage(msg);
-      addLog(capability.id, capability.nameEn, result.status === 'completed' ? 'completed' : 'failed', msg);
-    } catch (err: any) {
-      setIsRunning(false);
-      setLastExecutedMessage(`Error: ${err.message || 'Execution failed'}`);
-    }
-  };
-
-  const copyCommand = (cmd: string) => {
-    navigator.clipboard.writeText(cmd);
-    setCopiedCode(true);
-    setTimeout(() => setCopiedCode(false), 2000);
+    setExpanded(previous => !previous);
   };
 
   return (
-    <div className={`p-4 rounded-xl border transition-all duration-200 flex flex-col justify-between group space-y-3 knoux-card shadow-sm ${
-      isImplemented 
-        ? 'hover:border-[var(--knoux-primary)]/60' 
-        : 'opacity-90 hover:border-[var(--knoux-border)]'
-    }`}>
-      <div>
-        {/* Header Badges */}
-        <div className="flex items-center justify-between mb-2">
-          <span className="knoux-badge-primary">
-            {capability.id.toUpperCase()}
-          </span>
-          <div className="flex items-center space-x-1.5 rtl:space-x-reverse">
-            {isImplemented ? (
-              <span className="knoux-badge-success flex items-center space-x-1 rtl:space-x-reverse">
-                <CheckCircle2 className="w-2.5 h-2.5" />
-                <span>NATIVE</span>
-              </span>
-            ) : (
-              <span className="knoux-badge-muted flex items-center space-x-1 rtl:space-x-reverse">
-                <Clock className="w-2.5 h-2.5" />
-                <span>PLANNED</span>
-              </span>
-            )}
-
-            {capability.requiresAdmin && (
-              <span className="knoux-badge-danger flex items-center space-x-1 rtl:space-x-reverse">
-                <ShieldAlert className="w-2.5 h-2.5" />
-                <span>ADMIN</span>
-              </span>
-            )}
-          </div>
+    <article className={`knoux-service-card group flex flex-col p-5 ${featured ? 'min-h-[270px]' : 'min-h-[230px]'}`} data-accent={accent}>
+      <div className="flex items-start justify-between gap-3">
+        <div className="knoux-icon-plate">
+          <Icon className="h-[22px] w-[22px]" strokeWidth={1.9} />
         </div>
+        <span className={`knoux-chip ${capability.implementationState === 'implemented' ? 'knoux-chip--success' : capability.implementationState === 'requires_configuration' ? 'knoux-chip--warning' : capability.implementationState === 'partial' ? 'knoux-chip--accent' : 'knoux-chip--muted'}`}>
+          <StateIcon className="h-3.5 w-3.5" />
+          {getImplementationLabel(capability.implementationState, language)}
+        </span>
+      </div>
 
-        {/* Title & Description */}
-        <h4 className="font-bold text-sm text-[var(--knoux-text)] group-hover:text-[var(--knoux-primary)] transition-colors">
+      <div className="mt-5 flex-1">
+        <p className="text-[11px] font-bold uppercase tracking-[.09em] text-[var(--card-accent)]">
+          {t(capability.moduleNameEn, capability.moduleNameAr)}
+        </p>
+        <h3 className="mt-2 text-[17px] font-black leading-6 tracking-[-.02em] text-[var(--knoux-text)] transition group-hover:text-[var(--card-accent)]">
           {t(capability.nameEn, capability.nameAr)}
-        </h4>
-        <p className="text-xs text-[var(--knoux-text-muted)] mt-1 leading-relaxed">
+        </h3>
+        <p className="mt-2 line-clamp-3 text-[13px] font-medium leading-6 text-[var(--knoux-text-muted)]">
           {t(capability.descriptionEn, capability.descriptionAr)}
         </p>
-
-        {/* Execution / Planned Feedback */}
-        {lastExecutedMessage && (
-          <div className={`mt-2.5 p-2 rounded-lg text-sm flex items-start space-x-1.5 rtl:space-x-reverse animate-in fade-in ${
-            isImplemented
-              ? 'bg-[var(--knoux-success)]/10 border border-[var(--knoux-success)]/30 text-[var(--knoux-success)]'
-              : 'bg-[var(--knoux-surface-muted)] border border-[var(--knoux-border)] text-[var(--knoux-text-muted)]'
-          }`}>
-            <Info className="w-3.5 h-3.5 shrink-0 mt-0.5" />
-            <span>{lastExecutedMessage}</span>
-          </div>
-        )}
       </div>
 
-      {/* Action Buttons */}
-      <div className="flex items-center space-x-2 rtl:space-x-reverse pt-1">
-        <button
-          onClick={handleRun}
-          disabled={isRunning}
-          className={`flex-1 py-1.5 px-3 rounded-xl font-medium text-xs flex items-center justify-center space-x-1.5 rtl:space-x-reverse transition-all active:scale-95 disabled:opacity-50 ${
-            isImplemented
-              ? 'knoux-button-primary'
-              : 'knoux-button-secondary'
-          }`}
-        >
-          <Play className={`w-3.5 h-3.5 fill-current ${isRunning ? 'animate-spin' : ''}`} />
-          <span>
-            {isRunning
-              ? t('Executing...', 'جاري التنفيذ...')
-              : isImplemented
-              ? t('Execute Native', 'تشغيل محلي')
-              : t('Planned Info', 'معلومات الخدمة')}
+      <div className="mt-4 flex flex-wrap gap-2 border-t border-[var(--knoux-border)] pt-4">
+        <span className="knoux-chip">
+          <Monitor className="h-3.5 w-3.5" />
+          {capability.runtime === 'desktop_elevated' ? t('Desktop + Admin', 'سطح المكتب + مسؤول') : t('Desktop', 'سطح المكتب')}
+        </span>
+        {capability.requiresAdmin && (
+          <span className="knoux-chip knoux-chip--warning">
+            <ShieldAlert className="h-3.5 w-3.5" />
+            {t('Administrator', 'صلاحية مسؤول')}
           </span>
-        </button>
+        )}
+        <span className="knoux-chip knoux-chip--muted">
+          <Settings2 className="h-3.5 w-3.5" />
+          {t(`${capability.riskLevel} risk`, `مخاطر ${capability.riskLevel}`)}
+        </span>
       </div>
-    </div>
+
+      {expanded && (
+        <div className="mt-4 rounded-2xl border border-[var(--knoux-border)] bg-[var(--knoux-surface-muted)] p-4">
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div>
+              <p className="text-[11px] font-extrabold uppercase tracking-[.08em] text-[var(--knoux-text-muted)]">{t('What it reads', 'ما الذي تقرؤه')}</p>
+              <p className="mt-1 text-[12px] font-medium leading-5 text-[var(--knoux-text-secondary)]">{t(capability.readsEn || capability.descriptionEn, capability.readsAr || capability.descriptionAr)}</p>
+            </div>
+            <div>
+              <p className="text-[11px] font-extrabold uppercase tracking-[.08em] text-[var(--knoux-text-muted)]">{t('What it changes', 'ما الذي ستغيره')}</p>
+              <p className="mt-1 text-[12px] font-medium leading-5 text-[var(--knoux-text-secondary)]">{t(capability.changesEn || 'No change occurs before explicit confirmation.', capability.changesAr || 'لا يحدث أي تغيير قبل التأكيد الصريح.')}</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="mt-4 flex items-center gap-2 rtl:flex-row-reverse">
+        <button type="button" onClick={openDetails} className="knoux-card-action flex-1">
+          {onOpen ? <ArrowUpRight className="h-4 w-4 rtl:-scale-x-100" /> : expanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+          {onOpen ? t('Open service', 'فتح الخدمة') : expanded ? t('Hide details', 'إخفاء التفاصيل') : t('View details', 'عرض التفاصيل')}
+        </button>
+        <span className={`grid h-[42px] w-[42px] place-items-center rounded-xl border ${executable ? 'border-[var(--knoux-success)]/30 bg-[var(--knoux-success)]/10 text-[var(--knoux-success)]' : 'border-[var(--knoux-border)] bg-[var(--knoux-surface-muted)] text-[var(--knoux-text-muted)]'}`} title={getActionLabel(capability, language)}>
+          {executable ? <CheckCircle2 className="h-[18px] w-[18px]" /> : <Clock3 className="h-[18px] w-[18px]" />}
+        </span>
+      </div>
+    </article>
   );
 };
