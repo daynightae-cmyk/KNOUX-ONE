@@ -19,9 +19,7 @@ pub struct SystemDiscoveryData {
 }
 
 #[tauri::command]
-pub fn m01_system_discover(
-    op_id: String,
-) -> Result<OperationResult<SystemDiscoveryData>, String> {
+pub fn m01_system_discover(op_id: String) -> Result<OperationResult<SystemDiscoveryData>, String> {
     let started_at = Utc::now().to_rfc3339();
     let timer = Instant::now();
 
@@ -68,8 +66,16 @@ try { $tpmPresent = (Get-Tpm).TpmPresent } catch {}
                 duration_ms: Some(timer.elapsed().as_millis() as u64),
                 requires_restart: false,
                 exit_code: output.status.code(),
-                stdout: if stdout.is_empty() { None } else { Some(stdout) },
-                stderr: if stderr.is_empty() { None } else { Some(stderr) },
+                stdout: if stdout.is_empty() {
+                    None
+                } else {
+                    Some(stdout)
+                },
+                stderr: if stderr.is_empty() {
+                    None
+                } else {
+                    Some(stderr)
+                },
                 summary_en: "Windows system discovery failed.".into(),
                 summary_ar: "فشل اكتشاف معلومات نظام ويندوز.".into(),
                 warnings: Vec::new(),
@@ -91,8 +97,13 @@ try { $tpmPresent = (Get-Tpm).TpmPresent } catch {}
             requires_restart: false,
             exit_code: output.status.code(),
             stdout: Some(stdout),
-            stderr: if stderr.is_empty() { None } else { Some(stderr) },
-            summary_en: "Windows system information was read from CIM and security providers.".into(),
+            stderr: if stderr.is_empty() {
+                None
+            } else {
+                Some(stderr)
+            },
+            summary_en: "Windows system information was read from CIM and security providers."
+                .into(),
             summary_ar: "تمت قراءة معلومات ويندوز من CIM ومصادر الأمان المحلية.".into(),
             warnings: Vec::new(),
             error_code: None,

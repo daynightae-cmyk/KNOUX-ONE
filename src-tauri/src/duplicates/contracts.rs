@@ -19,10 +19,18 @@ pub struct DuplicateScanRequest {
     pub max_workers: usize,
 }
 
-fn default_true() -> bool { true }
-fn default_min_size() -> u64 { 1_024 }
-fn default_similarity_threshold() -> f32 { 90.0 }
-fn default_workers() -> usize { 4 }
+fn default_true() -> bool {
+    true
+}
+fn default_min_size() -> u64 {
+    1_024
+}
+fn default_similarity_threshold() -> f32 {
+    90.0
+}
+fn default_workers() -> usize {
+    4
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -124,7 +132,10 @@ pub struct KeeperRuleConfig {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct KeeperPlanRequest { pub groups: Vec<DuplicateGroup>, pub rules: KeeperRuleConfig }
+pub struct KeeperPlanRequest {
+    pub groups: Vec<DuplicateGroup>,
+    pub rules: KeeperRuleConfig,
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -140,7 +151,10 @@ pub struct KeeperGroupPlan {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct KeeperPlanResult { pub plans: Vec<KeeperGroupPlan>, pub blocked_group_ids: Vec<String> }
+pub struct KeeperPlanResult {
+    pub plans: Vec<KeeperGroupPlan>,
+    pub blocked_group_ids: Vec<String>,
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -155,7 +169,12 @@ pub struct QuarantineInput {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
-pub enum RestoreConflictMode { Fail, Rename, Replace, Choose }
+pub enum RestoreConflictMode {
+    Fail,
+    Rename,
+    Replace,
+    Choose,
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", tag = "action")]
@@ -163,9 +182,16 @@ pub enum QuarantineRequest {
     #[serde(rename = "quarantine")]
     Quarantine { items: Vec<QuarantineInput> },
     #[serde(rename = "restore")]
-    Restore { quarantine_id: String, conflict_mode: RestoreConflictMode, destination: Option<String> },
+    Restore {
+        quarantine_id: String,
+        conflict_mode: RestoreConflictMode,
+        destination: Option<String>,
+    },
     #[serde(rename = "purge")]
-    Purge { quarantine_id: String, confirmation: String },
+    Purge {
+        quarantine_id: String,
+        confirmation: String,
+    },
     #[serde(rename = "list")]
     List,
     #[serde(rename = "verify")]
@@ -197,20 +223,44 @@ pub struct QuarantineRecord {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct QuarantineActionResult { pub records: Vec<QuarantineRecord>, #[serde(default)] pub warnings: Vec<String> }
+pub struct QuarantineActionResult {
+    pub records: Vec<QuarantineRecord>,
+    #[serde(default)]
+    pub warnings: Vec<String>,
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct FolderComparisonRequest { pub paths: Vec<String>, #[serde(default)] pub excluded_paths: Vec<String> }
+pub struct FolderComparisonRequest {
+    pub paths: Vec<String>,
+    #[serde(default)]
+    pub excluded_paths: Vec<String>,
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct FolderDigest { pub path: String, pub digest: String, pub file_count: u64, pub total_bytes: u64, pub entries: Vec<String> }
+pub struct FolderDigest {
+    pub path: String,
+    pub digest: String,
+    pub file_count: u64,
+    pub total_bytes: u64,
+    pub entries: Vec<String>,
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct FolderComparison { pub left_path: String, pub right_path: String, pub classification: String, pub common_entries: u64, pub left_only_entries: u64, pub right_only_entries: u64 }
+pub struct FolderComparison {
+    pub left_path: String,
+    pub right_path: String,
+    pub classification: String,
+    pub common_entries: u64,
+    pub left_only_entries: u64,
+    pub right_only_entries: u64,
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct FolderComparisonResult { pub folders: Vec<FolderDigest>, pub comparisons: Vec<FolderComparison> }
+pub struct FolderComparisonResult {
+    pub folders: Vec<FolderDigest>,
+    pub comparisons: Vec<FolderComparison>,
+}

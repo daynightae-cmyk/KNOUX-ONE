@@ -1,19 +1,27 @@
 use crate::duplicates::errors::DuplicateError;
-use std::{fs::{self, File}, io::{Read, Seek, SeekFrom}, path::Path};
+use std::{
+    fs::{self, File},
+    io::{Read, Seek, SeekFrom},
+    path::Path,
+};
 
 const SAMPLE_SIZE: usize = 64 * 1024;
 const STREAM_BUFFER: usize = 1024 * 1024;
 
 fn read_sample(file: &mut File, offset: u64, length: usize) -> Result<Vec<u8>, DuplicateError> {
-    file.seek(SeekFrom::Start(offset)).map_err(|error| DuplicateError::HashReadFailed(error.to_string()))?;
+    file.seek(SeekFrom::Start(offset))
+        .map_err(|error| DuplicateError::HashReadFailed(error.to_string()))?;
     let mut buffer = vec![0u8; length];
-    let read = file.read(&mut buffer).map_err(|error| DuplicateError::HashReadFailed(error.to_string()))?;
+    let read = file
+        .read(&mut buffer)
+        .map_err(|error| DuplicateError::HashReadFailed(error.to_string()))?;
     buffer.truncate(read);
     Ok(buffer)
 }
 
 pub fn partial_blake3(path: &Path, size: u64) -> Result<String, DuplicateError> {
-    let mut file = File::open(path).map_err(|error| DuplicateError::FileLocked(format!("{}: {error}", path.display())))?;
+    let mut file = File::open(path)
+        .map_err(|error| DuplicateError::FileLocked(format!("{}: {error}", path.display())))?;
     let sample = SAMPLE_SIZE.min(size as usize);
     let middle = size.saturating_sub(sample as u64) / 2;
     let end = size.saturating_sub(sample as u64);
@@ -28,12 +36,17 @@ pub fn partial_blake3(path: &Path, size: u64) -> Result<String, DuplicateError> 
 }
 
 pub fn full_blake3(path: &Path) -> Result<String, DuplicateError> {
-    let mut file = File::open(path).map_err(|error| DuplicateError::FileLocked(format!("{}: {error}", path.display())))?;
+    let mut file = File::open(path)
+        .map_err(|error| DuplicateError::FileLocked(format!("{}: {error}", path.display())))?;
     let mut hasher = blake3::Hasher::new();
     let mut buffer = vec![0u8; STREAM_BUFFER];
     loop {
-        let read = file.read(&mut buffer).map_err(|error| DuplicateError::HashReadFailed(format!("{}: {error}", path.display())))?;
-        if read == 0 { break; }
+        let read = file.read(&mut buffer).map_err(|error| {
+            DuplicateError::HashReadFailed(format!("{}: {error}", path.display()))
+        })?;
+        if read == 0 {
+            break;
+        }
         hasher.update(&buffer[..read]);
     }
     Ok(hasher.finalize().to_hex().to_string())
@@ -41,21 +54,32 @@ pub fn full_blake3(path: &Path) -> Result<String, DuplicateError> {
 
 pub fn sha256(path: &Path) -> Result<String, DuplicateError> {
     use sha2::{Digest, Sha256};
-    let mut file = File::open(path).map_err(|error| DuplicateError::FileLocked(format!("{}: {error}", path.display())))?;
+    let mut file = File::open(path)
+        .map_err(|error| DuplicateError::FileLocked(format!("{}: {error}", path.display())))?;
     let mut hasher = Sha256::new();
     let mut buffer = vec![0u8; STREAM_BUFFER];
     loop {
-        let read = file.read(&mut buffer).map_err(|error| DuplicateError::HashReadFailed(format!("{}: {error}", path.display())))?;
-        if read == 0 { break; }
+        let read = file.read(&mut buffer).map_err(|error| {
+            DuplicateError::HashReadFailed(format!("{}: {error}", path.display()))
+        })?;
+        if read == 0 {
+            break;
+        }
         hasher.update(&buffer[..read]);
     }
     Ok(hex::encode(hasher.finalize()))
 }
 
-pub fn verify_unchanged(path: &Path, size_before: u64, modified_before: Option<std::time::SystemTime>) -> Result<(), DuplicateError> {
+pub fn verify_unchanged(
+    path: &Path,
+    size_before: u64,
+    modified_before: Option<std::time::SystemTime>,
+) -> Result<(), DuplicateError> {
     let metadata = fs::metadata(path)?;
     if metadata.len() != size_before || metadata.modified().ok() != modified_before {
-        return Err(DuplicateError::FileChangedDuringScan(path.display().to_string()));
+        return Err(DuplicateError::FileChangedDuringScan(
+            path.display().to_string(),
+        ));
     }
     Ok(())
 }
@@ -73,7 +97,10 @@ mod tests {
         fs::write(&left, b"KNOUX duplicate engine test payload").expect("left");
         fs::copy(&left, &right).expect("copy");
         assert_eq!(full_blake3(&left).unwrap(), full_blake3(&right).unwrap());
-        assert_eq!(partial_blake3(&left, fs::metadata(&left).unwrap().len()).unwrap(), partial_blake3(&right, fs::metadata(&right).unwrap().len()).unwrap());
+        assert_eq!(
+            partial_blake3(&left, fs::metadata(&left).unwrap().len()).unwrap(),
+            partial_blake3(&right, fs::metadata(&right).unwrap().len()).unwrap()
+        );
     }
 
     #[test]

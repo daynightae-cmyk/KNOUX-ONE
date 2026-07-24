@@ -4,12 +4,24 @@ use std::{collections::HashSet, process::Command, time::Instant};
 
 fn allowed_package_ids() -> HashSet<&'static str> {
     [
-        "Google.Chrome", "Mozilla.Firefox", "Brave.Brave", "7zip.7zip",
-        "Microsoft.PowerToys", "voidtools.Everything", "Notepad++.Notepad++",
-        "Telegram.TelegramDesktop", "WhatsApp.WhatsApp", "Discord.Discord",
-        "VideoLAN.VLC", "Spotify.Spotify", "Microsoft.VisualStudioCode",
-        "Git.Git", "OpenJS.NodeJS.LTS", "Python.Python.3.12",
-        "Microsoft.WindowsTerminal", "Figma.Figma",
+        "Google.Chrome",
+        "Mozilla.Firefox",
+        "Brave.Brave",
+        "7zip.7zip",
+        "Microsoft.PowerToys",
+        "voidtools.Everything",
+        "Notepad++.Notepad++",
+        "Telegram.TelegramDesktop",
+        "WhatsApp.WhatsApp",
+        "Discord.Discord",
+        "VideoLAN.VLC",
+        "Spotify.Spotify",
+        "Microsoft.VisualStudioCode",
+        "Git.Git",
+        "OpenJS.NodeJS.LTS",
+        "Python.Python.3.12",
+        "Microsoft.WindowsTerminal",
+        "Figma.Figma",
     ]
     .into_iter()
     .collect()
@@ -71,11 +83,27 @@ pub fn m01_winget_verify(op_id: String) -> Result<OperationResult<String>, Strin
             requires_restart: false,
             exit_code: output.status.code(),
             stdout: Some(format!("path={resolved_path}\nversion={version}")),
-            stderr: if stderr.is_empty() { None } else { Some(stderr) },
-            summary_en: if success { format!("Winget {version} verified at {resolved_path}.") } else { "Winget version verification failed.".into() },
-            summary_ar: if success { format!("تم التحقق من Winget {version} في {resolved_path}.") } else { "فشل التحقق من إصدار Winget.".into() },
+            stderr: if stderr.is_empty() {
+                None
+            } else {
+                Some(stderr)
+            },
+            summary_en: if success {
+                format!("Winget {version} verified at {resolved_path}.")
+            } else {
+                "Winget version verification failed.".into()
+            },
+            summary_ar: if success {
+                format!("تم التحقق من Winget {version} في {resolved_path}.")
+            } else {
+                "فشل التحقق من إصدار Winget.".into()
+            },
             warnings: Vec::new(),
-            error_code: if success { None } else { Some("winget_version_failed".into()) },
+            error_code: if success {
+                None
+            } else {
+                Some("winget_version_failed".into())
+            },
             data: if success { Some(version) } else { None },
         })
     }
@@ -124,7 +152,9 @@ pub fn m01_winget_install(
             exit_code: Some(1),
             stdout: None,
             stderr: Some(format!("Package is not allowlisted: {package_id}")),
-            summary_en: "Installation was blocked because the package ID is not in the curated manifest.".into(),
+            summary_en:
+                "Installation was blocked because the package ID is not in the curated manifest."
+                    .into(),
             summary_ar: "تم منع التثبيت لأن معرف الحزمة غير موجود في القائمة المعتمدة.".into(),
             warnings: Vec::new(),
             error_code: Some("package_not_allowlisted".into()),
@@ -136,8 +166,13 @@ pub fn m01_winget_install(
     {
         let install = Command::new("winget.exe")
             .args([
-                "install", "--id", &package_id, "--exact", "--silent",
-                "--disable-interactivity", "--accept-package-agreements",
+                "install",
+                "--id",
+                &package_id,
+                "--exact",
+                "--silent",
+                "--disable-interactivity",
+                "--accept-package-agreements",
                 "--accept-source-agreements",
             ])
             .output()
@@ -167,35 +202,67 @@ pub fn m01_winget_install(
 
         let verify = Command::new("winget.exe")
             .args([
-                "list", "--id", &package_id, "--exact",
-                "--disable-interactivity", "--accept-source-agreements",
+                "list",
+                "--id",
+                &package_id,
+                "--exact",
+                "--disable-interactivity",
+                "--accept-source-agreements",
             ])
             .output()
             .map_err(|error| format!("winget_post_verify_launch_failed: {error}"))?;
         let verify_stdout = String::from_utf8_lossy(&verify.stdout).into_owned();
         let verified = verify.status.success()
-            && verify_stdout.to_lowercase().contains(&package_id.to_lowercase());
+            && verify_stdout
+                .to_lowercase()
+                .contains(&package_id.to_lowercase());
         let mut warnings = Vec::new();
         if !verified {
-            warnings.push("Winget exited successfully, but post-install verification was inconclusive.".into());
+            warnings.push(
+                "Winget exited successfully, but post-install verification was inconclusive."
+                    .into(),
+            );
         }
 
         Ok(OperationResult {
             operation_id: op_id,
             capability_id: "m01_s05".into(),
             handler_id: "m01.winget.install".into(),
-            status: if verified { "completed" } else { "completed_with_warnings" }.into(),
+            status: if verified {
+                "completed"
+            } else {
+                "completed_with_warnings"
+            }
+            .into(),
             started_at,
             completed_at: Some(Utc::now().to_rfc3339()),
             duration_ms: Some(timer.elapsed().as_millis() as u64),
             requires_restart: install_stdout.to_lowercase().contains("restart"),
             exit_code: install.status.code(),
-            stdout: Some(format!("{install_stdout}\n--- post verification ---\n{verify_stdout}")),
-            stderr: if install_stderr.trim().is_empty() { None } else { Some(install_stderr) },
-            summary_en: if verified { format!("{package_id} was installed and verified.") } else { format!("{package_id} installation completed, but verification requires review.") },
-            summary_ar: if verified { format!("تم تثبيت {package_id} والتحقق منه.") } else { format!("اكتمل تثبيت {package_id} لكن نتيجة التحقق تحتاج إلى مراجعة.") },
+            stdout: Some(format!(
+                "{install_stdout}\n--- post verification ---\n{verify_stdout}"
+            )),
+            stderr: if install_stderr.trim().is_empty() {
+                None
+            } else {
+                Some(install_stderr)
+            },
+            summary_en: if verified {
+                format!("{package_id} was installed and verified.")
+            } else {
+                format!("{package_id} installation completed, but verification requires review.")
+            },
+            summary_ar: if verified {
+                format!("تم تثبيت {package_id} والتحقق منه.")
+            } else {
+                format!("اكتمل تثبيت {package_id} لكن نتيجة التحقق تحتاج إلى مراجعة.")
+            },
             warnings,
-            error_code: if verified { None } else { Some("post_install_verification_inconclusive".into()) },
+            error_code: if verified {
+                None
+            } else {
+                Some("post_install_verification_inconclusive".into())
+            },
             data: Some(package_id),
         })
     }

@@ -20,7 +20,9 @@ pub fn open(app: &AppHandle) -> Result<Connection, String> {
         .busy_timeout(std::time::Duration::from_secs(5))
         .map_err(|error| format!("database_busy_timeout_failed: {error}"))?;
     connection
-        .execute_batch("PRAGMA foreign_keys = ON; PRAGMA journal_mode = WAL; PRAGMA synchronous = FULL;")
+        .execute_batch(
+            "PRAGMA foreign_keys = ON; PRAGMA journal_mode = WAL; PRAGMA synchronous = FULL;",
+        )
         .map_err(|error| format!("database_pragma_failed: {error}"))?;
     migrate(&connection)?;
     Ok(connection)
