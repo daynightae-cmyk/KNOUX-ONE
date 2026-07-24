@@ -1,352 +1,39 @@
-/**
- * KNOUX ONE — Module 03 Duplicate Control Store
- */
-import { useState, useCallback, useEffect } from 'react';
-import {
-  DuplicateScanConfig,
-  DuplicateGroup,
-  KeeperRuleConfig,
-  QuarantineRecord,
-  DuplicateScanSummary,
-  DuplicateFileItem
-} from './duplicateContracts';
+/** KNOUX ONE — Module 03 Duplicate Control Store. Native-backed only. */
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { listen, type UnlistenFn } from '@tauri-apps/api/event';
+import type { DuplicateGroup, DuplicateJobProgress, DuplicateRuntimeState, DuplicateScanConfig, DuplicateScanResult, DuplicateScanSummary, DuplicateStoreError, FolderComparisonResult, KeeperPlanResult, KeeperRuleConfig, QuarantineActionResult, QuarantineRecord } from './duplicateContracts';
 import { NativeClient } from '../../services/nativeClient';
 
-const DEFAULT_CONFIG: DuplicateScanConfig = {
-  targetPaths: ['C:\\Users\\User\\Downloads', 'C:\\Users\\User\\Documents', 'C:\\Users\\User\\Pictures'],
-  excludedPaths: ['C:\\Windows', 'C:\\Program Files'],
-  minSizeBytes: 1024, // 1 KB
-  scanMode: 'exact_blake3',
-  includeSubfolders: true,
-  perceptualSimilarityThreshold: 90,
+const PROTECTED_EXCLUSIONS = ['C:\\Windows','C:\\Program Files','C:\\Program Files (x86)','C:\\ProgramData','C:\\System Volume Information','C:\\$Recycle.Bin'];
+const DEFAULT_CONFIG: DuplicateScanConfig = { targetPaths:[], excludedPaths:PROTECTED_EXCLUSIONS, minSizeBytes:1024, scanMode:'exact_blake3', includeSubfolders:true, perceptualSimilarityThreshold:90, extensions:[], maxWorkers:4 };
+const DEFAULT_KEEPER_RULES: KeeperRuleConfig = { preferDate:'oldest', preferPath:'shortest', preferResolution:'highest', protectedPaths:PROTECTED_EXCLUSIONS, autoSelectNonKeepers:true };
+const MODE_HANDLERS: Record<DuplicateScanConfig['scanMode'], {capabilityId:string;handlerId:string}> = {
+  exact_blake3:{capabilityId:'m03_s01',handlerId:'m03.scan.exact'}, fast_partial:{capabilityId:'m03_s02',handlerId:'m03.scan.fast'}, similar_images:{capabilityId:'m03_s03',handlerId:'m03.scan.images'}, video_streams:{capabilityId:'m03_s04',handlerId:'m03.scan.videos'}, audio_fingerprint:{capabilityId:'m03_s05',handlerId:'m03.scan.audio'}, documents:{capabilityId:'m03_s06',handlerId:'m03.scan.documents'}, archives:{capabilityId:'m03_s07',handlerId:'m03.scan.archives'}, folder_structures:{capabilityId:'m03_s08',handlerId:'m03.scan.folders'},
 };
+const EMPTY_PROGRESS: DuplicateJobProgress = { jobId:'', operationId:'', phase:'idle', mode:'indeterminate', scannedFiles:0, scannedBytes:0, candidateGroups:0, verifiedGroups:0, errors:0, canPause:false, canCancel:false };
 
-const DEFAULT_KEEPER_RULES: KeeperRuleConfig = {
-  preferDate: 'oldest',
-  preferPath: 'shortest',
-  preferResolution: 'highest',
-  autoSelectNonKeepers: true,
-};
+function runtimeState(): DuplicateRuntimeState { const runtime=NativeClient.getRuntimeState(); return {available:runtime.available,messageEn:runtime.available?'KNOUX ONE Desktop runtime is connected.':runtime.reasonEn??'Desktop runtime unavailable.',messageAr:runtime.available?'بيئة KNOUX ONE Desktop متصلة.':runtime.reasonAr??'بيئة سطح المكتب غير متاحة.'}; }
+function toBackendRequest(config:DuplicateScanConfig){return{paths:config.targetPaths,excludedPaths:config.excludedPaths,minSizeBytes:config.minSizeBytes,maxSizeBytes:config.maxSizeBytes,includeSubfolders:config.includeSubfolders,similarityThreshold:config.perceptualSimilarityThreshold,extensions:config.extensions,maxWorkers:config.maxWorkers};}
+function hydrateGroups(groups:DuplicateGroup[]):DuplicateGroup[]{return groups.map(group=>({...group,warnings:group.warnings??[],files:group.files.map(file=>({...file,dimensions:file.width&&file.height?{width:file.width,height:file.height}:file.dimensions,isKeeper:false,selectedForQuarantine:false}))}));}
 
-export function useDuplicateStore() {
-  const [scanConfig, setScanConfig] = useState<DuplicateScanConfig>(DEFAULT_CONFIG);
-  const [keeperRules, setKeeperRules] = useState<KeeperRuleConfig>(DEFAULT_KEEPER_RULES);
-  const [isScanning, setIsScanning] = useState(false);
-  const [scanProgress, setScanProgress] = useState<{
-    percent: number;
-    scannedFiles: number;
-    scannedBytes: number;
-    currentPath: string;
-    groupsFound: number;
-  }>({
-    percent: 0,
-    scannedFiles: 0,
-    scannedBytes: 0,
-    currentPath: '',
-    groupsFound: 0,
-  });
-
-  const [duplicateGroups, setDuplicateGroups] = useState<DuplicateGroup[]>([]);
-  const [quarantineRecords, setQuarantineRecords] = useState<QuarantineRecord[]>([]);
-  const [scanHistory, setScanHistory] = useState<DuplicateScanSummary[]>([]);
-  const [activeTab, setActiveTab] = useState<'setup' | 'results' | 'compare' | 'quarantine' | 'keeper' | 'history'>('setup');
-  const [selectedGroupForCompare, setSelectedGroupForCompare] = useState<DuplicateGroup | null>(null);
-
-  // Apply keeper rules to duplicate groups
-  const applyKeeperRules = useCallback((groups: DuplicateGroup[], rules: KeeperRuleConfig): DuplicateGroup[] => {
-    return groups.map(group => {
-      // Sort files to find the keeper based on rules
-      const sorted = [...group.files].sort((a, b) => {
-        // Rule 1: Prefer date
-        if (rules.preferDate === 'oldest') {
-          const dateA = new Date(a.createdTime).getTime();
-          const dateB = new Date(b.createdTime).getTime();
-          if (dateA !== dateB) return dateA - dateB;
-        } else if (rules.preferDate === 'newest') {
-          const dateA = new Date(a.modifiedTime).getTime();
-          const dateB = new Date(b.modifiedTime).getTime();
-          if (dateA !== dateB) return dateB - dateA;
-        }
-
-        // Rule 2: Prefer path depth
-        if (rules.preferPath === 'shortest') {
-          const depthA = a.path.split(/[/\\]/).length;
-          const depthB = b.path.split(/[/\\]/).length;
-          if (depthA !== depthB) return depthA - depthB;
-        }
-
-        return 0;
-      });
-
-      const keeperId = sorted[0]?.id;
-
-      const updatedFiles = group.files.map(file => {
-        const isKeeper = file.id === keeperId;
-        return {
-          ...file,
-          isKeeper,
-          keeperReason: isKeeper
-            ? `Original keeper selected by rule (${rules.preferDate} date, ${rules.preferPath} path)`
-            : undefined,
-          selectedForQuarantine: rules.autoSelectNonKeepers ? !isKeeper : file.selectedForQuarantine,
-        };
-      });
-
-      return {
-        ...group,
-        files: updatedFiles,
-      };
-    });
-  }, []);
-
-  // Run scan
-  const startScan = useCallback(async () => {
-    setIsScanning(true);
-    setScanProgress({ percent: 0, scannedFiles: 0, scannedBytes: 0, currentPath: 'Initializing scan...', groupsFound: 0 });
-
-    const startedAt = new Date().toISOString();
-
-    if (NativeClient.isTauriAvailable()) {
-      try {
-        const result = await NativeClient.executeModule01Capability('m03_s01', 'm03.scan.exact', {
-          paths: scanConfig.targetPaths,
-          mode: scanConfig.scanMode,
-        });
-
-        if (result.status === 'completed' && result.data?.groups) {
-          const rawGroups: DuplicateGroup[] = result.data.groups;
-          const formatted = applyKeeperRules(rawGroups, keeperRules);
-          setDuplicateGroups(formatted);
-          setActiveTab('results');
-        } else {
-          // If native returns empty or unavailable
-          setDuplicateGroups([]);
-        }
-      } catch (err) {
-        console.error('Scan error:', err);
-      } finally {
-        setIsScanning(false);
-      }
-    } else {
-      // In web preview mode, return native unavailable status or present sample results
-      setIsScanning(false);
-      // Populate realistic preview data for web evaluation
-      const mockGroups: DuplicateGroup[] = [
-        {
-          groupId: 'grp_01',
-          mode: scanConfig.scanMode,
-          category: 'images',
-          wastedSizeBytes: 14200000,
-          commonHash: 'b3_8f9a2b1c4e7d8f9a',
-          files: [
-            {
-              id: 'f1_1',
-              path: 'C:\\Users\\User\\Downloads\\Project_Architecture_Diagram.png',
-              name: 'Project_Architecture_Diagram.png',
-              extension: 'png',
-              sizeBytes: 14200000,
-              modifiedTime: '2026-07-20T14:30:00Z',
-              createdTime: '2026-07-20T14:30:00Z',
-              hash: 'b3_8f9a2b1c4e7d8f9a',
-              mimeType: 'image/png',
-              dimensions: { width: 3840, height: 2160 },
-              isKeeper: true,
-              keeperReason: 'Selected as original keeper (Shortest path)',
-              selectedForQuarantine: false,
-            },
-            {
-              id: 'f1_2',
-              path: 'C:\\Users\\User\\Documents\\Backups\\Project_Architecture_Diagram (1).png',
-              name: 'Project_Architecture_Diagram (1).png',
-              extension: 'png',
-              sizeBytes: 14200000,
-              modifiedTime: '2026-07-22T09:15:00Z',
-              createdTime: '2026-07-22T09:15:00Z',
-              hash: 'b3_8f9a2b1c4e7d8f9a',
-              mimeType: 'image/png',
-              dimensions: { width: 3840, height: 2160 },
-              isKeeper: false,
-              selectedForQuarantine: true,
-            },
-          ],
-        },
-        {
-          groupId: 'grp_02',
-          mode: scanConfig.scanMode,
-          category: 'documents',
-          wastedSizeBytes: 8400000,
-          commonHash: 'b3_4c2d1e0f9a8b7c6d',
-          files: [
-            {
-              id: 'f2_1',
-              path: 'C:\\Users\\User\\Documents\\Financial_Report_Q2_2026.pdf',
-              name: 'Financial_Report_Q2_2026.pdf',
-              extension: 'pdf',
-              sizeBytes: 8400000,
-              modifiedTime: '2026-06-30T16:00:00Z',
-              createdTime: '2026-06-30T16:00:00Z',
-              hash: 'b3_4c2d1e0f9a8b7c6d',
-              mimeType: 'application/pdf',
-              isKeeper: true,
-              keeperReason: 'Original file in primary Documents folder',
-              selectedForQuarantine: false,
-            },
-            {
-              id: 'f2_2',
-              path: 'C:\\Users\\User\\Downloads\\Financial_Report_Q2_2026_copy.pdf',
-              name: 'Financial_Report_Q2_2026_copy.pdf',
-              extension: 'pdf',
-              sizeBytes: 8400000,
-              modifiedTime: '2026-07-05T11:20:00Z',
-              createdTime: '2026-07-05T11:20:00Z',
-              hash: 'b3_4c2d1e0f9a8b7c6d',
-              mimeType: 'application/pdf',
-              isKeeper: false,
-              selectedForQuarantine: true,
-            },
-          ],
-        },
-      ];
-
-      setDuplicateGroups(mockGroups);
-      setActiveTab('results');
-
-      const summary: DuplicateScanSummary = {
-        scanId: `scan_${Date.now()}`,
-        startedAt,
-        completedAt: new Date().toISOString(),
-        targetFolders: scanConfig.targetPaths,
-        totalFilesScanned: 1420,
-        totalBytesScanned: 5200000000,
-        duplicateGroupsFound: mockGroups.length,
-        duplicateFilesFound: mockGroups.reduce((acc, g) => acc + g.files.length, 0),
-        totalWastedBytes: mockGroups.reduce((acc, g) => acc + g.wastedSizeBytes, 0),
-        scanMode: scanConfig.scanMode,
-      };
-
-      setScanHistory(prev => [summary, ...prev]);
-    }
-  }, [scanConfig, keeperRules, applyKeeperRules]);
-
-  // Toggle selection for a file item
-  const toggleFileSelection = useCallback((groupId: string, fileId: string) => {
-    setDuplicateGroups(prev =>
-      prev.map(group => {
-        if (group.groupId !== groupId) return group;
-        return {
-          ...group,
-          files: group.files.map(f => (f.id === fileId ? { ...f, selectedForQuarantine: !f.selectedForQuarantine } : f)),
-        };
-      })
-    );
-  }, []);
-
-  // Move selected to quarantine
-  const quarantineSelectedFiles = useCallback(async () => {
-    const filesToQuarantine: { group: DuplicateGroup; file: DuplicateFileItem }[] = [];
-
-    duplicateGroups.forEach(g => {
-      g.files.forEach(f => {
-        if (f.selectedForQuarantine && !f.isKeeper) {
-          filesToQuarantine.push({ group: g, file: f });
-        }
-      });
-    });
-
-    if (filesToQuarantine.length === 0) return;
-
-    if (NativeClient.isTauriAvailable()) {
-      try {
-        await NativeClient.executeModule01Capability('m03_s10', 'm03.quarantine.manage', {
-          action: 'quarantine',
-          files: filesToQuarantine.map(item => item.file.path),
-        });
-      } catch (err) {
-        console.error('Quarantine execution error:', err);
-      }
-    }
-
-    const newQuarantineRecords: QuarantineRecord[] = filesToQuarantine.map(item => ({
-      quarantineId: `q_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
-      originalPath: item.file.path,
-      quarantinePath: `C:\\KNOUX\\Quarantine\\${item.file.name}`,
-      fileName: item.file.name,
-      sizeBytes: item.file.sizeBytes,
-      quarantinedAt: new Date().toISOString(),
-      hash: item.file.hash,
-      status: 'quarantined',
-    }));
-
-    setQuarantineRecords(prev => [...newQuarantineRecords, ...prev]);
-
-    // Remove quarantined files from result groups
-    setDuplicateGroups(prev =>
-      prev
-        .map(group => ({
-          ...group,
-          files: group.files.filter(f => !f.selectedForQuarantine || f.isKeeper),
-        }))
-        .filter(group => group.files.length > 1)
-    );
-  }, [duplicateGroups]);
-
-  // Restore item from quarantine
-  const restoreQuarantinedItem = useCallback(async (quarantineId: string) => {
-    const item = quarantineRecords.find(q => q.quarantineId === quarantineId);
-    if (!item) return;
-
-    if (NativeClient.isTauriAvailable()) {
-      try {
-        await NativeClient.executeModule01Capability('m03_s10', 'm03.quarantine.manage', {
-          action: 'restore',
-          quarantineId,
-        });
-      } catch (err) {
-        console.error('Restore error:', err);
-      }
-    }
-
-    setQuarantineRecords(prev =>
-      prev.map(q => (q.quarantineId === quarantineId ? { ...q, status: 'restored' as const } : q))
-    );
-  }, [quarantineRecords]);
-
-  // Purge item permanently
-  const purgeQuarantinedItem = useCallback(async (quarantineId: string) => {
-    if (NativeClient.isTauriAvailable()) {
-      try {
-        await NativeClient.executeModule01Capability('m03_s10', 'm03.quarantine.manage', {
-          action: 'purge',
-          quarantineId,
-        });
-      } catch (err) {
-        console.error('Purge error:', err);
-      }
-    }
-
-    setQuarantineRecords(prev =>
-      prev.map(q => (q.quarantineId === quarantineId ? { ...q, status: 'purged' as const } : q))
-    );
-  }, []);
-
-  return {
-    scanConfig,
-    setScanConfig,
-    keeperRules,
-    setKeeperRules,
-    isScanning,
-    scanProgress,
-    duplicateGroups,
-    quarantineRecords,
-    scanHistory,
-    activeTab,
-    setActiveTab,
-    selectedGroupForCompare,
-    setSelectedGroupForCompare,
-    startScan,
-    toggleFileSelection,
-    quarantineSelectedFiles,
-    restoreQuarantinedItem,
-    purgeQuarantinedItem,
-  };
+export function useDuplicateStore(){
+ const [scanConfig,setScanConfig]=useState<DuplicateScanConfig>(DEFAULT_CONFIG); const [keeperRules,setKeeperRules]=useState<KeeperRuleConfig>(DEFAULT_KEEPER_RULES); const [isScanning,setIsScanning]=useState(false); const [isPaused,setIsPaused]=useState(false); const [scanProgress,setScanProgress]=useState<DuplicateJobProgress>(EMPTY_PROGRESS); const [duplicateGroups,setDuplicateGroups]=useState<DuplicateGroup[]>([]); const [quarantineRecords,setQuarantineRecords]=useState<QuarantineRecord[]>([]); const [scanHistory,setScanHistory]=useState<DuplicateScanSummary[]>([]); const [folderComparison,setFolderComparison]=useState<FolderComparisonResult|null>(null); const [error,setError]=useState<DuplicateStoreError|null>(null); const [activeTab,setActiveTab]=useState<'setup'|'results'|'compare'|'quarantine'|'keeper'|'history'>('setup'); const [selectedGroupForCompare,setSelectedGroupForCompare]=useState<DuplicateGroup|null>(null); const runtime=useMemo(runtimeState,[]);
+ useEffect(()=>{if(!runtime.available)return;let unlisten:UnlistenFn|undefined;void listen<DuplicateJobProgress>('m03://progress',event=>setScanProgress(event.payload)).then(dispose=>{unlisten=dispose;});return()=>{unlisten?.();};},[runtime.available]);
+ const refreshQuarantine=useCallback(async()=>{if(!runtime.available){setQuarantineRecords([]);return;}const result=await NativeClient.executeCapability<QuarantineActionResult>('m03_s10','m03.quarantine.manage',{request:{action:'list'}});if((result.status==='completed'||result.status==='completed_with_warnings')&&result.data)setQuarantineRecords(result.data.records);},[runtime.available]);
+ const refreshHistory=useCallback(async()=>{if(!runtime.available){setScanHistory([]);return;}try{setScanHistory(await NativeClient.invokeHandler<DuplicateScanSummary[]>('m03.scan.history'));}catch(historyError){console.warn('Duplicate scan history unavailable:',historyError);}},[runtime.available]);
+ useEffect(()=>{void refreshQuarantine();void refreshHistory();},[refreshHistory,refreshQuarantine]);
+ const applyKeeperPlan=useCallback(async(groups:DuplicateGroup[])=>{if(!runtime.available||groups.length===0)return groups;const result=await NativeClient.executeCapability<KeeperPlanResult>('m03_s09','m03.keeper.plan',{request:{groups,rules:keeperRules}});if((result.status!=='completed'&&result.status!=='completed_with_warnings')||!result.data)return groups;const planByGroup=new Map(result.data.plans.map(plan=>[plan.groupId,plan]));return groups.map(group=>{const plan=planByGroup.get(group.groupId);if(!plan||plan.blocked)return group;return{...group,files:group.files.map(file=>({...file,isKeeper:file.id===plan.keeperFileId,keeperReason:file.id===plan.keeperFileId?plan.reason:undefined,selectedForQuarantine:plan.selectedFileIds.includes(file.id)}))};});},[keeperRules,runtime.available]);
+ const startScan=useCallback(async()=>{setError(null);setFolderComparison(null);if(!runtime.available){setDuplicateGroups([]);setError({code:'desktop_runtime_unavailable',message:'Desktop runtime unavailable. Open KNOUX ONE Desktop to scan real files.'});return;}if(scanConfig.targetPaths.length===0){setError({code:'invalid_scan_source',message:'Add at least one folder or drive before starting a scan.'});return;}setIsScanning(true);setIsPaused(false);setScanProgress({...EMPTY_PROGRESS,phase:'enumerating',currentPath:scanConfig.targetPaths[0],canPause:true,canCancel:true});const selected=MODE_HANDLERS[scanConfig.scanMode];try{if(scanConfig.scanMode==='folder_structures'){const result=await NativeClient.executeCapability<FolderComparisonResult>(selected.capabilityId,selected.handlerId,{request:{paths:scanConfig.targetPaths,excludedPaths:scanConfig.excludedPaths}});if(result.status==='completed'&&result.data){setFolderComparison(result.data);setDuplicateGroups([]);setActiveTab('results');}else setError({code:result.errorCode??'folder_compare_failed',message:result.summaryEn});return;}const result=await NativeClient.executeCapability<DuplicateScanResult>(selected.capabilityId,selected.handlerId,{request:toBackendRequest(scanConfig)});if((result.status==='completed'||result.status==='completed_with_warnings')&&result.data){const planned=await applyKeeperPlan(hydrateGroups(result.data.groups));setDuplicateGroups(planned);setScanHistory(previous=>[result.data!.summary,...previous.filter(item=>item.scanId!==result.data!.summary.scanId)]);setActiveTab('results');if(result.warnings.length>0)setError({code:'completed_with_warnings',message:result.warnings.join('\n')});}else{setDuplicateGroups([]);setError({code:result.errorCode??'duplicate_scan_failed',message:result.summaryEn});}}catch(scanError){setDuplicateGroups([]);setError({code:'duplicate_scan_failed',message:scanError instanceof Error?scanError.message:String(scanError)});}finally{setIsScanning(false);setIsPaused(false);}},[applyKeeperPlan,runtime.available,scanConfig]);
+ const pauseScan=useCallback(async()=>{if(!scanProgress.jobId)return;await NativeClient.invokeHandler<boolean>('m03.job.pause',{jobId:scanProgress.jobId});setIsPaused(true);},[scanProgress.jobId]);
+ const resumeScan=useCallback(async()=>{if(!scanProgress.jobId)return;await NativeClient.invokeHandler<boolean>('m03.job.resume',{jobId:scanProgress.jobId});setIsPaused(false);},[scanProgress.jobId]);
+ const cancelScan=useCallback(async()=>{if(!scanProgress.jobId)return;await NativeClient.invokeHandler<boolean>('m03.job.cancel',{jobId:scanProgress.jobId});},[scanProgress.jobId]);
+ const selectFolder=useCallback(async()=>{if(!runtime.available){setError({code:'desktop_runtime_unavailable',message:'Folder picker is available only in KNOUX ONE Desktop.'});return null;}const selected=await NativeClient.invokeHandler<string|null>('m03.folder.pick');if(selected)setScanConfig(previous=>({...previous,targetPaths:previous.targetPaths.includes(selected)?previous.targetPaths:[...previous.targetPaths,selected]}));return selected;},[runtime.available]);
+ const reapplyKeeperRules=useCallback(async()=>{if(duplicateGroups.length===0)return;setDuplicateGroups(await applyKeeperPlan(duplicateGroups));},[applyKeeperPlan,duplicateGroups]);
+ const toggleFileSelection=useCallback((groupId:string,fileId:string)=>{setDuplicateGroups(previous=>previous.map(group=>{if(group.groupId!==groupId||!group.actionable)return group;const file=group.files.find(item=>item.id===fileId);if(!file||file.isKeeper||file.protectedPath||file.isHardLinkAlias)return group;return{...group,files:group.files.map(item=>item.id===fileId?{...item,selectedForQuarantine:!item.selectedForQuarantine}:item)};}));},[]);
+ const quarantineSelectedFiles=useCallback(async()=>{setError(null);const items:Array<{groupId:string;originalPath:string;keeperPath:string;expectedHash:string;reason:string;scanSessionId?:string}>=[];for(const group of duplicateGroups){const keeper=group.files.find(file=>file.isKeeper);const selected=group.files.filter(file=>file.selectedForQuarantine);if(selected.length===0)continue;if(!group.actionable||!keeper){setError({code:'keeper_missing',message:`Group ${group.groupId} cannot be quarantined without one verified keeper.`});return;}for(const file of selected){if(file.protectedPath||file.isHardLinkAlias||file.id===keeper.id)continue;items.push({groupId:group.groupId,originalPath:file.canonicalPath,keeperPath:keeper.canonicalPath,expectedHash:file.hash,reason:keeper.keeperReason??'User-approved duplicate quarantine',scanSessionId:scanHistory[0]?.scanId});}}if(items.length===0)return;const result=await NativeClient.executeCapability<QuarantineActionResult>('m03_s10','m03.quarantine.manage',{request:{action:'quarantine',items}});if((result.status==='completed'||result.status==='completed_with_warnings')&&result.data){await refreshQuarantine();const movedPaths=new Set(result.data.records.map(record=>record.originalPath));setDuplicateGroups(previous=>previous.map(group=>({...group,files:group.files.filter(file=>!movedPaths.has(file.canonicalPath))})).filter(group=>group.files.length>1));if(result.data.warnings.length>0)setError({code:'completed_with_warnings',message:result.data.warnings.join('\n')});}else setError({code:result.errorCode??'quarantine_failed',message:result.summaryEn});},[duplicateGroups,refreshQuarantine,scanHistory]);
+ const restoreQuarantinedItem=useCallback(async(quarantineId:string,conflictMode:'fail'|'rename'|'replace'|'choose'='rename',destination:string|null=null)=>{const result=await NativeClient.executeCapability<QuarantineActionResult>('m03_s10','m03.quarantine.manage',{request:{action:'restore',quarantineId,conflictMode,destination}});if((result.status==='completed'||result.status==='completed_with_warnings')&&result.data)await refreshQuarantine();else setError({code:result.errorCode??'restore_failed',message:result.summaryEn});},[refreshQuarantine]);
+ const verifyQuarantinedItem=useCallback(async(quarantineId:string)=>{const result=await NativeClient.executeCapability<QuarantineActionResult>('m03_s10','m03.quarantine.manage',{request:{action:'verify',quarantineId}});if((result.status==='completed'||result.status==='completed_with_warnings')&&result.data)await refreshQuarantine();else setError({code:result.errorCode??'quarantine_verify_failed',message:result.summaryEn});},[refreshQuarantine]);
+ const openHistoryScan=useCallback(async(scanId:string)=>{if(!runtime.available)return;try{const result=await NativeClient.invokeHandler<DuplicateScanResult>('m03.scan.result',{scanId});setDuplicateGroups(await applyKeeperPlan(hydrateGroups(result.groups)));setFolderComparison(null);setActiveTab('results');}catch(historyError){setError({code:'scan_history_open_failed',message:historyError instanceof Error?historyError.message:String(historyError)});}},[applyKeeperPlan,runtime.available]);
+ const purgeQuarantinedItem=useCallback(async(quarantineId:string)=>{const confirmation=window.prompt('Type PURGE to permanently delete this quarantined file. SSD secure deletion cannot be guaranteed.');if(confirmation!=='PURGE')return;const result=await NativeClient.executeCapability<QuarantineActionResult>('m03_s10','m03.quarantine.manage',{request:{action:'purge',quarantineId,confirmation}});if((result.status==='completed'||result.status==='completed_with_warnings')&&result.data)await refreshQuarantine();else setError({code:result.errorCode??'purge_failed',message:result.summaryEn});},[refreshQuarantine]);
+ return{runtime,error,setError,scanConfig,setScanConfig,keeperRules,setKeeperRules,isScanning,isPaused,scanProgress,duplicateGroups,quarantineRecords,scanHistory,folderComparison,activeTab,setActiveTab,selectedGroupForCompare,setSelectedGroupForCompare,startScan,pauseScan,resumeScan,cancelScan,selectFolder,reapplyKeeperRules,toggleFileSelection,quarantineSelectedFiles,restoreQuarantinedItem,verifyQuarantinedItem,purgeQuarantinedItem,openHistoryScan,refreshQuarantine,refreshHistory};
 }
