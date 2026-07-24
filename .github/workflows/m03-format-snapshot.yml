@@ -10,7 +10,7 @@ on:
     branches: [feat/m03-real-duplicate-engine]
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   format:
@@ -20,11 +20,27 @@ jobs:
         working-directory: src-tauri
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'push' && github.ref_name || github.event.pull_request.head.ref }}
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: rustfmt
       - name: Format Rust source
         run: cargo fmt --all
+      - name: Commit formatted Rust source on feature branch
+        if: github.event_name == 'push'
+        shell: bash
+        working-directory: .
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src-tauri/src
+          if git diff --cached --quiet; then
+            echo "Rust source is already formatted."
+          else
+            git commit -m "style(rust): apply cargo fmt"
+            git push origin HEAD:${GITHUB_REF_NAME}
+          fi
       - name: Upload formatted Rust source
         uses: actions/upload-artifact@v4
         with:
