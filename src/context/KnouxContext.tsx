@@ -16,13 +16,7 @@ import {
   SupportTicket,
   RiskLevel
 } from '../types';
-import { 
-  INITIAL_SYSTEM_SPECS, 
-  ESSENTIAL_APPS_CATALOG, 
-  INITIAL_CLEANUP_CATEGORIES, 
-  INITIAL_DUPLICATE_GROUPS, 
-  INITIAL_SUPPORT_TICKETS 
-} from '../data/mockSystemData';
+import { NativeClient } from '../services/nativeClient';
 
 interface ElevationRequest {
   isOpen: boolean;
@@ -78,40 +72,46 @@ interface KnouxContextType {
 
 const KnouxContext = createContext<KnouxContextType | undefined>(undefined);
 
+const INITIAL_UNSCANNED_SPECS: SystemSpecs = {
+  computerName: 'KNOUX Host Device',
+  processor: 'Awaiting Hardware Scan',
+  cpuCores: 0,
+  cpuLoadPercentage: 0,
+  totalRamGB: 0,
+  usedRamGB: 0,
+  ramLoadPercentage: 0,
+  osEdition: 'Windows Host Environment',
+  osVersion: 'Awaiting Scan',
+  osBuild: '-',
+  architecture: 'x64',
+  uptimeHours: 0,
+  uptimeFormatted: '0h',
+  diskTotalGB: 0,
+  diskUsedGB: 0,
+  diskFreeGB: 0,
+  diskHealth: 'Awaiting Scan',
+  networkAdapter: 'Network Adapter',
+  networkSpeedMbps: 0,
+  ipAddress: '127.0.0.1',
+  defenderStatus: false,
+  firewallStatus: false,
+  healthScore: 0
+};
+
 export const KnouxProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [theme, setTheme] = useState<KnouxTheme>('dark');
   const [language, setLanguage] = useState<KnouxLanguage>('en');
   const [currentRoute, setCurrentRoute] = useState<string>('dashboard');
   const [runtimeMode, setRuntimeMode] = useState<KnouxRuntime>('desktop');
 
-  const [systemSpecs, setSystemSpecs] = useState<SystemSpecs>(INITIAL_SYSTEM_SPECS);
-  const [essentialApps, setEssentialApps] = useState<EssentialApp[]>(ESSENTIAL_APPS_CATALOG);
-  const [cleanupCategories, setCleanupCategories] = useState<CleanupCategory[]>(INITIAL_CLEANUP_CATEGORIES);
-  const [duplicateGroups, setDuplicateGroups] = useState<DuplicateGroup[]>(INITIAL_DUPLICATE_GROUPS);
+  const [systemSpecs, setSystemSpecs] = useState<SystemSpecs>(INITIAL_UNSCANNED_SPECS);
+  const [essentialApps, setEssentialApps] = useState<EssentialApp[]>([]);
+  const [cleanupCategories, setCleanupCategories] = useState<CleanupCategory[]>([]);
+  const [duplicateGroups, setDuplicateGroups] = useState<DuplicateGroup[]>([]);
   const [quarantineItems, setQuarantineItems] = useState<QuarantineItem[]>([]);
-  const [supportTickets, setSupportTickets] = useState<SupportTicket[]>(INITIAL_SUPPORT_TICKETS);
+  const [supportTickets, setSupportTickets] = useState<SupportTicket[]>([]);
 
-  const [actionLogs, setActionLogs] = useState<ActionLog[]>([
-    {
-      id: 'log_1',
-      timestamp: 'Today, 09:30 AM',
-      capabilityId: 'm01_s01',
-      capabilityName: 'Smart System Audit',
-      status: 'completed',
-      details: 'System health verified at 92/100. All security components operational.',
-      adminElevated: false
-    },
-    {
-      id: 'log_2',
-      timestamp: 'Yesterday',
-      capabilityId: 'm02_s01',
-      capabilityName: 'Smart Cleanup Preview',
-      status: 'completed',
-      details: 'Identified 2.14 GB reclaimable temporary data safely.',
-      reclaimedSpace: '2.14 GB',
-      adminElevated: false
-    }
-  ]);
+  const [actionLogs, setActionLogs] = useState<ActionLog[]>([]);
 
   const [isScanning, setIsScanning] = useState<boolean>(false);
   const [scanProgress, setScanProgress] = useState<number>(0);
@@ -193,36 +193,28 @@ export const KnouxProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const executeCleanup = async () => {
     setIsScanning(true);
-    setActiveScanTitle(language === 'ar' ? 'تنظيف الملفات المختارة...' : 'Executing Smart Cleanup...');
-    setScanProgress(0);
+    setActiveScanTitle(language === 'ar' ? 'جاري فحص حالة البيئة...' : 'Verifying environment...');
+    setScanProgress(50);
 
-    for (let i = 10; i <= 100; i += 15) {
-      setScanProgress(i);
-      await new Promise(res => setTimeout(res, 180));
+    if (!NativeClient.isTauriAvailable()) {
+      setIsScanning(false);
+      addLog(
+        'm02_s01',
+        'Smart Cleanup',
+        'cancelled',
+        'Desktop runtime unavailable. Launch KNOUX ONE Windows Desktop app to perform native disk operations.'
+      );
+      return;
     }
 
-    // Process selected categories
-    let totalBytesFreed = 0;
-    const selectedCats = cleanupCategories.filter(c => c.selected);
-    selectedCats.forEach(c => { totalBytesFreed += c.sizeBytes; });
-
-    const freedMB = (totalBytesFreed / (1024 * 1024)).toFixed(1);
-    const freedGB = (totalBytesFreed / (1024 * 1024 * 1024)).toFixed(2);
-    const formattedFreed = totalBytesFreed > 1024 * 1024 * 1024 ? `${freedGB} GB` : `${freedMB} MB`;
-
-    // Reset selected categories size
-    setCleanupCategories(prev => prev.map(cat => cat.selected ? { ...cat, fileCount: 0, sizeBytes: 0, sizeFormatted: '0 B', items: [] } : cat));
-
-    // Update disk space
-    setSystemSpecs(prev => ({
-      ...prev,
-      diskFreeGB: Math.min(prev.diskTotalGB, prev.diskFreeGB + parseFloat(freedGB)),
-      diskUsedGB: Math.max(0, prev.diskUsedGB - parseFloat(freedGB))
-    }));
-
-    addLog('m02_s01', 'Smart Cleanup', 'completed', `Safely cleaned ${selectedCats.length} categories. Recycled ${formattedFreed}.`, formattedFreed);
-
-    setIsScanning(false);
+    try {
+      const res = await NativeClient.executeModule01Capability('m02_s01', 'm02.cleanup.execute');
+      setIsScanning(false);
+      addLog('m02_s01', 'Smart Cleanup', res.status === 'completed' ? 'completed' : 'failed', res.summaryEn);
+    } catch (err: any) {
+      setIsScanning(false);
+      addLog('m02_s01', 'Smart Cleanup', 'failed', `Cleanup error: ${err.message || err}`);
+    }
   };
 
   const toggleKeepDuplicateItem = (groupId: string, itemId: string) => {
@@ -277,27 +269,28 @@ export const KnouxProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const runSmartScan = async () => {
     setIsScanning(true);
-    setActiveScanTitle(language === 'ar' ? 'جاري إجراء الفحص الذكي...' : 'Running Smart System Scan...');
-    setScanProgress(0);
+    setActiveScanTitle(language === 'ar' ? 'جاري فحص حالة البيئة...' : 'Verifying environment...');
+    setScanProgress(50);
 
-    const steps = [
-      'Scanning Windows System Integrity...',
-      'Analyzing Temporary Files & Caches...',
-      'Checking Duplicate Hashes (BLAKE3)...',
-      'Auditing Startup Impact & Background Services...',
-      'Verifying Defender & Firewall Protection...'
-    ];
-
-    for (let index = 0; index < steps.length; index++) {
-      setActiveScanTitle(language === 'ar' ? `فحص: ${steps[index]}` : steps[index]);
-      for (let p = index * 20; p <= (index + 1) * 20; p += 5) {
-        setScanProgress(p);
-        await new Promise(res => setTimeout(res, 80));
-      }
+    if (!NativeClient.isTauriAvailable()) {
+      setIsScanning(false);
+      addLog(
+        'm01_s01',
+        'Smart System Audit',
+        'cancelled',
+        'Desktop runtime unavailable in browser mode. Launch KNOUX ONE Windows Desktop app to audit host hardware.'
+      );
+      return;
     }
 
-    setIsScanning(false);
-    addLog('m01_s01', 'Smart System Scan', 'completed', 'Smart scan finished successfully. 0 critical vulnerabilities found.');
+    try {
+      const result = await NativeClient.executeModule01Capability('m01_s01', 'm01.system.discover');
+      setIsScanning(false);
+      addLog('m01_s01', 'Smart System Audit', result.status === 'completed' ? 'completed' : 'failed', result.summaryEn);
+    } catch (err: any) {
+      setIsScanning(false);
+      addLog('m01_s01', 'Smart System Audit', 'failed', `Discovery failed: ${err.message || err}`);
+    }
   };
 
   const requestElevation = (
@@ -316,7 +309,6 @@ export const KnouxProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       reasonAr,
       riskLevel: risk,
       onConfirm: () => {
-        setRuntimeMode('desktop_elevated');
         onConfirm();
         setElevationRequest(prev => ({ ...prev, isOpen: false }));
       }

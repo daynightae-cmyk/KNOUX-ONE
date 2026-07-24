@@ -4,6 +4,7 @@
  */
 
 import { OperationResult } from '../types';
+import { invoke } from '@tauri-apps/api/core';
 
 export interface NativeRuntimeState {
   available: boolean;
@@ -17,7 +18,7 @@ export class NativeClient {
    * Check if running inside real Tauri desktop environment
    */
   static isTauriAvailable(): boolean {
-    return typeof window !== 'undefined' && '__TAURI__' in window;
+    return typeof window !== 'undefined' && '__TAURI_INTERNALS__' in window;
   }
 
   static getRuntimeState(): NativeRuntimeState {
@@ -31,15 +32,12 @@ export class NativeClient {
   }
 
   /**
-   * Safe Tauri invoke helper with typed payload using official @tauri-apps/api/core if available or window.__TAURI__
+   * Safe Tauri invoke helper with typed payload using official @tauri-apps/api/core
    */
   static async invokeNative<T>(cmd: string, args: Record<string, unknown> = {}): Promise<T> {
     if (this.isTauriAvailable()) {
       try {
-        const tauri = (window as Record<string, any>).__TAURI__;
-        if (tauri && tauri.core && typeof tauri.core.invoke === 'function') {
-          return await tauri.core.invoke(cmd, args);
-        }
+        return await invoke<T>(cmd, args);
       } catch (err: any) {
         console.warn(`[Tauri Native Error] ${cmd}:`, err);
         throw err;

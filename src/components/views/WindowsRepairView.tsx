@@ -11,7 +11,7 @@ import { Wrench, ShieldAlert, CheckCircle2 } from 'lucide-react';
 export const WindowsRepairView: React.FC = () => {
   const { t } = useKnoux();
 
-  const repairModule = MODULES_CATALOG.find(m => m.id === 'm09');
+  const repairModule = MODULES_CATALOG.find(m => m.id === 'm07');
   const repairCapabilities = repairModule?.services || [];
 
   return (
@@ -20,8 +20,8 @@ export const WindowsRepairView: React.FC = () => {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-purple-900/40 pb-5">
         <div>
           <div className="inline-flex items-center space-x-2 rtl:space-x-reverse px-2.5 py-0.5 rounded bg-purple-950 border border-purple-800 text-purple-300 text-xs font-mono mb-1">
-            <Wrench className="w-3.5 h-3.5 text-[#8226EE]" />
-            <span>MODULE 09 • WINDOWS REPAIR & SFC/DISM</span>
+            <Wrench className="w-3.5 h-3.5 text-[var(--knoux-primary)]" />
+            <span>MODULE 07 • WINDOWS REPAIR & SFC/DISM</span>
           </div>
           <h1 className="text-2xl font-extrabold text-white">
             {t('Windows Repair & Image Integrity', 'أدوات صيانة وتصحيح نظام ويندوز')}

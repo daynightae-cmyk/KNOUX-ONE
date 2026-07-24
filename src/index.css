@@ -4,47 +4,89 @@
   :root,
   :root.dark,
   :root[data-theme="dark"] {
-    --knoux-bg: #0d0527;
-    --knoux-surface: #151027;
-    --knoux-surface-muted: #1d1633;
-    --knoux-border: #342752;
-    --knoux-text: #fcfaff;
-    --knoux-text-muted: #b9afc9;
-    --knoux-primary: #8226ee;
-    --knoux-primary-hover: #6d18d7;
+    /* Dark Canvas & Glass Tokens (Section 8) */
+    --knoux-canvas: #070a12;
+    --knoux-canvas-violet: #0d0820;
+    --knoux-structural: #111726;
+    --knoux-glass-base: rgba(25, 22, 43, 0.72);
+    --knoux-glass-elevated: rgba(37, 30, 63, 0.78);
+    --knoux-glass-border: rgba(190, 165, 255, 0.12);
+    --knoux-glass-border-strong: rgba(205, 175, 255, 0.22);
 
-    --bg-dark: #0D0527;
-    --panel-dark: #151027;
-    --surface-dark: #1D1633;
-    --border-dark: #2D224D;
+    --knoux-bg: #070a12;
+    --knoux-sidebar: rgba(17, 23, 38, 0.85);
+    --knoux-surface: rgba(25, 22, 43, 0.72);
+    --knoux-surface-elevated: rgba(37, 30, 63, 0.82);
+    --knoux-surface-muted: rgba(13, 10, 28, 0.60);
+    --knoux-border: rgba(190, 165, 255, 0.12);
+
+    --knoux-text: #f7f5ff;
+    --knoux-text-secondary: #b9b4c9;
+    --knoux-text-muted: #817a95;
+
+    --knoux-primary: #8b5cf6;
+    --knoux-primary-bright: #a970ff;
+    --knoux-primary-hover: #7c3aed;
+    --knoux-accent-blue: #4c8dff;
+    --knoux-cyan: #36c5f0;
+
+    --knoux-success: #34d399;
+    --knoux-warning: #fbbf24;
+    --knoux-danger: #fb7185;
+    --knoux-info: #60a5fa;
+
+    color-scheme: dark;
   }
 
   :root.light,
   :root[data-theme="light"] {
-    --knoux-bg: #f8f6ff;
-    --knoux-surface: #ffffff;
-    --knoux-surface-muted: #f3eeff;
-    --knoux-border: #ded3f4;
-    --knoux-text: #161025;
-    --knoux-text-muted: #665e76;
-    --knoux-primary: #8226ee;
-    --knoux-primary-hover: #6d18d7;
+    /* Light Canvas & Glass Tokens (Section 8) */
+    --knoux-canvas: #f5f7fc;
+    --knoux-canvas-violet: #f1ecff;
+    --knoux-structural: rgba(255, 255, 255, 0.85);
+    --knoux-glass-base: rgba(255, 255, 255, 0.78);
+    --knoux-glass-elevated: rgba(255, 255, 255, 0.92);
+    --knoux-glass-border: rgba(86, 54, 145, 0.11);
+    --knoux-glass-border-strong: rgba(112, 67, 180, 0.22);
 
-    --bg-dark: #f8f6ff;
-    --panel-dark: #ffffff;
-    --surface-dark: #f3eeff;
-    --border-dark: #ded3f4;
+    --knoux-bg: #f5f7fc;
+    --knoux-sidebar: rgba(255, 255, 255, 0.90);
+    --knoux-surface: rgba(255, 255, 255, 0.82);
+    --knoux-surface-elevated: rgba(255, 255, 255, 0.95);
+    --knoux-surface-muted: rgba(241, 236, 255, 0.65);
+    --knoux-border: rgba(86, 54, 145, 0.12);
+
+    --knoux-text: #171425;
+    --knoux-text-secondary: #5d586b;
+    --knoux-text-muted: #898395;
+
+    --knoux-primary: #7545e8;
+    --knoux-primary-bright: #8b5cf6;
+    --knoux-primary-hover: #6d28d9;
+    --knoux-accent-blue: #3979e8;
+    --knoux-cyan: #0284c7;
+
+    --knoux-success: #059669;
+    --knoux-warning: #d97706;
+    --knoux-danger: #e11d48;
+    --knoux-info: #2563eb;
+
+    color-scheme: light;
   }
 
   body {
-    background-color: var(--knoux-bg);
+    background-color: var(--knoux-canvas);
     color: var(--knoux-text);
-    font-family: 'Inter', 'Cairo', sans-serif;
+    font-family: 'Inter', 'Cairo', system-ui, -apple-system, sans-serif;
     overflow-x: hidden;
-    transition: background-color 0.2s ease, color 0.2s ease;
+    transition: background-color 0.25s cubic-bezier(0.16, 1, 0.3, 1), color 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    background-image: 
+      radial-gradient(ellipse 80% 50% at 50% -20%, rgba(139, 92, 246, 0.08), transparent 70%),
+      radial-gradient(circle at 100% 100%, rgba(76, 141, 255, 0.04), transparent 50%);
+    min-height: 100vh;
   }
 
-  /* Custom scrollbar styling */
+  /* Custom Sleek Scrollbar */
   ::-webkit-scrollbar {
     width: 6px;
     height: 6px;
@@ -53,41 +95,402 @@
     background: transparent;
   }
   ::-webkit-scrollbar-thumb {
-    background: rgba(130, 38, 238, 0.3);
+    background: rgba(139, 92, 246, 0.25);
     border-radius: 9999px;
   }
   ::-webkit-scrollbar-thumb:hover {
-    background: rgba(130, 38, 238, 0.6);
+    background: rgba(139, 92, 246, 0.55);
   }
 }
 
+/* Font Families */
 .font-mono {
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'JetBrains Mono', 'Cascadia Code', monospace;
 }
-
 .font-arabic {
   font-family: 'Cairo', 'Tajawal', sans-serif;
 }
 
-/* Glassmorphic card styling for dark/light modes */
-.knoux-glass-dark {
-  background: rgba(21, 16, 39, 0.75);
-  backdrop-filter: blur(16px);
-  border: 1px solid rgba(130, 38, 238, 0.18);
+/* Depth System Classes (Section 6) */
+.knoux-depth-0 {
+  background-color: var(--knoux-canvas);
+}
+.knoux-depth-1 {
+  background-color: var(--knoux-structural);
+  border: 1px solid var(--knoux-border);
+  box-shadow: 0 20px 60px -15px rgba(0, 0, 0, 0.25);
+  border-radius: 1.5rem;
+}
+.knoux-depth-2 {
+  background-color: var(--knoux-sidebar);
+  backdrop-filter: blur(24px) saturate(135%);
+  border: 1px solid var(--knoux-border);
+}
+.knoux-depth-3 {
+  background-color: var(--knoux-surface);
+  backdrop-filter: blur(20px) saturate(130%);
+  border: 1px solid var(--knoux-border);
+  box-shadow: 0 12px 32px -8px rgba(0, 0, 0, 0.18);
+  border-radius: 1rem;
+}
+.knoux-depth-4 {
+  background-color: var(--knoux-surface-elevated);
+  backdrop-filter: blur(28px) saturate(145%);
+  border: 1px solid var(--knoux-glass-border-strong);
+  box-shadow: 0 16px 48px -10px rgba(139, 92, 246, 0.2);
+  border-radius: 1rem;
 }
 
-.knoux-glass-light {
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(16px);
-  border: 1px solid rgba(130, 38, 238, 0.15);
+/* Glassmorphic Cards (Section 7) */
+.knoux-card {
+  background: var(--knoux-surface);
+  backdrop-filter: blur(22px) saturate(135%);
+  border: 1px solid var(--knoux-border);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 12px 36px rgba(0, 0, 0, 0.12);
+  border-radius: 1.125rem;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  color: var(--knoux-text);
 }
 
-/* Purple glowing effects */
-.knoux-glow-purple {
-  box-shadow: 0 0 30px -5px rgba(130, 38, 238, 0.35);
+.knoux-card:hover {
+  border-color: var(--knoux-glass-border-strong);
+  transform: translateY(-2px);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 18px 48px rgba(139, 92, 246, 0.12);
 }
 
-.knoux-glow-sm {
-  box-shadow: 0 0 15px -3px rgba(130, 38, 238, 0.25);
+.knoux-surface {
+  background-color: var(--knoux-surface);
+  border-color: var(--knoux-border);
+  color: var(--knoux-text);
 }
+
+.knoux-surface-muted {
+  background-color: var(--knoux-surface-muted);
+  border-color: var(--knoux-border);
+  color: var(--knoux-text);
+}
+
+/* Typography Hierarchy Classes (Section 9) */
+.knoux-hero-title {
+  font-size: clamp(1.75rem, 3vw, 2.25rem);
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  color: var(--knoux-text);
+}
+
+.knoux-page-title {
+  font-size: clamp(1.35rem, 2vw, 1.75rem);
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: -0.015em;
+  color: var(--knoux-text);
+}
+
+.knoux-module-title {
+  font-size: clamp(1.2rem, 1.5vw, 1.5rem);
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--knoux-text);
+}
+
+.knoux-section-title {
+  font-size: 1.125rem;
+  font-weight: 650;
+  line-height: 1.35;
+  color: var(--knoux-text);
+}
+
+.knoux-card-title {
+  font-size: 0.975rem;
+  font-weight: 650;
+  line-height: 1.4;
+  color: var(--knoux-text);
+}
+
+.knoux-body {
+  font-size: 0.875rem;
+  font-weight: 450;
+  line-height: 1.6;
+  color: var(--knoux-text-secondary);
+}
+
+.knoux-metadata {
+  font-size: 0.775rem;
+  font-weight: 500;
+  line-height: 1.4;
+  color: var(--knoux-text-muted);
+}
+
+/* Icon Capsule Families (Section 10) */
+.knoux-icon-capsule {
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 0.875rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  shrink: 0;
+  transition: all 0.2s ease;
+}
+
+.knoux-icon-capsule-violet {
+  background: rgba(139, 92, 246, 0.12);
+  border: 1px solid rgba(139, 92, 246, 0.28);
+  color: var(--knoux-primary);
+}
+
+.knoux-icon-capsule-blue {
+  background: rgba(76, 141, 255, 0.12);
+  border: 1px solid rgba(76, 141, 255, 0.28);
+  color: var(--knoux-accent-blue);
+}
+
+.knoux-icon-capsule-emerald {
+  background: rgba(52, 211, 153, 0.12);
+  border: 1px solid rgba(52, 211, 153, 0.28);
+  color: var(--knoux-success);
+}
+
+.knoux-icon-capsule-amber {
+  background: rgba(251, 191, 36, 0.12);
+  border: 1px solid rgba(251, 191, 36, 0.28);
+  color: var(--knoux-warning);
+}
+
+.knoux-icon-capsule-rose {
+  background: rgba(251, 113, 133, 0.12);
+  border: 1px solid rgba(251, 113, 133, 0.28);
+  color: var(--knoux-danger);
+}
+
+.knoux-icon-capsule-cyan {
+  background: rgba(54, 197, 240, 0.12);
+  border: 1px solid rgba(54, 197, 240, 0.28);
+  color: var(--knoux-cyan);
+}
+
+/* Four Button Families (Section 21) */
+.knoux-button-primary {
+  background: linear-gradient(135deg, var(--knoux-primary), var(--knoux-primary-hover));
+  color: #ffffff !important;
+  font-weight: 700;
+  font-size: 0.8125rem;
+  height: 2.625rem;
+  padding: 0 1.25rem;
+  border-radius: 0.75rem;
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 4px 16px -2px rgba(139, 92, 246, 0.38), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  border: none;
+}
+
+.knoux-button-primary:hover {
+  filter: brightness(1.1);
+  transform: translateY(-1px);
+  box-shadow: 0 8px 24px -2px rgba(139, 92, 246, 0.48), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.knoux-button-primary:active {
+  transform: translateY(0);
+}
+
+.knoux-button-secondary {
+  background: var(--knoux-surface-muted);
+  color: var(--knoux-text) !important;
+  border: 1px solid var(--knoux-border);
+  font-weight: 600;
+  font-size: 0.8125rem;
+  height: 2.625rem;
+  padding: 0 1.25rem;
+  border-radius: 0.75rem;
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  cursor: pointer;
+}
+
+.knoux-button-secondary:hover {
+  background: var(--knoux-surface-elevated);
+  border-color: var(--knoux-glass-border-strong);
+  color: var(--knoux-text) !important;
+  transform: translateY(-1px);
+}
+
+.knoux-button-ghost {
+  background: transparent;
+  color: var(--knoux-text-secondary) !important;
+  border: 1px solid transparent;
+  font-weight: 600;
+  font-size: 0.8125rem;
+  height: 2.625rem;
+  padding: 0 1rem;
+  border-radius: 0.75rem;
+  transition: all 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  cursor: pointer;
+}
+
+.knoux-button-ghost:hover {
+  background: var(--knoux-surface-muted);
+  color: var(--knoux-text) !important;
+}
+
+.knoux-button-destructive {
+  background: rgba(239, 68, 68, 0.12);
+  color: var(--knoux-danger) !important;
+  border: 1px solid rgba(239, 68, 68, 0.28);
+  font-weight: 700;
+  font-size: 0.8125rem;
+  height: 2.625rem;
+  padding: 0 1.25rem;
+  border-radius: 0.75rem;
+  transition: all 0.18s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  cursor: pointer;
+}
+
+.knoux-button-destructive:hover {
+  background: var(--knoux-danger);
+  color: #ffffff !important;
+  border-color: var(--knoux-danger);
+}
+
+/* Input Fields (Section 12) */
+.knoux-input {
+  background: var(--knoux-surface-muted);
+  color: var(--knoux-text);
+  border: 1px solid var(--knoux-border);
+  border-radius: 0.875rem;
+  font-size: 0.8125rem;
+  padding: 0.625rem 0.875rem;
+  transition: all 0.2s ease;
+}
+
+.knoux-input::placeholder {
+  color: var(--knoux-text-muted);
+}
+
+.knoux-input:focus {
+  outline: none;
+  border-color: var(--knoux-primary);
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.18);
+  background: var(--knoux-surface);
+}
+
+/* Badge System (Section 19) */
+.knoux-badge-primary {
+  background: rgba(139, 92, 246, 0.14);
+  color: var(--knoux-primary);
+  border: 1px solid rgba(139, 92, 246, 0.32);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 650;
+  padding: 3px 10px;
+  border-radius: 8px;
+  line-height: 1.2;
+}
+
+.knoux-badge-success {
+  background: rgba(52, 211, 153, 0.14);
+  color: var(--knoux-success);
+  border: 1px solid rgba(52, 211, 153, 0.32);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 650;
+  padding: 3px 10px;
+  border-radius: 8px;
+  line-height: 1.2;
+}
+
+.knoux-badge-warning {
+  background: rgba(251, 191, 36, 0.14);
+  color: var(--knoux-warning);
+  border: 1px solid rgba(251, 191, 36, 0.32);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 650;
+  padding: 3px 10px;
+  border-radius: 8px;
+  line-height: 1.2;
+}
+
+.knoux-badge-danger {
+  background: rgba(251, 113, 133, 0.14);
+  color: var(--knoux-danger);
+  border: 1px solid rgba(251, 113, 133, 0.32);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 650;
+  padding: 3px 10px;
+  border-radius: 8px;
+  line-height: 1.2;
+}
+
+.knoux-badge-info {
+  background: rgba(96, 165, 250, 0.14);
+  color: var(--knoux-info);
+  border: 1px solid rgba(96, 165, 250, 0.32);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 650;
+  padding: 3px 10px;
+  border-radius: 8px;
+  line-height: 1.2;
+}
+
+.knoux-badge-muted {
+  background: var(--knoux-surface-muted);
+  color: var(--knoux-text-muted);
+  border: 1px solid var(--knoux-border);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 650;
+  padding: 3px 10px;
+  border-radius: 8px;
+  line-height: 1.2;
+}
+
+/* Atmospheric Halo Lighting (Section 2 & 3) */
+.knoux-halo-violet {
+  position: relative;
+}
+.knoux-halo-violet::before {
+  content: '';
+  position: absolute;
+  inset: -15px;
+  background: radial-gradient(circle, rgba(139, 92, 246, 0.28) 0%, transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
+  animation: knoux-pulse-halo 4s ease-in-out infinite alternate;
+}
+
+@keyframes knoux-pulse-halo {
+  0% { transform: scale(0.95); opacity: 0.6; }
+  100% { transform: scale(1.05); opacity: 0.9; }
+}
+
+.knoux-app-bg {
+  background-color: var(--knoux-canvas);
+}
+
+.knoux-sidebar-bg {
+  background-color: var(--knoux-sidebar);
+}
+
+
+
 

@@ -59,7 +59,7 @@ export const SmartCleanupView: React.FC = () => {
         {/* Action Reclaim Box */}
         <div className="p-4 rounded-2xl bg-purple-950/40 border border-purple-800/60 flex items-center space-x-4 rtl:space-x-reverse shrink-0">
           <div>
-            <span className="text-[10px] font-mono text-gray-400 block uppercase">
+            <span className="text-xs font-mono text-gray-400 block uppercase">
               {t('Selected Space Reclaimable:', 'المساحة القابلة للاسترجاع:')}
             </span>
             <span className="text-2xl font-extrabold text-[#8226EE] font-mono">{displayTotal}</span>
@@ -120,7 +120,7 @@ export const SmartCleanupView: React.FC = () => {
                     <h3 className="font-bold text-sm text-white">
                       {t(cat.nameEn, cat.nameAr)}
                     </h3>
-                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-950/60 text-emerald-300 border border-emerald-800/40 font-mono font-bold">
+                    <span className="text-xs px-2 py-0.5 rounded-full bg-emerald-950/60 text-emerald-300 border border-emerald-800/40 font-mono font-bold">
                       {cat.riskLevel.toUpperCase()}
                     </span>
                   </div>
@@ -133,7 +133,7 @@ export const SmartCleanupView: React.FC = () => {
               <div className="flex items-center space-x-3 rtl:space-x-reverse shrink-0">
                 <div className="text-right font-mono">
                   <span className="text-sm font-extrabold text-white block">{cat.sizeFormatted}</span>
-                  <span className="text-[10px] text-gray-400">{cat.fileCount} {t('files', 'ملف')}</span>
+                  <span className="text-xs text-gray-400">{cat.fileCount} {t('files', 'ملف')}</span>
                 </div>
 
                 {cat.items && cat.items.length > 0 && (
@@ -149,7 +149,7 @@ export const SmartCleanupView: React.FC = () => {
 
             {/* Expanded Item Details */}
             {expandedCategory === cat.id && cat.items && cat.items.length > 0 && (
-              <div className="mt-3 pt-3 border-t border-purple-900/30 space-y-1.5 font-mono text-[11px]">
+              <div className="mt-3 pt-3 border-t border-purple-900/30 space-y-1.5 font-mono text-sm">
                 <span className="text-gray-400 block mb-1">{t('Sample scanned files:', 'عينات الملفات المكتشفة:')}</span>
                 {cat.items.map((item, idx) => (
                   <div key={idx} className="p-2 rounded bg-[#060114] border border-purple-950 flex justify-between text-purple-200">

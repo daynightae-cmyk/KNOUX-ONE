@@ -4,7 +4,6 @@
 
 import React, { useState } from 'react';
 import { useKnoux } from '../../context/KnouxContext';
-import { MODULES_CATALOG } from '../../data/capabilitiesCatalog';
 import { 
   LayoutDashboard, 
   Sparkles, 
@@ -35,7 +34,8 @@ import {
   ChevronRight, 
   ChevronDown,
   Layers,
-  Image as ImageIcon
+  Image as ImageIcon,
+  ChevronLeft
 } from 'lucide-react';
 
 interface NavGroup {
@@ -52,8 +52,9 @@ interface NavGroup {
 }
 
 export const Sidebar: React.FC = () => {
-  const { currentRoute, setCurrentRoute, language, t } = useKnoux();
+  const { currentRoute, setCurrentRoute, t } = useKnoux();
   const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({});
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
   const toggleGroup = (title: string) => {
     setCollapsedGroups(prev => ({ ...prev, [title]: !prev[title] }));
@@ -61,99 +62,115 @@ export const Sidebar: React.FC = () => {
 
   const navGroups: NavGroup[] = [
     {
-      titleEn: 'Core Workspace',
-      titleAr: 'المساحة الرئيسية',
+      titleEn: 'HOME & OVERVIEW',
+      titleAr: 'الرئيسية والوظائف',
       items: [
-        { id: 'dashboard', route: 'dashboard', titleEn: 'Dashboard Overview', titleAr: 'لوحة التحكم', icon: LayoutDashboard },
-        { id: 'first-run', route: 'first-run', titleEn: 'First-Run Setup Wizard', titleAr: 'معالج الإعداد الأول', icon: Sparkles, badge: 'Guided' },
-        { id: 'post-format', route: 'post-format', titleEn: 'Post-Format Suite', titleAr: 'حزمة ما بعد الفورمات', icon: Download, badge: 'Popular' }
+        { id: 'dashboard', route: 'dashboard', titleEn: 'Dashboard', titleAr: 'لوحة التحكم', icon: LayoutDashboard },
+        { id: 'first-run', route: 'first-run', titleEn: 'First Run', titleAr: 'البداية', icon: Sparkles, badge: 'M01' },
+        { id: 'post-format', route: 'post-format', titleEn: 'Post-Format Setup', titleAr: 'إعداد ما بعد الفورمات', icon: Download, badge: 'Popular' },
+        { id: 'catalog', route: 'catalog', titleEn: 'Command Center', titleAr: 'مركز الوظائف', icon: Grid, badge: '190' },
+        { id: 'support', route: 'support', titleEn: 'Activity History', titleAr: 'سجل العمليات والدعم', icon: HelpCircle }
       ]
     },
     {
-      titleEn: 'System Optimization',
-      titleAr: 'تحسين وتطوير النظام',
+      titleEn: 'SYSTEM CARE',
+      titleAr: 'العناية بالنظام',
       items: [
-        { id: 'cleanup', route: 'cleanup', titleEn: 'Smart Storage Cleanup', titleAr: 'التنظيف الذكي', icon: Trash2 },
-        { id: 'duplicates', route: 'duplicates', titleEn: 'Duplicate File Finder', titleAr: 'مستكشف الملفات المكررة', icon: Copy },
-        { id: 'storage', route: 'storage', titleEn: 'Visual Storage Analyzer', titleAr: 'محلل القرص المباشر', icon: PieChart },
-        { id: 'startup', route: 'startup', titleEn: 'Startup & Services', titleAr: 'إدارة البدء والخدمات', icon: Zap },
-        { id: 'performance', route: 'performance', titleEn: 'Performance & Gaming', titleAr: 'الأداء والألعاب', icon: Gauge }
+        { id: 'cleanup', route: 'cleanup', titleEn: 'Smart Cleanup', titleAr: 'التنظيف الذكي', icon: Trash2 },
+        { id: 'duplicates', route: 'duplicates', titleEn: 'Duplicate Finder', titleAr: 'مستكشف المكررات', icon: Copy },
+        { id: 'storage', route: 'storage', titleEn: 'Storage Analyzer', titleAr: 'محلل القرص', icon: PieChart },
+        { id: 'startup', route: 'startup', titleEn: 'Startup & Services', titleAr: 'إدارة بدء التشغيل', icon: Zap },
+        { id: 'performance', route: 'performance', titleEn: 'Performance Center', titleAr: 'مركز الأداء', icon: Gauge }
       ]
     },
     {
-      titleEn: 'Security & Maintenance',
-      titleAr: 'الأمان والصيانة',
+      titleEn: 'WINDOWS & SECURITY',
+      titleAr: 'ويندوز والأمان',
       items: [
-        { id: 'repair', route: 'repair', titleEn: 'Windows Repair & SFC', titleAr: 'صيانة وتصليح ويندوز', icon: Wrench },
-        { id: 'network', route: 'network', titleEn: 'Network & DNS Optimizer', titleAr: 'الشبكات وذاكرة DNS', icon: Wifi },
-        { id: 'privacy', route: 'privacy', titleEn: 'Privacy & Telemetry Block', titleAr: 'الخصوصية وتتبع النظام', icon: EyeOff },
-        { id: 'security', route: 'security', titleEn: 'Security & Defender Rules', titleAr: 'الحماية وجدار الناري', icon: ShieldCheck },
-        { id: 'backup', route: 'backup', titleEn: 'Backup & Restore Points', titleAr: 'النسخ الاحتياطي واستعادة', icon: HardDrive }
+        { id: 'repair', route: 'repair', titleEn: 'Windows Repair', titleAr: 'إصلاح ويندوز', icon: Wrench },
+        { id: 'network', route: 'network', titleEn: 'Network & Internet', titleAr: 'الشبكة والإنترنت', icon: Wifi },
+        { id: 'privacy', route: 'privacy', titleEn: 'Privacy Center', titleAr: 'مركز الخصوصية', icon: EyeOff },
+        { id: 'security', route: 'security', titleEn: 'Security Center', titleAr: 'مركز الأمان', icon: ShieldCheck },
+        { id: 'backup', route: 'backup', titleEn: 'Backup & Recovery', titleAr: 'النسخ الاحتياطي', icon: HardDrive }
       ]
     },
     {
-      titleEn: 'Developer & Power Tools',
-      titleAr: 'أدوات المطورين والمتقدمين',
+      titleEn: 'APPLICATIONS & TOOLS',
+      titleAr: 'التطبيقات والأدوات',
       items: [
-        { id: 'applications', route: 'applications', titleEn: 'Software Store (Winget)', titleAr: 'متجر البرامج (Winget)', icon: Package },
-        { id: 'file-tools', route: 'file-tools', titleEn: 'File Hashes & Shredder', titleAr: 'أدوات الملفات والتشفير', icon: FileCode },
-        { id: 'automation', route: 'automation', titleEn: 'Automation & PowerShell', titleAr: 'الأتمتة والسكربتات', icon: Terminal },
-        { id: 'developer', route: 'developer', titleEn: 'Developer Environments', titleAr: 'بيئات التطوير والمنافذ', icon: Code2 },
-        { id: 'project-tools', route: 'project-tools', titleEn: 'Project Scaffolder & Git', titleAr: 'أدوات المشاريع وGit', icon: FolderGit2 }
+        { id: 'applications', route: 'applications', titleEn: 'Applications & Drivers', titleAr: 'التطبيقات والتعريفات', icon: Package },
+        { id: 'file-tools', route: 'file-tools', titleEn: 'File Utilities', titleAr: 'أدوات الملفات', icon: FileCode },
+        { id: 'automation', route: 'automation', titleEn: 'Automation & Productivity', titleAr: 'الأتمتة والإنتاجية', icon: Terminal }
       ]
     },
     {
-      titleEn: 'Diagnostics & Support',
-      titleAr: 'التشخيص والدعم الفني',
+      titleEn: 'DEVELOPMENT & DIAGNOSTICS',
+      titleAr: 'التطوير والتشخيص',
       items: [
-        { id: 'diagnostics', route: 'diagnostics', titleEn: 'System Diagnostics & Logs', titleAr: 'تشخيص النظام والسجلات', icon: Activity },
-        { id: 'hardware', route: 'hardware', titleEn: 'Hardware Benchmarking', titleAr: 'اختبار العتاد والأداء', icon: Cpu },
-        { id: 'cloud', route: 'cloud', titleEn: 'Cloud Sync & Profiles', titleAr: 'المزامنة السحابية', icon: Cloud },
-        { id: 'support', route: 'support', titleEn: 'Support Portal & Tickets', titleAr: 'مركز الدعم الفني', icon: HelpCircle },
-        { id: 'brand-gallery', route: 'brand-gallery', titleEn: 'Official Brand & Gallery', titleAr: 'الشعارات والمعرض البصري', icon: ImageIcon, badge: 'Official' },
-        { id: 'catalog', route: 'catalog', titleEn: 'All 190 Capabilities Grid', titleAr: 'دليل كافة الوظائف 190', icon: Grid, badge: '190 Tools' },
-        { id: 'web-landing', route: 'web-landing', titleEn: 'Web Suite Landing Page', titleAr: 'صفحة الويب التعريفية', icon: Globe },
-        { id: 'settings', route: 'settings', titleEn: 'Suite Settings', titleAr: 'الإعدادات والتخصيص', icon: Settings },
-        { id: 'about', route: 'about', titleEn: 'About KNOUX ONE', titleAr: 'عن KNOUX ONE', icon: Info }
+        { id: 'developer', route: 'developer', titleEn: 'Developer Studio', titleAr: 'استوديو المطور', icon: Code2 },
+        { id: 'project-tools', route: 'project-tools', titleEn: 'Code & Project Tools', titleAr: 'أدوات الكود والمشاريع', icon: FolderGit2 },
+        { id: 'diagnostics', route: 'diagnostics', titleEn: 'Logs & Diagnostics', titleAr: 'السجلات والتشخيص', icon: Activity },
+        { id: 'hardware', route: 'hardware', titleEn: 'Hardware & Device Health', titleAr: 'صحة العتاد', icon: Cpu }
+      ]
+    },
+    {
+      titleEn: 'KNOUX SYSTEM',
+      titleAr: 'منظومة كنوكس',
+      items: [
+        { id: 'cloud', route: 'cloud', titleEn: 'KNOUX Cloud & Support', titleAr: 'سحابة ودعم كنوكس', icon: Cloud },
+        { id: 'brand-gallery', route: 'brand-gallery', titleEn: 'Brand & Assets', titleAr: 'الشعارات والمعرض', icon: ImageIcon, badge: 'Official' },
+        { id: 'web-landing', route: 'web-landing', titleEn: 'Web Landing Page', titleAr: 'صفحة الويب', icon: Globe },
+        { id: 'settings', route: 'settings', titleEn: 'Settings', titleAr: 'الإعدادات', icon: Settings },
+        { id: 'about', route: 'about', titleEn: 'About KNOUX ONE', titleAr: 'عن التطبيق', icon: Info }
       ]
     }
   ];
 
   return (
-    <aside className="w-64 bg-[#09031C] border-r border-purple-950/40 flex flex-col h-[calc(100vh-4rem)] overflow-y-auto custom-scrollbar select-none shrink-0">
-      {/* Brand Header */}
-      <div className="p-4 border-b border-purple-950/30">
-        <div className="flex items-center space-x-2 rtl:space-x-reverse px-2 py-1.5 rounded-lg bg-purple-950/20 border border-purple-900/30">
-          <Layers className="w-4 h-4 text-[#8226EE]" />
-          <span className="text-xs font-mono font-bold text-gray-200">
-            {t('19 Modules Catalog', 'كتالوج الـ 19 موديل')}
-          </span>
-          <span className="ml-auto text-[10px] font-mono bg-purple-900/50 text-purple-300 px-1.5 py-0.5 rounded">
-            190
-          </span>
+    <aside className={`${isSidebarCollapsed ? 'w-20' : 'w-68'} bg-[var(--knoux-sidebar)] border-r border-[var(--knoux-border)] flex flex-col h-[calc(100vh-4.5rem)] overflow-y-auto custom-scrollbar select-none shrink-0 transition-all duration-300 z-30`}>
+      {/* Sidebar Header Controls */}
+      <div className="p-3 border-b border-[var(--knoux-border)]">
+        <div className="flex items-center justify-between p-2 rounded-xl bg-[var(--knoux-surface-muted)] border border-[var(--knoux-border)]">
+          {!isSidebarCollapsed && (
+            <div className="flex items-center space-x-2 rtl:space-x-reverse px-1">
+              <Layers className="w-4 h-4 text-[var(--knoux-primary)]" />
+              <span className="text-xs font-mono font-bold text-[var(--knoux-text)] truncate">
+                {t('19 Modules Catalog', '19 موديول للذكاء')}
+              </span>
+            </div>
+          )}
+          <button
+            onClick={() => setIsSidebarCollapsed(prev => !prev)}
+            className="p-1.5 rounded-lg hover:bg-[var(--knoux-surface-elevated)] text-[var(--knoux-primary)] transition-colors mx-auto"
+            title={isSidebarCollapsed ? t('Expand Sidebar', 'توسيع القائمة') : t('Collapse Sidebar', 'طوي القائمة')}
+          >
+            {isSidebarCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
+          </button>
         </div>
       </div>
 
-      {/* Navigation Groups */}
+      {/* Navigation Items List */}
       <div className="p-3 space-y-4 flex-1">
         {navGroups.map((group) => {
           const isCollapsed = collapsedGroups[group.titleEn];
           return (
             <div key={group.titleEn} className="space-y-1">
-              <button
-                onClick={() => toggleGroup(group.titleEn)}
-                className="w-full flex items-center justify-between px-2 py-1 text-[11px] font-mono font-bold uppercase tracking-wider text-purple-400/80 hover:text-purple-300 transition-colors"
-              >
-                <span>{t(group.titleEn, group.titleAr)}</span>
-                {isCollapsed ? (
-                  <ChevronRight className="w-3 h-3 text-purple-500" />
-                ) : (
-                  <ChevronDown className="w-3 h-3 text-purple-500" />
-                )}
-              </button>
+              {!isSidebarCollapsed && (
+                <button
+                  onClick={() => toggleGroup(group.titleEn)}
+                  className="w-full flex items-center justify-between px-2 py-1 text-xs font-mono font-bold uppercase tracking-wider text-[var(--knoux-text-muted)] hover:text-[var(--knoux-text)] transition-colors"
+                >
+                  <span>{t(group.titleEn, group.titleAr)}</span>
+                  {isCollapsed ? (
+                    <ChevronRight className="w-3 h-3 text-[var(--knoux-primary)]" />
+                  ) : (
+                    <ChevronDown className="w-3 h-3 text-[var(--knoux-primary)]" />
+                  )}
+                </button>
+              )}
 
-              {!isCollapsed && (
-                <div className="space-y-0.5 mt-1">
+              {(!isCollapsed || isSidebarCollapsed) && (
+                <div className="space-y-1 mt-1">
                   {group.items.map((item) => {
                     const Icon = item.icon;
                     const isActive = currentRoute === item.route;
@@ -161,22 +178,25 @@ export const Sidebar: React.FC = () => {
                       <button
                         key={item.id}
                         onClick={() => setCurrentRoute(item.route)}
-                        className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium transition-all duration-150 ${
+                        title={isSidebarCollapsed ? t(item.titleEn, item.titleAr) : undefined}
+                        className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-semibold transition-all duration-150 ${
                           isActive
-                            ? 'bg-[#8226EE] text-white shadow-lg shadow-purple-900/50 font-semibold'
-                            : 'text-gray-300 hover:bg-purple-950/40 hover:text-white'
+                            ? 'bg-gradient-to-r from-[var(--knoux-primary)] to-[var(--knoux-primary-hover)] text-white shadow-lg shadow-[var(--knoux-primary)]/25 font-bold border border-white/10'
+                            : 'text-[var(--knoux-text-secondary)] hover:bg-[var(--knoux-surface-muted)] hover:text-[var(--knoux-text)]'
                         }`}
                       >
-                        <div className="flex items-center space-x-2.5 rtl:space-x-reverse min-w-0">
-                          <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-white' : 'text-purple-400'}`} />
-                          <span className="truncate">{t(item.titleEn, item.titleAr)}</span>
+                        <div className={`flex items-center ${isSidebarCollapsed ? 'justify-center w-full' : 'space-x-3 rtl:space-x-reverse'} min-w-0`}>
+                          <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-white' : 'text-[var(--knoux-primary)]'}`} />
+                          {!isSidebarCollapsed && (
+                            <span className="truncate">{t(item.titleEn, item.titleAr)}</span>
+                          )}
                         </div>
-                        {item.badge && (
+                        {!isSidebarCollapsed && item.badge && (
                           <span
-                            className={`text-[9px] px-1.5 py-0.5 rounded font-mono font-bold uppercase tracking-tight shrink-0 ${
+                            className={`text-xs px-1.5 py-0.5 rounded font-mono font-bold uppercase tracking-tight shrink-0 ${
                               isActive
                                 ? 'bg-white/20 text-white'
-                                : 'bg-purple-900/40 text-purple-300 border border-purple-800/40'
+                                : 'knoux-badge-primary'
                             }`}
                           >
                             {item.badge}
@@ -192,17 +212,24 @@ export const Sidebar: React.FC = () => {
         })}
       </div>
 
-      {/* Developer Footer Credits */}
-      <div className="p-3 border-t border-purple-950/30 bg-[#070216]/60">
-        <div className="p-2.5 rounded-lg bg-purple-950/20 border border-purple-900/30 text-center">
-          <p className="text-[10px] text-gray-400 font-mono">
-            Crafted by <span className="text-purple-300 font-bold">Eng. Sadek Elgazar</span>
-          </p>
-          <p className="text-[9px] text-purple-400/80 font-mono mt-0.5">
-            Knoux Intelligence Suite
-          </p>
+      {/* Footer Branding */}
+      <div className="p-3 border-t border-[var(--knoux-border)] bg-[var(--knoux-surface-muted)]">
+        <div className="p-2.5 rounded-xl bg-[var(--knoux-surface)] border border-[var(--knoux-border)] text-center">
+          {!isSidebarCollapsed ? (
+            <>
+              <p className="text-sm text-[var(--knoux-text)] font-semibold font-mono">
+                Engineered by <span className="text-[var(--knoux-primary)] font-bold">Eng. Sadek Elgazar</span>
+              </p>
+              <p className="text-xs text-[var(--knoux-text-muted)] font-mono mt-0.5">
+                KNOUX ONE Architecture
+              </p>
+            </>
+          ) : (
+            <span className="text-sm font-black font-mono text-[var(--knoux-primary)]">K1</span>
+          )}
         </div>
       </div>
     </aside>
   );
 };
+

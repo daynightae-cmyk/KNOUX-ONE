@@ -144,15 +144,15 @@ export const CommandPalette: React.FC = () => {
                         {t(cap.nameEn, cap.nameAr)}
                       </span>
                       {cap.requiresAdmin && (
-                        <span className="text-[9px] px-1.5 py-0.5 rounded bg-red-950/80 text-red-300 border border-red-800/50 font-mono font-bold">
+                        <span className="text-xs px-1.5 py-0.5 rounded bg-red-950/80 text-red-300 border border-red-800/50 font-mono font-bold">
                           ADMIN
                         </span>
                       )}
-                      <span className="text-[9px] px-1.5 py-0.5 rounded bg-purple-950/60 text-purple-300 border border-purple-800/40 font-mono">
+                      <span className="text-xs px-1.5 py-0.5 rounded bg-purple-950/60 text-purple-300 border border-purple-800/40 font-mono">
                         {cap.moduleId.toUpperCase()}
                       </span>
                     </div>
-                    <p className="text-[11px] text-gray-400 line-clamp-1 mt-0.5">
+                    <p className="text-sm text-gray-400 line-clamp-1 mt-0.5">
                       {t(cap.descriptionEn, cap.descriptionAr)}
                     </p>
                   </div>
@@ -176,14 +176,14 @@ export const CommandPalette: React.FC = () => {
         </div>
 
         {/* Footer command tips */}
-        <div className="px-4 py-2.5 border-t border-purple-900/40 bg-[#070216] flex items-center justify-between text-[11px] text-gray-400 font-mono">
+        <div className="px-4 py-2.5 border-t border-purple-900/40 bg-[#070216] flex items-center justify-between text-sm text-gray-400 font-mono">
           <div className="flex items-center space-x-3 rtl:space-x-reverse">
             <span>
               Showing <strong className="text-purple-300">{filteredCapabilities.length}</strong> of {ALL_CAPABILITIES.length} items
             </span>
           </div>
           <div className="flex items-center space-x-2 rtl:space-x-reverse text-purple-400">
-            <kbd className="px-1.5 py-0.5 rounded bg-purple-950 border border-purple-800 text-[10px]">Esc</kbd>
+            <kbd className="px-1.5 py-0.5 rounded bg-purple-950 border border-purple-800 text-xs">Esc</kbd>
             <span>{t('to close', 'للاغلاق')}</span>
           </div>
         </div>

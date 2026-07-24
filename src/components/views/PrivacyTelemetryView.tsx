@@ -31,7 +31,7 @@ export const PrivacyTelemetryView: React.FC = () => {
       'تعديل قيم سجل النظام الخاصة بالحصائيات يتطلب صلاحيات المسؤول.',
       'moderate',
       () => {
-        addLog('m11_s01', 'Privacy & Telemetry Hardening', 'completed', 'Successfully updated Windows telemetry registry policies.');
+        addLog('m09_s01', 'Privacy & Telemetry Hardening', 'completed', 'Successfully updated Windows telemetry registry policies.');
       }
     );
   };
@@ -51,7 +51,7 @@ export const PrivacyTelemetryView: React.FC = () => {
         <div>
           <div className="inline-flex items-center space-x-2 rtl:space-x-reverse px-2.5 py-0.5 rounded bg-purple-950 border border-purple-800 text-purple-300 text-xs font-mono mb-1">
             <EyeOff className="w-3.5 h-3.5 text-[#8226EE]" />
-            <span>MODULE 11 • WINDOWS 11 PRIVACY HARDENING</span>
+            <span>MODULE 09 • WINDOWS 11 PRIVACY HARDENING</span>
           </div>
           <h1 className="text-2xl font-extrabold text-white">
             {t('Privacy & Telemetry Control Center', 'مركز التحكم بالخصوصية وحظر التتبع')}

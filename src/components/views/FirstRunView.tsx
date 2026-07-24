@@ -6,7 +6,7 @@
 import React, { useState } from 'react';
 import { useKnoux } from '../../context/KnouxContext';
 import { NativeClient } from '../../services/nativeClient';
-import { LocalStorageService, SetupProfile } from '../../services/localStorageService';
+import { LocalStorageService, SetupProfile } from '../../services/previewStorageAdapter';
 import { 
   Sparkles, 
   Globe, 
@@ -289,7 +289,7 @@ export const FirstRunView: React.FC = () => {
                   <CheckCircle2 className="w-5 h-5 text-emerald-400" />
                   <span className="font-bold">{t('Winget Package Manager Ready', 'مدير الحزم Winget جاهز')}</span>
                 </div>
-                <p className="text-gray-300 text-[11px]">{t('Windows Package Manager v1.8 is available for essential app deployment.', 'إصدار مدير الحزم متاح وجاهز للتثبيت السريع.')}</p>
+                <p className="text-gray-300 text-sm">{t('Windows Package Manager v1.8 is available for essential app deployment.', 'إصدار مدير الحزم متاح وجاهز للتثبيت السريع.')}</p>
               </div>
             )}
           </div>

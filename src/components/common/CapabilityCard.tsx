@@ -82,32 +82,32 @@ export const CapabilityCard: React.FC<CapabilityCardProps> = ({ capability }) =>
   };
 
   return (
-    <div className={`p-4 rounded-xl border transition-all duration-200 flex flex-col justify-between group space-y-3 ${
+    <div className={`p-4 rounded-xl border transition-all duration-200 flex flex-col justify-between group space-y-3 knoux-card shadow-sm ${
       isImplemented 
-        ? 'bg-purple-950/20 border-purple-900/40 hover:border-purple-600/50' 
-        : 'bg-purple-950/10 border-purple-950 hover:border-purple-900/30 opacity-90'
+        ? 'hover:border-[var(--knoux-primary)]/60' 
+        : 'opacity-90 hover:border-[var(--knoux-border)]'
     }`}>
       <div>
         {/* Header Badges */}
         <div className="flex items-center justify-between mb-2">
-          <span className="text-[10px] font-mono font-bold text-purple-400 bg-purple-950/80 px-2 py-0.5 rounded border border-purple-800/50">
+          <span className="knoux-badge-primary">
             {capability.id.toUpperCase()}
           </span>
           <div className="flex items-center space-x-1.5 rtl:space-x-reverse">
             {isImplemented ? (
-              <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-950/60 text-emerald-300 border border-emerald-800/40 font-mono font-bold flex items-center space-x-1">
-                <CheckCircle2 className="w-2.5 h-2.5 text-emerald-400" />
+              <span className="knoux-badge-success flex items-center space-x-1 rtl:space-x-reverse">
+                <CheckCircle2 className="w-2.5 h-2.5" />
                 <span>NATIVE</span>
               </span>
             ) : (
-              <span className="text-[10px] px-2 py-0.5 rounded-full bg-purple-950 text-purple-400 border border-purple-800/40 font-mono font-bold flex items-center space-x-1">
+              <span className="knoux-badge-muted flex items-center space-x-1 rtl:space-x-reverse">
                 <Clock className="w-2.5 h-2.5" />
                 <span>PLANNED</span>
               </span>
             )}
 
             {capability.requiresAdmin && (
-              <span className="text-[10px] px-2 py-0.5 rounded-full bg-red-950/80 text-red-300 border border-red-800/50 font-mono font-bold flex items-center space-x-1">
+              <span className="knoux-badge-danger flex items-center space-x-1 rtl:space-x-reverse">
                 <ShieldAlert className="w-2.5 h-2.5" />
                 <span>ADMIN</span>
               </span>
@@ -116,19 +116,19 @@ export const CapabilityCard: React.FC<CapabilityCardProps> = ({ capability }) =>
         </div>
 
         {/* Title & Description */}
-        <h4 className="font-bold text-sm text-white group-hover:text-purple-300 transition-colors">
+        <h4 className="font-bold text-sm text-[var(--knoux-text)] group-hover:text-[var(--knoux-primary)] transition-colors">
           {t(capability.nameEn, capability.nameAr)}
         </h4>
-        <p className="text-xs text-gray-300 mt-1 leading-relaxed">
+        <p className="text-xs text-[var(--knoux-text-muted)] mt-1 leading-relaxed">
           {t(capability.descriptionEn, capability.descriptionAr)}
         </p>
 
         {/* Execution / Planned Feedback */}
         {lastExecutedMessage && (
-          <div className={`mt-2.5 p-2 rounded-lg text-[11px] flex items-start space-x-1.5 rtl:space-x-reverse animate-in fade-in ${
+          <div className={`mt-2.5 p-2 rounded-lg text-sm flex items-start space-x-1.5 rtl:space-x-reverse animate-in fade-in ${
             isImplemented
-              ? 'bg-emerald-950/40 border border-emerald-800/40 text-emerald-300'
-              : 'bg-purple-950/60 border border-purple-800/60 text-purple-300'
+              ? 'bg-[var(--knoux-success)]/10 border border-[var(--knoux-success)]/30 text-[var(--knoux-success)]'
+              : 'bg-[var(--knoux-surface-muted)] border border-[var(--knoux-border)] text-[var(--knoux-text-muted)]'
           }`}>
             <Info className="w-3.5 h-3.5 shrink-0 mt-0.5" />
             <span>{lastExecutedMessage}</span>
@@ -141,10 +141,10 @@ export const CapabilityCard: React.FC<CapabilityCardProps> = ({ capability }) =>
         <button
           onClick={handleRun}
           disabled={isRunning}
-          className={`flex-1 py-1.5 px-3 rounded-lg font-medium text-xs flex items-center justify-center space-x-1.5 rtl:space-x-reverse transition-all active:scale-95 disabled:opacity-50 ${
+          className={`flex-1 py-1.5 px-3 rounded-xl font-medium text-xs flex items-center justify-center space-x-1.5 rtl:space-x-reverse transition-all active:scale-95 disabled:opacity-50 ${
             isImplemented
-              ? 'bg-[#8226EE] hover:bg-purple-600 text-white shadow-md shadow-purple-900/40'
-              : 'bg-purple-950 hover:bg-purple-900/50 text-purple-300 border border-purple-800/40'
+              ? 'knoux-button-primary'
+              : 'knoux-button-secondary'
           }`}
         >
           <Play className={`w-3.5 h-3.5 fill-current ${isRunning ? 'animate-spin' : ''}`} />

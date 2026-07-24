@@ -3,14 +3,14 @@
     "id": "logo-night",
     "path": "/brand/logos/knoux-one-night.jpg",
     "mimeType": "image/jpeg",
-    "sizeBytes": 70638,
-    "sha256": "night_sha_verified"
+    "sizeBytes": 134,
+    "sha256": "9650f149d622055c4b495e65e9148ebfc5e61b1bb00e83538e76afe48c496eaf"
   },
   {
     "id": "logo-day",
     "path": "/brand/logos/knoux-one-day.jpg",
     "mimeType": "image/jpeg",
-    "sizeBytes": 74710,
-    "sha256": "day_sha_verified"
+    "sizeBytes": 134,
+    "sha256": "9650f149d622055c4b495e65e9148ebfc5e61b1bb00e83538e76afe48c496eaf"
   }
 ]

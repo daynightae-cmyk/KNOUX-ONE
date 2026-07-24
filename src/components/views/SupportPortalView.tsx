@@ -126,7 +126,7 @@ export const SupportPortalView: React.FC = () => {
                   <span>{ticket.id}: {ticket.subject}</span>
                   <span className="text-purple-300">{ticket.status}</span>
                 </div>
-                <p className="text-[10px] text-gray-400">{ticket.category} • Created {ticket.createdAt}</p>
+                <p className="text-xs text-gray-400">{ticket.category} • Created {ticket.createdAt}</p>
               </div>
             ))}
           </div>

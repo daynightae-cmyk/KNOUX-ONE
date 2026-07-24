@@ -22,7 +22,7 @@ export const ApplicationsStoreView: React.FC = () => {
         <div>
           <div className="inline-flex items-center space-x-2 rtl:space-x-reverse px-2.5 py-0.5 rounded bg-purple-950 border border-purple-800 text-purple-300 text-xs font-mono mb-1">
             <Package className="w-3.5 h-3.5 text-[#8226EE]" />
-            <span>MODULE 14 • WINGET SOFTWARE MANAGER</span>
+            <span>MODULE 12 • WINGET SOFTWARE MANAGER</span>
           </div>
           <h1 className="text-2xl font-extrabold text-white">
             {t('Winget GUI Applications Catalog', 'متجر وإدارة برامج النظام')}
@@ -55,9 +55,9 @@ export const ApplicationsStoreView: React.FC = () => {
             <div className="flex justify-between items-start">
               <div>
                 <h3 className="font-bold text-sm text-white">{app.name}</h3>
-                <p className="text-[11px] text-purple-300 font-mono">{app.wingetId}</p>
+                <p className="text-sm text-purple-300 font-mono">{app.wingetId}</p>
               </div>
-              <span className="text-[10px] text-gray-400 font-mono">~{app.sizeMB} MB</span>
+              <span className="text-xs text-gray-400 font-mono">~{app.sizeMB} MB</span>
             </div>
 
             <p className="text-xs text-gray-400">{app.publisher}</p>

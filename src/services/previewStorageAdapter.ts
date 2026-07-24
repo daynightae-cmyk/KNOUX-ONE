@@ -1,6 +1,7 @@
 /**
- * KNOUX ONE — Local Storage & Persistence Service
- * Persistent local database store for Module 01 queue, profiles, preferences, and action logs.
+ * KNOUX ONE — Web Preview Storage Adapter
+ * Temporary browser LocalStorage adapter for the web preview.
+ * This is NOT the production SQLite database used by the Tauri desktop runtime.
  */
 
 import { ActionLog } from '../types';

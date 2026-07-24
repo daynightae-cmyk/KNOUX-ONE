@@ -60,11 +60,11 @@ export const StorageAnalyzerView: React.FC = () => {
       <div className="p-5 rounded-2xl bg-purple-950/20 border border-purple-900/40 space-y-3">
         <h3 className="text-sm font-bold text-white font-mono">{t('Drive Space Distribution', 'توزيع مساحة القرص')}</h3>
         <div className="h-6 w-full bg-purple-950 rounded-xl overflow-hidden flex">
-          <div style={{ width: '24.8%' }} className="bg-purple-600 h-full text-[10px] font-mono text-white flex items-center justify-center font-bold">Windows (24.8%)</div>
-          <div style={{ width: '19.8%' }} className="bg-indigo-600 h-full text-[10px] font-mono text-white flex items-center justify-center font-bold">Programs (19.8%)</div>
-          <div style={{ width: '16.7%' }} className="bg-cyan-600 h-full text-[10px] font-mono text-white flex items-center justify-center font-bold">AppData (16.7%)</div>
-          <div style={{ width: '14.5%' }} className="bg-amber-600 h-full text-[10px] font-mono text-white flex items-center justify-center font-bold">Downloads (14.5%)</div>
-          <div style={{ width: '24.2%' }} className="bg-emerald-600 h-full text-[10px] font-mono text-white flex items-center justify-center font-bold">Other & Free</div>
+          <div style={{ width: '24.8%' }} className="bg-purple-600 h-full text-xs font-mono text-white flex items-center justify-center font-bold">Windows (24.8%)</div>
+          <div style={{ width: '19.8%' }} className="bg-indigo-600 h-full text-xs font-mono text-white flex items-center justify-center font-bold">Programs (19.8%)</div>
+          <div style={{ width: '16.7%' }} className="bg-cyan-600 h-full text-xs font-mono text-white flex items-center justify-center font-bold">AppData (16.7%)</div>
+          <div style={{ width: '14.5%' }} className="bg-amber-600 h-full text-xs font-mono text-white flex items-center justify-center font-bold">Downloads (14.5%)</div>
+          <div style={{ width: '24.2%' }} className="bg-emerald-600 h-full text-xs font-mono text-white flex items-center justify-center font-bold">Other & Free</div>
         </div>
       </div>
 
@@ -109,7 +109,7 @@ export const StorageAnalyzerView: React.FC = () => {
                   <span className="truncate max-w-[180px] text-amber-300">{file.path.split('\\').pop()}</span>
                   <span>{file.size}</span>
                 </div>
-                <p className="text-[10px] text-gray-400 truncate">{file.path}</p>
+                <p className="text-xs text-gray-400 truncate">{file.path}</p>
               </div>
             ))}
           </div>

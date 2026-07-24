@@ -38,16 +38,16 @@ export const DuplicateFinderView: React.FC = () => {
   return (
     <div className="p-6 max-w-7xl mx-auto space-y-6">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-purple-900/40 pb-5">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[var(--knoux-border)] pb-5">
         <div>
-          <div className="inline-flex items-center space-x-2 rtl:space-x-reverse px-2.5 py-0.5 rounded bg-purple-950 border border-purple-800 text-purple-300 text-xs font-mono mb-1">
-            <Copy className="w-3.5 h-3.5 text-[#8226EE]" />
+          <div className="inline-flex items-center space-x-2 rtl:space-x-reverse px-2.5 py-0.5 rounded bg-[var(--knoux-surface-muted)] border border-[var(--knoux-border)] text-[var(--knoux-primary)] text-xs font-mono mb-1">
+            <Copy className="w-3.5 h-3.5 text-[var(--knoux-primary)]" />
             <span>MODULE 03 • BLAKE3 HASH DEDUPLICATION ENGINE</span>
           </div>
-          <h1 className="text-2xl font-extrabold text-white">
+          <h1 className="text-2xl font-extrabold text-[var(--knoux-text)] tracking-tight">
             {t('Smart Duplicate Finder & Quarantine', 'مستكشف الملفات المكررة والحجر الصحي')}
           </h1>
-          <p className="text-xs text-gray-300 mt-1">
+          <p className="text-xs text-[var(--knoux-text-muted)] mt-1">
             {t(
               'Identify exact file duplicates using cryptographic BLAKE3 hashing and similar images. Safely quarantine before deletion.',
               'اكتشاف الملفات المكررة بدقة التشفير BLAKE3، وحجز النسخ في الحجر الصحي لاستعادتها أو مسحها نهائياً.'
@@ -57,23 +57,23 @@ export const DuplicateFinderView: React.FC = () => {
 
         {/* Action button */}
         <div className="flex items-center space-x-3 rtl:space-x-reverse">
-          <div className="flex bg-purple-950/60 p-1 rounded-xl border border-purple-800/40 text-xs font-mono">
+          <div className="flex bg-[var(--knoux-surface-muted)] p-1 rounded-xl border border-[var(--knoux-border)] text-xs font-mono">
             <button
               onClick={() => setActiveTab('duplicates')}
-              className={`px-3 py-1.5 rounded-lg transition-colors ${
+              className={`px-3 py-1.5 rounded-lg transition-all ${
                 activeTab === 'duplicates'
-                  ? 'bg-[#8226EE] text-white font-bold'
-                  : 'text-purple-300 hover:text-white'
+                  ? 'bg-[var(--knoux-primary)] text-white font-bold shadow-md'
+                  : 'text-[var(--knoux-text-muted)] hover:text-[var(--knoux-text)]'
               }`}
             >
               {t(`Duplicates (${totalDuplicatesCount})`, `المكررة (${totalDuplicatesCount})`)}
             </button>
             <button
               onClick={() => setActiveTab('quarantine')}
-              className={`px-3 py-1.5 rounded-lg transition-colors ${
+              className={`px-3 py-1.5 rounded-lg transition-all ${
                 activeTab === 'quarantine'
-                  ? 'bg-[#8226EE] text-white font-bold'
-                  : 'text-purple-300 hover:text-white'
+                  ? 'bg-[var(--knoux-primary)] text-white font-bold shadow-md'
+                  : 'text-[var(--knoux-text-muted)] hover:text-[var(--knoux-text)]'
               }`}
             >
               {t(`Quarantine (${quarantineItems.length})`, `الحجر الصحي (${quarantineItems.length})`)}
@@ -83,7 +83,7 @@ export const DuplicateFinderView: React.FC = () => {
           {activeTab === 'duplicates' && duplicateGroups.length > 0 && (
             <button
               onClick={quarantineDuplicates}
-              className="px-5 py-2.5 rounded-xl bg-[#8226EE] hover:bg-purple-600 text-white font-bold text-xs shadow-lg shadow-purple-900/50 flex items-center space-x-2 rtl:space-x-reverse transition-all active:scale-95"
+              className="knoux-button-primary flex items-center space-x-2 rtl:space-x-reverse"
             >
               <ShieldCheck className="w-4 h-4" />
               <span>{t('Quarantine Duplicates', 'نقل المكرر للحجر الصحي')}</span>
@@ -96,10 +96,10 @@ export const DuplicateFinderView: React.FC = () => {
       {activeTab === 'duplicates' && (
         <div className="space-y-6">
           {/* Similar image slider control */}
-          <div className="p-4 rounded-xl bg-purple-950/20 border border-purple-900/40 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="p-4 rounded-xl knoux-surface border knoux-border flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="flex items-center space-x-2 rtl:space-x-reverse">
-              <Sliders className="w-4 h-4 text-purple-400" />
-              <span className="text-xs font-mono text-gray-200">
+              <Sliders className="w-4 h-4 text-[var(--knoux-primary)]" />
+              <span className="text-xs font-mono text-[var(--knoux-text)]">
                 {t('Perceptual Image Similarity Threshold:', 'حساسية مطابقة الصور المشابهة:')}
               </span>
             </div>
@@ -110,30 +110,30 @@ export const DuplicateFinderView: React.FC = () => {
                 max="100"
                 value={similarityThreshold}
                 onChange={e => setSimilarityThreshold(Number(e.target.value))}
-                className="w-32 accent-[#8226EE]"
+                className="w-32 accent-[var(--knoux-primary)]"
               />
-              <span className="text-xs font-mono font-bold text-purple-300 w-10">{similarityThreshold}%</span>
+              <span className="text-xs font-mono font-bold text-[var(--knoux-primary)] w-10">{similarityThreshold}%</span>
             </div>
           </div>
 
           {duplicateGroups.length === 0 ? (
-            <div className="p-12 text-center rounded-2xl bg-purple-950/20 border border-purple-900/40 text-gray-300 space-y-2">
-              <CheckCircle2 className="w-10 h-10 text-emerald-400 mx-auto" />
-              <h3 className="font-bold text-base text-white">{t('Zero File Duplicates Found', 'لا توجد ملفات مكررة!')}</h3>
-              <p className="text-xs text-gray-400">{t('Your disk is fully deduplicated. All duplicate files are quarantined.', 'قرصك خالٍ من الملفات المكررة.')}</p>
+            <div className="p-12 text-center rounded-2xl knoux-surface border knoux-border space-y-2">
+              <CheckCircle2 className="w-10 h-10 text-[var(--knoux-success)] mx-auto" />
+              <h3 className="font-bold text-base text-[var(--knoux-text)]">{t('Zero File Duplicates Found', 'لا توجد ملفات مكررة!')}</h3>
+              <p className="text-xs text-[var(--knoux-text-muted)]">{t('Your disk is fully deduplicated. All duplicate files are quarantined.', 'قرصك خالٍ من الملفات المكررة.')}</p>
             </div>
           ) : (
             duplicateGroups.map(group => (
-              <div key={group.id} className="p-5 rounded-2xl bg-purple-950/20 border border-purple-900/40 space-y-3">
-                <div className="flex items-center justify-between border-b border-purple-900/30 pb-2">
+              <div key={group.id} className="p-5 rounded-2xl knoux-card space-y-3 shadow-sm">
+                <div className="flex items-center justify-between border-b border-[var(--knoux-border)] pb-2">
                   <div className="flex items-center space-x-2 rtl:space-x-reverse">
-                    <span className="text-xs font-mono text-purple-300 bg-purple-900/60 px-2 py-0.5 rounded border border-purple-800/40">
+                    <span className="knoux-badge-primary">
                       BLAKE3: {group.hash.substring(0, 12)}...
                     </span>
-                    <span className="text-xs font-extrabold text-white font-mono">{group.fileSizeFormatted}</span>
+                    <span className="text-xs font-extrabold text-[var(--knoux-text)] font-mono">{group.fileSizeFormatted}</span>
                   </div>
                   {group.similarity && (
-                    <span className="text-[10px] px-2 py-0.5 rounded bg-amber-950 text-amber-300 border border-amber-800/50 font-mono font-bold">
+                    <span className="knoux-badge-warning">
                       {group.similarity}% Visual Match
                     </span>
                   )}
@@ -146,27 +146,27 @@ export const DuplicateFinderView: React.FC = () => {
                       onClick={() => toggleKeepDuplicateItem(group.id, item.id)}
                       className={`p-3 rounded-xl border transition-all cursor-pointer flex items-center justify-between ${
                         item.keep
-                          ? 'bg-emerald-950/30 border-emerald-800/50 text-white'
-                          : 'bg-purple-950/40 border-purple-900/30 opacity-70 text-gray-300 hover:opacity-100'
+                          ? 'bg-[var(--knoux-success)]/10 border-[var(--knoux-success)]/40 text-[var(--knoux-text)]'
+                          : 'bg-[var(--knoux-surface-muted)] border-[var(--knoux-border)] text-[var(--knoux-text-muted)] hover:border-[var(--knoux-primary)]/40'
                       }`}
                     >
                       <div className="flex items-center space-x-3 rtl:space-x-reverse min-w-0">
                         <div
                           className={`w-5 h-5 rounded flex items-center justify-center shrink-0 border ${
                             item.keep
-                              ? 'bg-emerald-600 border-emerald-500 text-white'
-                              : 'bg-purple-950 border-purple-800 text-transparent'
+                              ? 'bg-[var(--knoux-success)] border-[var(--knoux-success)] text-white'
+                              : 'bg-[var(--knoux-surface)] border-[var(--knoux-border)] text-transparent'
                           }`}
                         >
                           <Check className="w-3.5 h-3.5 stroke-[3]" />
                         </div>
                         <div className="min-w-0 font-mono text-xs">
-                          <span className="truncate block font-semibold">{item.path}</span>
-                          <span className="text-[10px] text-gray-400">Modified: {item.modified}</span>
+                          <span className="truncate block font-semibold text-[var(--knoux-text)]">{item.path}</span>
+                          <span className="text-xs text-[var(--knoux-text-muted)]">Modified: {item.modified}</span>
                         </div>
                       </div>
 
-                      <span className="text-[10px] font-mono px-2 py-0.5 rounded shrink-0">
+                      <span className="text-xs font-mono px-2 py-0.5 rounded shrink-0">
                         {item.keep ? t('KEEP (Original)', 'احتفاظ (الأصلي)') : t('REMOVE (Duplicate)', 'حذف (مكرر)')}
                       </span>
                     </div>
@@ -182,31 +182,31 @@ export const DuplicateFinderView: React.FC = () => {
       {activeTab === 'quarantine' && (
         <div className="space-y-4">
           {quarantineItems.length === 0 ? (
-            <div className="p-12 text-center rounded-2xl bg-purple-950/20 border border-purple-900/40 text-gray-300 space-y-2">
-              <ShieldCheck className="w-10 h-10 text-purple-400 mx-auto" />
-              <h3 className="font-bold text-base text-white">{t('Quarantine Vault is Empty', 'صندوق الحجر الصحي فارغ')}</h3>
-              <p className="text-xs text-gray-400">{t('No quarantined files currently held.', 'لا توجد ملفات محجوزة حالياً.')}</p>
+            <div className="p-12 text-center rounded-2xl knoux-surface border knoux-border space-y-2">
+              <ShieldCheck className="w-10 h-10 text-[var(--knoux-primary)] mx-auto" />
+              <h3 className="font-bold text-base text-[var(--knoux-text)]">{t('Quarantine Vault is Empty', 'صندوق الحجر الصحي فارغ')}</h3>
+              <p className="text-xs text-[var(--knoux-text-muted)]">{t('No quarantined files currently held.', 'لا توجد ملفات محجوزة حالياً.')}</p>
             </div>
           ) : (
             quarantineItems.map(item => (
-              <div key={item.id} className="p-4 rounded-xl bg-purple-950/30 border border-purple-900/40 flex items-center justify-between text-xs font-mono">
+              <div key={item.id} className="p-4 rounded-xl knoux-card flex items-center justify-between text-xs font-mono">
                 <div>
-                  <h4 className="font-bold text-white">{item.filename}</h4>
-                  <p className="text-purple-300 text-[11px] mt-0.5">Original: {item.originalPath}</p>
-                  <p className="text-gray-400 text-[10px]">{item.sizeFormatted} • Quarantined at {item.quarantinedAt}</p>
+                  <h4 className="font-bold text-[var(--knoux-text)]">{item.filename}</h4>
+                  <p className="text-[var(--knoux-primary)] text-sm mt-0.5">Original: {item.originalPath}</p>
+                  <p className="text-[var(--knoux-text-muted)] text-xs">{item.sizeFormatted} • Quarantined at {item.quarantinedAt}</p>
                 </div>
 
                 <div className="flex items-center space-x-2 rtl:space-x-reverse">
                   <button
                     onClick={() => restoreQuarantineItem(item.id)}
-                    className="px-3 py-1.5 rounded-lg bg-purple-900/60 hover:bg-purple-800 text-purple-200 text-xs flex items-center space-x-1 rtl:space-x-reverse transition-colors"
+                    className="knoux-button-secondary text-xs flex items-center space-x-1 rtl:space-x-reverse"
                   >
                     <RotateCcw className="w-3.5 h-3.5" />
                     <span>{t('Restore', 'استعادة')}</span>
                   </button>
                   <button
                     onClick={() => permanentDeleteQuarantineItem(item.id)}
-                    className="px-3 py-1.5 rounded-lg bg-red-950/80 hover:bg-red-900 border border-red-800/60 text-red-200 text-xs flex items-center space-x-1 rtl:space-x-reverse transition-colors"
+                    className="px-3 py-1.5 rounded-xl bg-[var(--knoux-danger)]/10 text-[var(--knoux-danger)] border border-[var(--knoux-danger)]/30 text-xs font-bold flex items-center space-x-1 rtl:space-x-reverse hover:bg-[var(--knoux-danger)] hover:text-white transition-all"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
                     <span>{t('Delete Permanently', 'حذف نهائي')}</span>

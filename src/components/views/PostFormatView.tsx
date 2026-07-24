@@ -6,7 +6,7 @@
 import React, { useState } from 'react';
 import { useKnoux } from '../../context/KnouxContext';
 import { ESSENTIAL_SOFTWARE_CATALOG, EssentialSoftwareItem } from '../../data/essentialSoftwareCatalog';
-import { LocalStorageService } from '../../services/localStorageService';
+import { LocalStorageService } from '../../services/previewStorageAdapter';
 import { NativeClient } from '../../services/nativeClient';
 import { 
   Download, 
@@ -226,13 +226,13 @@ export const PostFormatView: React.FC = () => {
               <div className="flex items-center space-x-2 rtl:space-x-reverse">
                 <span className="font-bold text-sm text-white truncate">{app.name}</span>
                 {app.recommended && (
-                  <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-800/50 font-mono font-bold">
+                  <span className="text-xs px-1.5 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-800/50 font-mono font-bold">
                     RECOMMENDED
                   </span>
                 )}
               </div>
-              <p className="text-[11px] text-purple-300/80 font-mono truncate">{app.packageId}</p>
-              <p className="text-[10px] text-gray-400">{t(app.descriptionEn, app.descriptionAr)}</p>
+              <p className="text-sm text-purple-300/80 font-mono truncate">{app.packageId}</p>
+              <p className="text-xs text-gray-400">{t(app.descriptionEn, app.descriptionAr)}</p>
             </div>
 
             <div
@@ -255,7 +255,7 @@ export const PostFormatView: React.FC = () => {
             <Terminal className="w-4 h-4 text-[#8226EE]" />
             <span className="font-bold">{t('Generated Winget Batch Script', 'سكربت التثبيت التلقائي لمدير الحزم')}</span>
           </div>
-          <span className="text-[10px] text-gray-500">{selectedApps.length} packages selected</span>
+          <span className="text-xs text-gray-500">{selectedApps.length} packages selected</span>
         </div>
         <pre className="text-emerald-400 whitespace-pre-wrap overflow-x-auto max-h-48 custom-scrollbar">
           {generateWingetPowerShell()}

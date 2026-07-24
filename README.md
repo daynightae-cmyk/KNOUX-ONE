@@ -2,7 +2,7 @@
 > **Build • Protect • Optimize**  
 > *A Knoux Product — Crafted by Eng. Sadek Elgazar (Knoux)*
 
-KNOUX ONE is a high-performance native Windows desktop application and system suite engineered in **Tauri v2, Rust, React 18, and TypeScript**.
+KNOUX ONE is a high-performance native Windows desktop application and system suite engineered in **Tauri v2, Rust, React 19, and TypeScript**.
 
 ---
 
@@ -72,6 +72,6 @@ npm run desktop:build
 ## 4. Operational Safety & Security Boundaries
 
 1. **Non-Destructive Execution**: No silent file deletion or aggressive registry tweaks.
-2. **Explicit Administrator UAC Scope**: Per-operation UAC elevation requested only when native capability requires administrative rights.
-3. **No Arbitrary Shell Command Execution**: All IPC invocations use explicit, allowlisted Rust commands. No generic `run_command` endpoints exist.
-4. **Local Data Persistence**: All queue items, setup profiles, preferences, and action logs are stored locally in the Tauri application data directory.
+2. **Explicit Administrator UAC Scope**: The UI provides a UAC confirmation flow which will be integrated with native OS elevation APIs.
+3. **Rust Command Integration**: IPC invocations use explicit, allowlisted Rust commands. No generic `run_command` endpoints exist.
+4. **Local Data Persistence**: Operations use a local web preview adapter during web development. Full SQLite persistence will be available in the native desktop bundle.

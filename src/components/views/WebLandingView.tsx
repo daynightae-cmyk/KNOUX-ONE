@@ -137,7 +137,7 @@ export const WebLandingView: React.FC = () => {
                 />
               </div>
               <div>
-                <span className="text-[10px] text-[#8226EE] font-mono font-bold block">{asset.id.toUpperCase()} • {t(asset.moduleNameEn, asset.moduleNameAr)}</span>
+                <span className="text-xs text-[#8226EE] font-mono font-bold block">{asset.id.toUpperCase()} • {t(asset.moduleNameEn, asset.moduleNameAr)}</span>
                 <h4 className="text-xs font-bold text-white truncate">{t(asset.titleEn, asset.titleAr)}</h4>
               </div>
             </div>

@@ -4,13 +4,12 @@
 
 import React, { useState } from 'react';
 import { useKnoux } from '../../context/KnouxContext';
-import { INITIAL_LOCAL_PORTS } from '../../data/mockSystemData';
 import { Wifi, Zap, Activity, CheckCircle2, RefreshCw, XCircle, Terminal } from 'lucide-react';
 
 export const NetworkOptimizerView: React.FC = () => {
   const { addLog, requestElevation, t } = useKnoux();
 
-  const [ports, setPorts] = useState(INITIAL_LOCAL_PORTS);
+  const [ports, setPorts] = useState<any[]>([]);
   const [dnsLatency, setDnsLatency] = useState<{ name: string; ip: string; pingMs: number }[]>([
     { name: 'Cloudflare DNS', ip: '1.1.1.1', pingMs: 12 },
     { name: 'Google Public DNS', ip: '8.8.8.8', pingMs: 18 },
@@ -23,7 +22,7 @@ export const NetworkOptimizerView: React.FC = () => {
     setIsFlushingDns(true);
     setTimeout(() => {
       setIsFlushingDns(false);
-      addLog('m10_s01', 'Flush DNS Resolver Cache', 'completed', 'Successfully purged Windows DNS Resolver Cache (ipconfig /flushdns).');
+      addLog('m08_s01', 'Flush DNS Resolver Cache', 'completed', 'Successfully purged Windows DNS Resolver Cache (ipconfig /flushdns).');
     }, 500);
   };
 
@@ -36,7 +35,7 @@ export const NetworkOptimizerView: React.FC = () => {
       'moderate',
       () => {
         setPorts(prev => prev.filter(p => p.port !== portNumber));
-        addLog('m10_s03', 'Kill Local Port Process', 'completed', `Killed listening process on port ${portNumber}`);
+        addLog('m08_s03', 'Kill Local Port Process', 'completed', `Killed listening process on port ${portNumber}`);
       }
     );
   };
@@ -48,7 +47,7 @@ export const NetworkOptimizerView: React.FC = () => {
         <div>
           <div className="inline-flex items-center space-x-2 rtl:space-x-reverse px-2.5 py-0.5 rounded bg-purple-950 border border-purple-800 text-purple-300 text-xs font-mono mb-1">
             <Wifi className="w-3.5 h-3.5 text-[#8226EE]" />
-            <span>MODULE 10 • NETWORK STACK & LOCAL PORTS</span>
+            <span>MODULE 08 • NETWORK STACK & LOCAL PORTS</span>
           </div>
           <h1 className="text-2xl font-extrabold text-white">
             {t('Network & DNS Stack Optimizer', 'محسن الشبكة وذاكرة الـ DNS والمنافذ')}
@@ -85,11 +84,11 @@ export const NetworkOptimizerView: React.FC = () => {
               <div key={i} className="p-3 rounded-xl bg-purple-950/30 border border-purple-900/30 flex items-center justify-between text-xs font-mono">
                 <div>
                   <span className="font-bold text-white block">{server.name}</span>
-                  <span className="text-[10px] text-gray-400">{server.ip}</span>
+                  <span className="text-xs text-gray-400">{server.ip}</span>
                 </div>
                 <div className="flex items-center space-x-2 rtl:space-x-reverse">
                   <span className="text-emerald-400 font-bold">{server.pingMs} ms</span>
-                  <button className="px-2 py-1 rounded bg-purple-900/60 hover:bg-purple-800 text-[10px] text-purple-200">
+                  <button className="px-2 py-1 rounded bg-purple-900/60 hover:bg-purple-800 text-xs text-purple-200">
                     {t('Set DNS', 'تعيين')}
                   </button>
                 </div>
@@ -111,16 +110,16 @@ export const NetworkOptimizerView: React.FC = () => {
                 <div>
                   <div className="flex items-center space-x-2 rtl:space-x-reverse">
                     <span className="font-bold text-white">Port {p.port}</span>
-                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-purple-900/80 text-purple-300">
+                    <span className="text-xs px-1.5 py-0.5 rounded bg-purple-900/80 text-purple-300">
                       PID: {p.pid}
                     </span>
                   </div>
-                  <p className="text-[11px] text-gray-300 mt-0.5 truncate max-w-[200px]">{p.processName}</p>
+                  <p className="text-sm text-gray-300 mt-0.5 truncate max-w-[200px]">{p.processName}</p>
                 </div>
 
                 <button
                   onClick={() => killPortProcess(p.port)}
-                  className="px-2.5 py-1 rounded bg-red-950/80 hover:bg-red-900 border border-red-800/60 text-red-300 text-[10px] flex items-center space-x-1 rtl:space-x-reverse transition-colors"
+                  className="px-2.5 py-1 rounded bg-red-950/80 hover:bg-red-900 border border-red-800/60 text-red-300 text-xs flex items-center space-x-1 rtl:space-x-reverse transition-colors"
                 >
                   <XCircle className="w-3 h-3" />
                   <span>{t('Kill Process', 'إنهاء')}</span>

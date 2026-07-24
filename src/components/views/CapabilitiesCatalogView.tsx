@@ -29,16 +29,16 @@ export const CapabilitiesCatalogView: React.FC = () => {
   return (
     <div className="p-6 max-w-7xl mx-auto space-y-6">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-purple-900/40 pb-5">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[var(--knoux-border)] pb-5">
         <div>
-          <div className="inline-flex items-center space-x-2 rtl:space-x-reverse px-2.5 py-0.5 rounded bg-purple-950 border border-purple-800 text-purple-300 text-xs font-mono mb-1">
-            <Grid className="w-3.5 h-3.5 text-[#8226EE]" />
+          <div className="inline-flex items-center space-x-2 rtl:space-x-reverse px-2.5 py-0.5 rounded bg-[var(--knoux-surface-muted)] border border-[var(--knoux-border)] text-[var(--knoux-primary)] text-xs font-mono mb-1">
+            <Grid className="w-3.5 h-3.5 text-[var(--knoux-primary)]" />
             <span>FULL CATALOG • 19 MODULES • 190 SERVICES</span>
           </div>
-          <h1 className="text-2xl font-extrabold text-white">
+          <h1 className="text-2xl font-extrabold text-[var(--knoux-text)] tracking-tight">
             {t('All 190 Capabilities Catalog Grid', 'دليل كافة الـ 190 وظيفة للبرنامج')}
           </h1>
-          <p className="text-xs text-gray-300 mt-1">
+          <p className="text-xs text-[var(--knoux-text-muted)] mt-1">
             {t(
               'Complete master directory of all registered Windows intelligence capabilities.',
               'الدليل الكامل والشامل لجميع أدوات وسكربتات KNOUX ONE البالغ عددها 190 وظيفة.'
@@ -48,13 +48,13 @@ export const CapabilitiesCatalogView: React.FC = () => {
 
         {/* Search */}
         <div className="relative w-full md:w-80">
-          <Search className="w-4 h-4 text-purple-400 absolute left-3 rtl:right-3 top-3" />
+          <Search className="w-4 h-4 text-[var(--knoux-text-muted)] absolute left-3 rtl:right-3 top-2.5" />
           <input
             type="text"
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
             placeholder={t('Filter 190 tools...', 'تصفية الـ 190 أداة...')}
-            className="w-full bg-purple-950/40 border border-purple-800/50 rounded-xl pl-9 rtl:pr-9 rtl:pl-3 py-2 text-xs text-white placeholder-purple-400/60 focus:outline-none focus:border-[#8226EE]"
+            className="w-full knoux-input pl-9 rtl:pr-9 rtl:pl-3"
           />
         </div>
       </div>
@@ -63,10 +63,10 @@ export const CapabilitiesCatalogView: React.FC = () => {
       <div className="flex items-center space-x-2 rtl:space-x-reverse overflow-x-auto custom-scrollbar pb-2">
         <button
           onClick={() => setSelectedModule('all')}
-          className={`px-3 py-1.5 rounded-xl text-xs font-mono whitespace-nowrap transition-colors ${
+          className={`px-3 py-1.5 rounded-xl text-xs font-mono whitespace-nowrap transition-all ${
             selectedModule === 'all'
-              ? 'bg-[#8226EE] text-white font-bold'
-              : 'bg-purple-950/40 text-purple-300 border border-purple-900/40 hover:bg-purple-900/40'
+              ? 'bg-[var(--knoux-primary)] text-white font-bold shadow-md shadow-[var(--knoux-primary)]/20'
+              : 'bg-[var(--knoux-surface-muted)] text-[var(--knoux-text-muted)] border border-[var(--knoux-border)] hover:bg-[var(--knoux-border)]/50'
           }`}
         >
           {t('All 190 Tools', 'جميع الـ 190 أداة')}
@@ -76,10 +76,10 @@ export const CapabilitiesCatalogView: React.FC = () => {
           <button
             key={mod.id}
             onClick={() => setSelectedModule(mod.id)}
-            className={`px-3 py-1.5 rounded-xl text-xs font-mono whitespace-nowrap transition-colors ${
+            className={`px-3 py-1.5 rounded-xl text-xs font-mono whitespace-nowrap transition-all ${
               selectedModule === mod.id
-                ? 'bg-[#8226EE] text-white font-bold'
-                : 'bg-purple-950/40 text-purple-300 border border-purple-900/40 hover:bg-purple-900/40'
+                ? 'bg-[var(--knoux-primary)] text-white font-bold shadow-md shadow-[var(--knoux-primary)]/20'
+                : 'bg-[var(--knoux-surface-muted)] text-[var(--knoux-text-muted)] border border-[var(--knoux-border)] hover:bg-[var(--knoux-border)]/50'
             }`}
           >
             {mod.id.toUpperCase()}: {t(mod.titleEn, mod.titleAr)}
@@ -88,8 +88,8 @@ export const CapabilitiesCatalogView: React.FC = () => {
       </div>
 
       {/* Count Header */}
-      <div className="text-xs font-mono text-purple-300">
-        Showing <strong className="text-white">{filtered.length}</strong> of {ALL_CAPABILITIES.length} tools
+      <div className="text-xs font-mono text-[var(--knoux-text-muted)]">
+        Showing <strong className="text-[var(--knoux-text)]">{filtered.length}</strong> of {ALL_CAPABILITIES.length} tools
       </div>
 
       {/* Grid */}

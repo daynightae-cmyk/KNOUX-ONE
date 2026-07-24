@@ -96,60 +96,68 @@ export const UniversalServiceWorkspace: React.FC<UniversalServiceWorkspaceProps>
   };
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-6 space-y-6 max-w-7xl mx-auto">
       {/* Module Header Banner */}
-      <div className="p-6 rounded-2xl bg-gradient-to-r from-purple-950/40 via-[#150B33] to-[#0D0527] border border-purple-900/40 shadow-xl">
+      <div className="p-6 rounded-2xl knoux-surface border knoux-border shadow-xl">
         <div className="flex items-center justify-between flex-wrap gap-4">
           <div className="flex items-center space-x-4 rtl:space-x-reverse">
-            <div className="w-14 h-14 rounded-2xl bg-[#8226EE]/20 border border-[#8226EE]/40 flex items-center justify-center font-mono font-bold text-2xl text-purple-300">
+            <div className="w-14 h-14 rounded-2xl bg-[var(--knoux-primary)]/15 border border-[var(--knoux-primary)]/40 flex items-center justify-center font-mono font-bold text-2xl text-[var(--knoux-primary)]">
               M{moduleNumber.toString().padStart(2, '0')}
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-white tracking-wide">
+              <h1 className="text-2xl font-bold text-[var(--knoux-text)] tracking-wide">
                 {t(moduleNameEn, moduleNameAr)}
               </h1>
-              <p className="text-sm text-purple-300/80 mt-1 max-w-3xl">
+              <p className="text-sm text-[var(--knoux-text-muted)] mt-1 max-w-3xl">
                 {t(descriptionEn, descriptionAr)}
               </p>
             </div>
           </div>
-          <div className="flex items-center space-x-2 rtl:space-x-reverse bg-purple-950/50 px-3 py-1.5 rounded-xl border border-purple-800/40 text-xs font-mono">
-            <Layers className="w-4 h-4 text-purple-400" />
-            <span className="text-purple-200">{capabilities.length} {t('Native Capabilities', 'وظيفة محلية')}</span>
+          <div className="flex items-center space-x-2 rtl:space-x-reverse bg-[var(--knoux-surface-muted)] px-3 py-1.5 rounded-xl border border-[var(--knoux-border)] text-xs font-mono">
+            <Layers className="w-4 h-4 text-[var(--knoux-primary)]" />
+            <span className="text-[var(--knoux-text)] font-semibold">{capabilities.length} {t('Native Capabilities', 'وظيفة محلية')}</span>
           </div>
         </div>
       </div>
 
       {/* Capabilities Grid (10 Services) */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 xl:gap-6">
         {capabilities.map((cap) => {
-          const isImplemented = cap.status === 'available';
-          const isPlanned = cap.status === 'planned';
-          const isRequiresConfig = cap.status === 'requires_configuration';
+          const isImplemented = cap.implementationState === 'implemented' && Boolean(cap.handlerId);
+          const isPlanned = cap.implementationState === 'planned';
+          const isRequiresConfig = cap.implementationState === 'requires_configuration';
+
+          const cardStyle = cap.riskLevel === 'high' 
+            ? 'border-red-900/30 bg-red-950/10 hover:border-red-500/50'
+            : cap.riskLevel === 'low'
+            ? 'border-yellow-900/30 bg-yellow-950/10 hover:border-yellow-500/50'
+            : cap.requiresAdmin
+            ? 'border-purple-900/30 bg-purple-950/10 hover:border-purple-500/50'
+            : 'border-[var(--knoux-border)] bg-[var(--knoux-surface-muted)] hover:border-[var(--knoux-primary)]/50';
 
           return (
             <div
               key={cap.id}
-              className="p-5 rounded-xl bg-[#151027]/80 hover:bg-[#1a1432] border border-purple-900/30 hover:border-purple-800/60 transition-all flex flex-col justify-between space-y-4 shadow-lg group"
+              className={`p-5 rounded-2xl border transition-all flex flex-col justify-between space-y-4 shadow-sm group ${cardStyle}`}
             >
               <div>
                 <div className="flex items-start justify-between gap-2 mb-2">
                   <div className="flex items-center space-x-2 rtl:space-x-reverse">
-                    <span className="px-2 py-0.5 rounded bg-purple-950 text-purple-300 font-mono text-[10px] border border-purple-800/40">
+                    <span className="knoux-badge-primary">
                       S{cap.serviceNumber.toString().padStart(2, '0')}
                     </span>
-                    <h3 className="font-semibold text-white text-base group-hover:text-purple-200 transition-colors">
+                    <h3 className="font-semibold text-[var(--knoux-text)] text-base group-hover:text-[var(--knoux-primary)] transition-colors">
                       {t(cap.nameEn, cap.nameAr)}
                     </h3>
                   </div>
 
                   {/* Status Badge */}
-                  <span className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded border uppercase shrink-0 ${
+                  <span className={`text-xs font-mono font-bold px-2 py-0.5 rounded-md border uppercase shrink-0 ${
                     isImplemented
-                      ? 'bg-emerald-950/60 text-emerald-400 border-emerald-800/50'
+                      ? 'knoux-badge-success'
                       : isRequiresConfig
-                      ? 'bg-amber-950/60 text-amber-400 border-amber-800/50'
-                      : 'bg-purple-950/60 text-purple-400 border-purple-800/50'
+                      ? 'knoux-badge-warning'
+                      : 'knoux-badge-muted'
                   }`}>
                     {t(
                       isImplemented ? 'Available' : isRequiresConfig ? 'Config Required' : 'Planned',
@@ -158,22 +166,22 @@ export const UniversalServiceWorkspace: React.FC<UniversalServiceWorkspaceProps>
                   </span>
                 </div>
 
-                <p className="text-xs text-gray-300/80 leading-relaxed">
+                <p className="text-xs text-[var(--knoux-text-muted)] leading-relaxed">
                   {t(cap.descriptionEn, cap.descriptionAr)}
                 </p>
 
                 {/* Capability Attributes Tags */}
-                <div className="flex items-center flex-wrap gap-2 mt-3 pt-3 border-t border-purple-950/50 text-[10px] text-gray-400 font-mono">
+                <div className="flex items-center flex-wrap gap-2 mt-3 pt-3 border-t border-[var(--knoux-border)] text-xs text-[var(--knoux-text-muted)] font-mono">
                   {cap.requiresAdmin && (
-                    <span className="flex items-center space-x-1 rtl:space-x-reverse text-amber-400 bg-amber-950/30 px-1.5 py-0.5 rounded border border-amber-900/30">
+                    <span className="flex items-center space-x-1 rtl:space-x-reverse text-[var(--knoux-warning)] bg-[var(--knoux-warning)]/10 px-1.5 py-0.5 rounded border border-[var(--knoux-warning)]/30 font-bold">
                       <ShieldAlert className="w-3 h-3" />
                       <span>{t('Admin / UAC', 'مسؤول')}</span>
                     </span>
                   )}
-                  <span className="bg-purple-950/40 px-1.5 py-0.5 rounded text-purple-300">
+                  <span className="bg-[var(--knoux-surface-muted)] px-1.5 py-0.5 rounded text-[var(--knoux-text-muted)] border border-[var(--knoux-border)]">
                     {cap.riskLevel.toUpperCase()} RISK
                   </span>
-                  <span className="bg-purple-950/40 px-1.5 py-0.5 rounded text-purple-300">
+                  <span className="bg-[var(--knoux-surface-muted)] px-1.5 py-0.5 rounded text-[var(--knoux-text-muted)] border border-[var(--knoux-border)]">
                     {cap.runtime.toUpperCase()}
                   </span>
                 </div>
@@ -183,7 +191,7 @@ export const UniversalServiceWorkspace: React.FC<UniversalServiceWorkspaceProps>
               <div className="flex items-center space-x-2 rtl:space-x-reverse pt-2">
                 <button
                   onClick={() => handlePreview(cap)}
-                  className="flex-1 flex items-center justify-center space-x-1.5 rtl:space-x-reverse px-3 py-2 rounded-lg bg-purple-950/50 hover:bg-purple-900/50 text-purple-300 border border-purple-800/40 text-xs font-medium transition-colors"
+                  className="flex-1 flex items-center justify-center space-x-1.5 rtl:space-x-reverse px-3 py-2 rounded-xl knoux-button-secondary text-xs font-medium"
                 >
                   <Eye className="w-3.5 h-3.5" />
                   <span>{t('Preview', 'معاينة')}</span>
@@ -192,10 +200,10 @@ export const UniversalServiceWorkspace: React.FC<UniversalServiceWorkspaceProps>
                 <button
                   onClick={() => handleExecute(cap)}
                   disabled={!isImplemented || isExecuting}
-                  className={`flex-1 flex items-center justify-center space-x-1.5 rtl:space-x-reverse px-3 py-2 rounded-lg text-xs font-bold transition-all shadow-md ${
+                  className={`flex-1 flex items-center justify-center space-x-1.5 rtl:space-x-reverse px-3 py-2 rounded-xl text-xs font-bold transition-all shadow-md ${
                     isImplemented && !isExecuting
-                      ? 'bg-[#8226EE] hover:bg-[#701AD3] text-white shadow-purple-950/50'
-                      : 'bg-gray-800/50 text-gray-500 cursor-not-allowed border border-gray-700/30'
+                      ? 'knoux-button-primary'
+                      : 'bg-[var(--knoux-surface-muted)] text-[var(--knoux-text-muted)] opacity-50 cursor-not-allowed border border-[var(--knoux-border)]'
                   }`}
                 >
                   {isExecuting && selectedCap?.id === cap.id ? (
@@ -213,17 +221,17 @@ export const UniversalServiceWorkspace: React.FC<UniversalServiceWorkspaceProps>
 
       {/* Preview / Execution Drawer Modal */}
       {(selectedCap && (isPreviewing || isExecuting || lastResult)) && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
-          <div className="bg-[#151027] border border-purple-800/50 rounded-2xl w-full max-w-2xl overflow-hidden shadow-2xl flex flex-col max-h-[85vh]">
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex justify-end rtl:justify-start">
+          <div className="bg-[var(--knoux-surface)] border-l rtl:border-l-0 rtl:border-r border-[var(--knoux-border)] w-full md:w-[480px] h-full shadow-2xl flex flex-col overflow-hidden animate-slide-in">
             {/* Drawer Header */}
-            <div className="p-4 bg-purple-950/60 border-b border-purple-900/40 flex items-center justify-between">
+            <div className="p-4 bg-[var(--knoux-surface-muted)] border-b border-[var(--knoux-border)] flex items-center justify-between">
               <div className="flex items-center space-x-2.5 rtl:space-x-reverse">
-                <Terminal className="w-5 h-5 text-[#8226EE]" />
+                <Terminal className="w-5 h-5 text-[var(--knoux-primary)]" />
                 <div>
-                  <h3 className="font-bold text-white text-base">
+                  <h3 className="font-bold text-[var(--knoux-text)] text-base">
                     {t(selectedCap.nameEn, selectedCap.nameAr)}
                   </h3>
-                  <p className="text-xs font-mono text-purple-300/70">
+                  <p className="text-xs font-mono text-[var(--knoux-text-muted)]">
                     Capability ID: {selectedCap.id}
                   </p>
                 </div>
@@ -235,7 +243,7 @@ export const UniversalServiceWorkspace: React.FC<UniversalServiceWorkspaceProps>
                   setIsExecuting(false);
                   setLastResult(null);
                 }}
-                className="p-1.5 rounded-lg bg-purple-900/30 hover:bg-purple-800/50 text-gray-300 hover:text-white transition-colors"
+                className="p-1.5 rounded-lg bg-[var(--knoux-surface)] hover:bg-[var(--knoux-border)]/50 text-[var(--knoux-text-muted)] hover:text-[var(--knoux-text)] transition-colors"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -246,21 +254,21 @@ export const UniversalServiceWorkspace: React.FC<UniversalServiceWorkspaceProps>
               {/* Preview Information */}
               {isPreviewing && !isExecuting && !lastResult && (
                 <div className="space-y-4">
-                  <div className="p-4 rounded-xl bg-purple-950/30 border border-purple-900/30 space-y-3">
-                    <h4 className="text-xs font-mono font-bold text-purple-300 uppercase tracking-wider flex items-center space-x-2 rtl:space-x-reverse">
+                  <div className="p-4 rounded-xl bg-[var(--knoux-surface-muted)] border border-[var(--knoux-border)] space-y-3">
+                    <h4 className="text-xs font-mono font-bold text-[var(--knoux-primary)] uppercase tracking-wider flex items-center space-x-2 rtl:space-x-reverse">
                       <FileText className="w-4 h-4" />
                       <span>{t('Execution Contract & Prerequisites', 'العقد الإجرائي والشروط')}</span>
                     </h4>
                     <div className="grid grid-cols-2 gap-3 text-xs">
                       <div>
-                        <span className="text-gray-400 block">{t('Reads:', 'المسارات المقروءة:')}</span>
-                        <span className="text-gray-200 font-medium">
+                        <span className="text-[var(--knoux-text-muted)] block">{t('Reads:', 'المسارات المقروءة:')}</span>
+                        <span className="text-[var(--knoux-text)] font-medium">
                           {OperationService.getCapabilityPreview(selectedCap).readsEn}
                         </span>
                       </div>
                       <div>
-                        <span className="text-gray-400 block">{t('Modifies:', 'التغييرات المتوقعة:')}</span>
-                        <span className="text-gray-200 font-medium">
+                        <span className="text-[var(--knoux-text-muted)] block">{t('Modifies:', 'التغييرات المتوقعة:')}</span>
+                        <span className="text-[var(--knoux-text)] font-medium">
                           {OperationService.getCapabilityPreview(selectedCap).changesEn}
                         </span>
                       </div>
@@ -270,7 +278,7 @@ export const UniversalServiceWorkspace: React.FC<UniversalServiceWorkspaceProps>
                   <div className="flex items-center justify-end space-x-3 rtl:space-x-reverse pt-2">
                     <button
                       onClick={() => setIsPreviewing(false)}
-                      className="px-4 py-2 rounded-lg bg-purple-950/40 text-purple-300 text-xs font-medium hover:bg-purple-900/40"
+                      className="knoux-button-secondary"
                     >
                       {t('Close', 'إغلاق')}
                     </button>
@@ -279,7 +287,7 @@ export const UniversalServiceWorkspace: React.FC<UniversalServiceWorkspaceProps>
                         setIsPreviewing(false);
                         handleExecute(selectedCap);
                       }}
-                      className="px-5 py-2 rounded-lg bg-[#8226EE] hover:bg-[#701AD3] text-white text-xs font-bold shadow-lg flex items-center space-x-1.5 rtl:space-x-reverse"
+                      className="knoux-button-primary flex items-center space-x-1.5 rtl:space-x-reverse"
                     >
                       <Play className="w-3.5 h-3.5" />
                       <span>{t('Confirm & Execute', 'تأكيد وتشغيل')}</span>
@@ -293,13 +301,13 @@ export const UniversalServiceWorkspace: React.FC<UniversalServiceWorkspaceProps>
                 <div className="space-y-4">
                   {isExecuting && (
                     <div className="space-y-2">
-                      <div className="flex justify-between text-xs font-mono text-purple-300">
+                      <div className="flex justify-between text-xs font-mono text-[var(--knoux-primary)]">
                         <span>{t('Executing native operation...', 'جاري تنفيذ العملية...')}</span>
                         <span>{executionProgress}%</span>
                       </div>
-                      <div className="w-full h-2 bg-purple-950 rounded-full overflow-hidden border border-purple-900/50">
+                      <div className="w-full h-2 bg-[var(--knoux-surface-muted)] rounded-full overflow-hidden border border-[var(--knoux-border)]">
                         <div
-                          className="h-full bg-gradient-to-r from-purple-600 to-[#8226EE] transition-all duration-300"
+                          className="h-full bg-[var(--knoux-primary)] transition-all duration-300"
                           style={{ width: `${executionProgress}%` }}
                         />
                       </div>
@@ -307,18 +315,57 @@ export const UniversalServiceWorkspace: React.FC<UniversalServiceWorkspaceProps>
                   )}
 
                   {/* Output Terminal Console */}
-                  <div className="p-4 rounded-xl bg-black/80 border border-purple-900/50 font-mono text-xs text-emerald-400 whitespace-pre-wrap max-h-60 overflow-y-auto custom-scrollbar">
+                  <div className="p-4 rounded-xl bg-slate-950 border border-slate-800 font-mono text-xs text-emerald-400 whitespace-pre-wrap max-h-60 overflow-y-auto custom-scrollbar">
                     {executionLog || t('Initializing task...', 'جاري التجهيز...')}
                   </div>
 
                   {lastResult && (
-                    <div className="p-4 rounded-xl bg-emerald-950/30 border border-emerald-800/40 flex items-center space-x-3 rtl:space-x-reverse">
-                      <CheckCircle2 className="w-6 h-6 text-emerald-400 shrink-0" />
+                    <div className={`p-4 rounded-xl flex items-center space-x-3 rtl:space-x-reverse border ${
+                      lastResult.status === 'completed'
+                        ? 'bg-[var(--knoux-success)]/10 border-[var(--knoux-success)]/30'
+                        : lastResult.status === 'partially_completed'
+                        ? 'bg-[var(--knoux-warning)]/10 border-[var(--knoux-warning)]/30'
+                        : lastResult.status === 'requires_elevation'
+                        ? 'bg-[var(--knoux-primary)]/15 border-[var(--knoux-primary)]/40'
+                        : 'bg-[var(--knoux-danger)]/10 border-[var(--knoux-danger)]/30'
+                    }`}>
+                      {lastResult.status === 'completed' ? (
+                        <CheckCircle2 className="w-6 h-6 text-[var(--knoux-success)] shrink-0" />
+                      ) : lastResult.status === 'partially_completed' ? (
+                        <AlertTriangle className="w-6 h-6 text-[var(--knoux-warning)] shrink-0" />
+                      ) : lastResult.status === 'requires_elevation' ? (
+                        <ShieldAlert className="w-6 h-6 text-[var(--knoux-primary)] shrink-0" />
+                      ) : (
+                        <X className="w-6 h-6 text-[var(--knoux-danger)] shrink-0" />
+                      )}
                       <div>
-                        <h4 className="font-bold text-emerald-300 text-sm">
-                          {t('Operation Completed Successfully', 'تمت العملية بنجاح')}
+                        <h4 className={`font-bold text-sm ${
+                          lastResult.status === 'completed'
+                            ? 'text-[var(--knoux-success)]'
+                            : lastResult.status === 'partially_completed'
+                            ? 'text-[var(--knoux-warning)]'
+                            : lastResult.status === 'requires_elevation'
+                            ? 'text-[var(--knoux-primary)]'
+                            : 'text-[var(--knoux-danger)]'
+                        }`}>
+                          {t(
+                            lastResult.status === 'completed'
+                              ? 'Operation Completed'
+                              : lastResult.status === 'partially_completed'
+                              ? 'Partial Completion Warning'
+                              : lastResult.status === 'requires_elevation'
+                              ? 'Administrator Elevation Required'
+                              : 'Operation Failed / Unavailable',
+                            lastResult.status === 'completed'
+                              ? 'تمت العملية بنجاح'
+                              : lastResult.status === 'partially_completed'
+                              ? 'اكتملت العملية مع تنبيهات'
+                              : lastResult.status === 'requires_elevation'
+                              ? 'تتطلب العملية رفع الصلاحيات'
+                              : 'فشلت العملية أو غير متاحة'
+                          )}
                         </h4>
-                        <p className="text-xs text-emerald-200/80 mt-0.5">
+                        <p className="text-xs text-[var(--knoux-text-muted)] mt-0.5">
                           {t(lastResult.summaryEn, lastResult.summaryAr)}
                         </p>
                       </div>

@@ -101,7 +101,7 @@ const AppContent: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#0A0322] text-gray-100 flex flex-col font-sans antialiased selection:bg-[#8226EE] selection:text-white">
+    <div className="min-h-screen knoux-app-bg text-[var(--knoux-text)] flex flex-col font-sans antialiased selection:bg-[#8226EE] selection:text-white transition-colors duration-200">
       {/* Header / Titlebar */}
       <Header />
 
@@ -111,7 +111,7 @@ const AppContent: React.FC = () => {
         <Sidebar />
 
         {/* Dynamic Route View Content Area */}
-        <main className="flex-1 overflow-y-auto custom-scrollbar bg-[#08021B]">
+        <main className="flex-1 overflow-y-auto custom-scrollbar knoux-app-bg transition-colors duration-200">
           {renderRoute()}
         </main>
       </div>
