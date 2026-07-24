@@ -1,0 +1,30 @@
+name: Generate Module 03 Rustfmt Snapshot
+
+on:
+  push:
+    branches: [feat/m03-real-duplicate-engine]
+
+permissions:
+  contents: read
+
+jobs:
+  format:
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: src-tauri
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
+      - name: Format Rust source
+        run: cargo fmt --all
+      - name: Upload formatted Rust source
+        uses: actions/upload-artifact@v4
+        with:
+          name: m03-rustfmt-source
+          path: |
+            src-tauri/src/**/*.rs
+            src-tauri/src/*.rs
+          if-no-files-found: error
