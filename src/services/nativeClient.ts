@@ -77,7 +77,7 @@ export class NativeClient {
     const commandName = handlerId.replace(/\./g, '_');
 
     try {
-      return await this.invokeNative<OperationResult>(commandName, { opId, ...parameters });
+      return await this.invokeNative<OperationResult>(commandName, { op_id: opId, ...parameters });
     } catch (err: any) {
       return {
         operationId: opId,

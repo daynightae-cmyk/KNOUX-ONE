@@ -16,6 +16,7 @@ import {
   SupportTicket,
   RiskLevel
 } from '../types';
+import { ESSENTIAL_APPS_CATALOG } from '../data/essentialAppsCatalog';
 import { NativeClient } from '../services/nativeClient';
 
 interface ElevationRequest {
@@ -105,7 +106,7 @@ export const KnouxProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [runtimeMode, setRuntimeMode] = useState<KnouxRuntime>('desktop');
 
   const [systemSpecs, setSystemSpecs] = useState<SystemSpecs>(INITIAL_UNSCANNED_SPECS);
-  const [essentialApps, setEssentialApps] = useState<EssentialApp[]>([]);
+  const [essentialApps, setEssentialApps] = useState<EssentialApp[]>(ESSENTIAL_APPS_CATALOG);
   const [cleanupCategories, setCleanupCategories] = useState<CleanupCategory[]>([]);
   const [duplicateGroups, setDuplicateGroups] = useState<DuplicateGroup[]>([]);
   const [quarantineItems, setQuarantineItems] = useState<QuarantineItem[]>([]);
@@ -169,8 +170,29 @@ export const KnouxProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     root.setAttribute('lang', language);
   }, [language]);
 
-  const toggleAppInstall = (id: string) => {
-    setEssentialApps(prev => prev.map(app => app.id === id ? { ...app, installed: !app.installed } : app));
+  const toggleAppInstall = async (id: string) => {
+    const appToInstall = essentialApps.find(a => a.id === id);
+    if (!appToInstall) return;
+
+    // Optimistically mark as installed if it's already installed, or if user is just toggling (we shouldn't really toggle off, just install)
+    if (appToInstall.installed) return; // Cannot uninstall right now
+
+    setEssentialApps(prev => prev.map(app => app.id === id ? { ...app, installed: true } : app));
+
+    if (NativeClient.isTauriAvailable()) {
+      try {
+        const res = await NativeClient.executeModule01Capability('m01_s05', 'm01.winget.install', { package_id: appToInstall.wingetId });
+        addLog('m01_s05', `Install ${appToInstall.name}`, res.status === 'completed' ? 'completed' : 'failed', res.summaryEn);
+      } catch (err: any) {
+        addLog('m01_s05', `Install ${appToInstall.name}`, 'failed', `Error: ${err.message || err}`);
+        // Revert state on failure
+        setEssentialApps(prev => prev.map(app => app.id === id ? { ...app, installed: false } : app));
+      }
+    } else {
+      addLog('m01_s05', `Install ${appToInstall.name}`, 'failed', 'Desktop runtime unavailable. Launch KNOUX ONE Windows Desktop app to install.');
+      // Revert state for preview
+      setTimeout(() => setEssentialApps(prev => prev.map(app => app.id === id ? { ...app, installed: false } : app)), 3000);
+    }
   };
 
   const toggleCategorySelect = (id: string) => {
@@ -287,6 +309,15 @@ export const KnouxProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       const result = await NativeClient.executeModule01Capability('m01_s01', 'm01.system.discover');
       setIsScanning(false);
       addLog('m01_s01', 'Smart System Audit', result.status === 'completed' ? 'completed' : 'failed', result.summaryEn);
+      
+      if (result.status === 'completed' && result.data) {
+        setSystemSpecs(prev => ({
+          ...prev,
+          ...result.data,
+          // Calculate health score dynamically based on data if provided
+          healthScore: result.data.healthScore || 90
+        }));
+      }
     } catch (err: any) {
       setIsScanning(false);
       addLog('m01_s01', 'Smart System Audit', 'failed', `Discovery failed: ${err.message || err}`);

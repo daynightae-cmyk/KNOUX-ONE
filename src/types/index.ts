@@ -137,6 +137,8 @@ export interface EssentialApp {
   recommended: boolean;
   installed: boolean;
   sizeMB: number;
+  descriptionEn?: string;
+  descriptionAr?: string;
 }
 
 export interface CleanupCategory {

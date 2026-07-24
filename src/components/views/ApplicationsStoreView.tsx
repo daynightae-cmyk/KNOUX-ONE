@@ -7,7 +7,7 @@ import { useKnoux } from '../../context/KnouxContext';
 import { Package, Search, Download, RefreshCw, CheckCircle2 } from 'lucide-react';
 
 export const ApplicationsStoreView: React.FC = () => {
-  const { essentialApps, toggleAppInstall, t } = useKnoux();
+  const { essentialApps, toggleAppInstall, t, language } = useKnoux();
   const [searchQuery, setSearchQuery] = useState('');
 
   const filtered = essentialApps.filter(a => 
@@ -51,20 +51,24 @@ export const ApplicationsStoreView: React.FC = () => {
       {/* Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {filtered.map(app => (
-          <div key={app.id} className="p-4 rounded-2xl bg-purple-950/20 border border-purple-900/40 space-y-2">
+          <div key={app.id} className="p-4 rounded-2xl bg-purple-950/20 border border-purple-900/40 space-y-2 relative">
+            {app.recommended && (
+              <div className="absolute top-0 right-0 rtl:left-0 rtl:right-auto bg-[#8226EE] text-white text-xs font-bold px-2 py-0.5 rounded-bl-lg rtl:rounded-bl-none rtl:rounded-br-lg rounded-tr-lg rtl:rounded-tl-lg">
+                RECOMMENDED
+              </div>
+            )}
             <div className="flex justify-between items-start">
               <div>
                 <h3 className="font-bold text-sm text-white">{app.name}</h3>
-                <p className="text-sm text-purple-300 font-mono">{app.wingetId}</p>
+                <p className="text-xs text-purple-300 font-mono">{app.wingetId}</p>
               </div>
-              <span className="text-xs text-gray-400 font-mono">~{app.sizeMB} MB</span>
             </div>
 
-            <p className="text-xs text-gray-400">{app.publisher}</p>
+            <p className="text-xs text-gray-300 min-h-[32px]">{language === 'ar' ? app.descriptionAr : app.descriptionEn}</p>
 
             <button
               onClick={() => toggleAppInstall(app.id)}
-              className={`w-full mt-2 py-1.5 rounded-lg text-xs font-bold font-mono transition-all ${
+              className={`w-full mt-2 py-1.5 rounded-lg text-xs font-bold transition-all ${
                 app.installed
                   ? 'bg-emerald-950/80 border border-emerald-800/60 text-emerald-300'
                   : 'bg-[#8226EE] hover:bg-purple-600 text-white'
