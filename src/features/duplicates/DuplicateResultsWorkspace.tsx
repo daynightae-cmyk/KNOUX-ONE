@@ -137,7 +137,9 @@ export function DuplicateResultsWorkspace({ store }: { store: any }) {
 
       <div className="space-y-4">
         {filteredGroups.map((group: any) => (
-          <DuplicateGroupCard key={group.groupId} group={group} store={store} />
+          <React.Fragment key={group.groupId}>
+            <DuplicateGroupCard group={group} store={store} />
+          </React.Fragment>
         ))}
       </div>
     </div>
