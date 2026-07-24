@@ -1,6 +1,11 @@
 name: Generate Module 03 Rustfmt Snapshot
 
 on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'src-tauri/**/*.rs'
+      - '.github/workflows/m03-format-snapshot.yml'
   push:
     branches: [feat/m03-real-duplicate-engine]
 
