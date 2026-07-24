@@ -43,13 +43,34 @@ jobs:
           workspaces: src-tauri
 
       - name: Verify formatting
-        run: cargo fmt --check
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path ../validation-logs | Out-Null
+          cargo fmt --check 2>&1 | Tee-Object -FilePath ../validation-logs/cargo-fmt.log
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
       - name: Compile native engine
-        run: cargo check --all-targets --all-features
+        shell: pwsh
+        run: |
+          cargo check --all-targets --all-features 2>&1 | Tee-Object -FilePath ../validation-logs/cargo-check.log
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
       - name: Enforce Clippy
-        run: cargo clippy --all-targets --all-features -- -D warnings
+        shell: pwsh
+        run: |
+          cargo clippy --all-targets --all-features -- -D warnings 2>&1 | Tee-Object -FilePath ../validation-logs/cargo-clippy.log
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
       - name: Run native tests
-        run: cargo test --all-features
+        shell: pwsh
+        run: |
+          cargo test --all-features 2>&1 | Tee-Object -FilePath ../validation-logs/cargo-test.log
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
+      - name: Upload native validation logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: m03-native-validation-logs
+          path: validation-logs
+          if-no-files-found: warn
