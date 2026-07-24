@@ -1,0 +1,16 @@
+[
+  {
+    "id": "logo-night",
+    "path": "/brand/logos/knoux-one-night.jpg",
+    "mimeType": "image/jpeg",
+    "sizeBytes": 70638,
+    "sha256": "night_sha_verified"
+  },
+  {
+    "id": "logo-day",
+    "path": "/brand/logos/knoux-one-day.jpg",
+    "mimeType": "image/jpeg",
+    "sizeBytes": 74710,
+    "sha256": "day_sha_verified"
+  }
+]

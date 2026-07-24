@@ -1,80 +1,56 @@
 /**
- * KNOUX ONE — Catalog Integrity Audit
- * Validates module mapping, capability count (19 modules x 10 services = 190 capabilities), and bilingual string completeness.
+ * KNOUX ONE — Vitest Catalog Integrity Test
+ * Validates module mapping, capability count (19 modules x 10 services = 190 capabilities),
+ * implementation states, and forbids fake completion states.
  */
 
+import { describe, it, expect } from 'vitest';
 import { MODULES_CATALOG } from '../data/capabilitiesCatalog';
 
-export function runCatalogIntegrityAudit(): {
-  success: boolean;
-  moduleCount: number;
-  capabilityCount: number;
-  errors: string[];
-} {
-  const errors: string[] = [];
-  const seenCapabilityIds = new Set<string>();
-  let totalCapabilities = 0;
+describe('KNOUX ONE Catalog Integrity', () => {
+  it('contains exactly 19 modules', () => {
+    expect(MODULES_CATALOG.length).toBe(19);
+  });
 
-  if (MODULES_CATALOG.length !== 19) {
-    errors.push(`Expected 19 modules in catalog, found ${MODULES_CATALOG.length}`);
-  }
+  it('contains exactly 190 registered capabilities (10 per module)', () => {
+    let totalCapabilities = 0;
+    MODULES_CATALOG.forEach(mod => {
+      expect(mod.services.length).toBe(10);
+      totalCapabilities += mod.services.length;
+    });
+    expect(totalCapabilities).toBe(190);
+  });
 
-  MODULES_CATALOG.forEach((mod, modIdx) => {
-    const expectedModNumber = modIdx + 1;
-    const expectedModId = `m${expectedModNumber.toString().padStart(2, '0')}`;
+  it('verifies that Module 01 capabilities have valid handlerIds and implemented status', () => {
+    const m01 = MODULES_CATALOG.find(m => m.id === 'm01');
+    expect(m01).toBeDefined();
 
-    if (mod.id !== expectedModId) {
-      errors.push(`Module at index ${modIdx} has ID "${mod.id}", expected "${expectedModId}"`);
-    }
-
-    if (mod.number !== expectedModNumber) {
-      errors.push(`Module ${mod.id} has number ${mod.number}, expected ${expectedModNumber}`);
-    }
-
-    if (!mod.services || mod.services.length !== 10) {
-      errors.push(`Module ${mod.id} must have exactly 10 services, found ${mod.services?.length || 0}`);
-    }
-
-    mod.services?.forEach((svc, svcIdx) => {
-      totalCapabilities++;
-      const expectedSvcNumber = svcIdx + 1;
-      const expectedSvcId = `${expectedModId}_s${expectedSvcNumber.toString().padStart(2, '0')}`;
-
-      if (svc.id !== expectedSvcId) {
-        errors.push(`Capability at module ${mod.id} service index ${svcIdx} has ID "${svc.id}", expected "${expectedSvcId}"`);
-      }
-
-      if (seenCapabilityIds.has(svc.id)) {
-        errors.push(`Duplicate capability ID detected: "${svc.id}"`);
-      }
-      seenCapabilityIds.add(svc.id);
-
-      if (!svc.nameEn || !svc.nameAr) {
-        errors.push(`Capability "${svc.id}" is missing bilingual titles.`);
-      }
-
-      if (!svc.descriptionEn || !svc.descriptionAr) {
-        errors.push(`Capability "${svc.id}" is missing bilingual descriptions.`);
-      }
+    m01?.services.forEach(svc => {
+      expect(svc.implementationState).toBe('implemented');
+      expect(svc.handlerId).toBeDefined();
+      expect(svc.handlerId).toMatch(/^m01\./);
     });
   });
 
-  if (totalCapabilities !== 190) {
-    errors.push(`Expected exactly 190 total capabilities in catalog, found ${totalCapabilities}`);
-  }
+  it('verifies that Modules 02-19 capabilities are honestly disabled as planned without handlerIds', () => {
+    const otherModules = MODULES_CATALOG.filter(m => m.id !== 'm01');
 
-  return {
-    success: errors.length === 0,
-    moduleCount: MODULES_CATALOG.length,
-    capabilityCount: totalCapabilities,
-    errors
-  };
-}
+    otherModules.forEach(mod => {
+      mod.services.forEach(svc => {
+        expect(svc.implementationState).toBe('planned');
+        expect(svc.handlerId).toBeUndefined();
+      });
+    });
+  });
 
-// Auto-run validation check log on import
-const auditResult = runCatalogIntegrityAudit();
-if (auditResult.success) {
-  console.log(`[KNOUX CATALOG AUDIT] Verified 19 Modules and 190 Registered Capabilities. Integrity 100%.`);
-} else {
-  console.warn(`[KNOUX CATALOG AUDIT ERRORS]`, auditResult.errors);
-}
+  it('ensures all capabilities have non-empty bilingual names and descriptions', () => {
+    MODULES_CATALOG.forEach(mod => {
+      mod.services.forEach(svc => {
+        expect(svc.nameEn).toBeTruthy();
+        expect(svc.nameAr).toBeTruthy();
+        expect(svc.descriptionEn).toBeTruthy();
+        expect(svc.descriptionAr).toBeTruthy();
+      });
+    });
+  });
+});

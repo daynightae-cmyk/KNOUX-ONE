@@ -3,7 +3,7 @@
  * Handles previewing, elevation requirements, cancelling, and local action history.
  */
 
-import { KnouxCapability, OperationResult, ActionLog } from '../types';
+import { KnouxCapability, OperationResult } from '../types';
 import { NativeClient } from './nativeClient';
 
 export class OperationService {
@@ -35,17 +35,45 @@ export class OperationService {
     capability: KnouxCapability,
     onProgress?: (progress: number, logMessage: string) => void
   ): Promise<OperationResult> {
-    if (onProgress) {
-      onProgress(20, `Initializing ${capability.nameEn}...`);
-      await new Promise(res => setTimeout(res, 120));
-      onProgress(60, `Checking security permissions & prerequisites...`);
-      await new Promise(res => setTimeout(res, 150));
-      onProgress(90, `Executing native operation handler...`);
-      await new Promise(res => setTimeout(res, 120));
-      onProgress(100, `Finalizing operation log...`);
+    const startedAt = new Date().toISOString();
+    const opId = `op_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+
+    // Check if capability has an actual implemented handlerId
+    if (!capability.handlerId || capability.implementationState !== 'implemented') {
+      if (onProgress) {
+        onProgress(0, `Capability ${capability.id} is currently planned.`);
+      }
+
+      return {
+        operationId: opId,
+        capabilityId: capability.id,
+        handlerId: capability.handlerId || 'none',
+        status: 'planned',
+        startedAt,
+        completedAt: new Date().toISOString(),
+        durationMs: 0,
+        requiresRestart: false,
+        exitCode: 0,
+        summaryEn: capability.availabilityReasonEn || 'Native implementation scheduled for subsequent phase.',
+        summaryAr: capability.availabilityReasonAr || 'المحرك المحلي لهذه الخدمة مخطط له في المرحلة التالية.',
+        warnings: ['Capability execution disabled: planned capability.'],
+        errorCode: 'capability_planned'
+      };
     }
 
-    const result = await NativeClient.executeCapability(capability.id);
+    if (onProgress) {
+      onProgress(0, `Starting native handler for ${capability.nameEn}...`);
+    }
+
+    const result = await NativeClient.executeModule01Capability(
+      capability.id,
+      capability.handlerId
+    );
+
+    if (onProgress) {
+      onProgress(100, `Operation completed with status: ${result.status}`);
+    }
+
     return result;
   }
 }

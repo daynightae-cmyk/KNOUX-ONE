@@ -5,19 +5,11 @@
 
 import { OperationResult } from '../types';
 
-export interface NativeSystemSummary {
-  computerName: string;
-  osEdition: string;
-  osVersion: string;
-  osBuild: string;
-  architecture: string;
-  cpuModel: string;
-  physicalCores: number;
-  logicalCores: number;
-  totalRamGB: number;
-  gpuName: string;
-  secureBootEnabled: boolean;
-  tpmAvailable: boolean;
+export interface NativeRuntimeState {
+  available: boolean;
+  platform: string;
+  reasonEn?: string;
+  reasonAr?: string;
 }
 
 export class NativeClient {
@@ -28,8 +20,18 @@ export class NativeClient {
     return typeof window !== 'undefined' && '__TAURI__' in window;
   }
 
+  static getRuntimeState(): NativeRuntimeState {
+    const available = this.isTauriAvailable();
+    return {
+      available,
+      platform: available ? 'tauri_desktop' : 'web_preview',
+      reasonEn: available ? undefined : 'Desktop runtime unavailable. Open KNOUX ONE Desktop to read this device.',
+      reasonAr: available ? undefined : 'بيئة سطح المكتب غير متاحة. افتح تطبيق KNOUX ONE Desktop لقراءة بيانات هذا الجهاز.'
+    };
+  }
+
   /**
-   * Safe Tauri invoke helper with typed payload
+   * Safe Tauri invoke helper with typed payload using official @tauri-apps/api/core if available or window.__TAURI__
    */
   static async invokeNative<T>(cmd: string, args: Record<string, unknown> = {}): Promise<T> {
     if (this.isTauriAvailable()) {
@@ -43,80 +45,57 @@ export class NativeClient {
         throw err;
       }
     }
-    throw new Error(`[Native Client] Tauri IPC runtime not detected for command "${cmd}". Running in web simulation environment.`);
+    throw new Error(`desktop_runtime_unavailable`);
   }
 
   /**
-   * Get System Summary via Native Tauri Command
+   * Execute explicit Module 01 capability handler
    */
-  static async getSystemSummary(): Promise<NativeSystemSummary> {
-    if (this.isTauriAvailable()) {
-      return await this.invokeNative<NativeSystemSummary>('get_system_summary');
-    }
-    // Web environment fallback with honest metadata
-    return {
-      computerName: 'KNOUX-WIN11-WORKSTATION',
-      osEdition: 'Windows 11 Pro Developer Edition',
-      osVersion: '23H2 (2026.07)',
-      osBuild: '22631.3880',
-      architecture: 'x64 (AMD64)',
-      cpuModel: 'Intel Core i9-14900K @ 3.20GHz',
-      physicalCores: 24,
-      logicalCores: 32,
-      totalRamGB: 64,
-      gpuName: 'NVIDIA GeForce RTX 4090 (24GB)',
-      secureBootEnabled: true,
-      tpmAvailable: true
-    };
-  }
-
-  /**
-   * Execute allowlisted command with structured result contract
-   */
-  static async executeCapability(capabilityId: string, parameters: Record<string, any> = {}): Promise<OperationResult> {
+  static async executeModule01Capability(capabilityId: string, handlerId: string, parameters: Record<string, any> = {}): Promise<OperationResult> {
     const startedAt = new Date().toISOString();
-    const opId = `op_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`;
+    const opId = `op_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
 
-    if (this.isTauriAvailable()) {
-      try {
-        return await this.invokeNative<OperationResult>('execute_capability_command', {
-          capabilityId,
-          opId,
-          parameters
-        });
-      } catch (err: any) {
-        return {
-          operationId: opId,
-          capabilityId,
-          status: 'failed',
-          startedAt,
-          completedAt: new Date().toISOString(),
-          requiresRestart: false,
-          exitCode: 1,
-          summaryEn: `Native execution failed: ${err.message || 'Unknown error'}`,
-          summaryAr: `فشل التنفيذ المحلي: ${err.message || 'خطأ غير معروف'}`,
-          warnings: [err.toString()]
-        };
-      }
+    if (!this.isTauriAvailable()) {
+      return {
+        operationId: opId,
+        capabilityId,
+        handlerId,
+        status: 'unavailable',
+        startedAt,
+        completedAt: new Date().toISOString(),
+        durationMs: 0,
+        requiresRestart: false,
+        exitCode: 1,
+        stdout: undefined,
+        stderr: 'Desktop runtime unavailable. Native operations require KNOUX ONE Desktop container.',
+        summaryEn: 'Desktop runtime unavailable. Open KNOUX ONE Desktop to execute native commands.',
+        summaryAr: 'بيئة سطح المكتب غير متاحة. افتح تطبيق KNOUX ONE Desktop لتشغيل العمليات المحلية.',
+        warnings: ['Web preview environment detected. Native execution disabled.'],
+        errorCode: 'desktop_runtime_unavailable'
+      };
     }
 
-    // Web execution behavior returning honest native result format
-    const duration = 600;
-    const completedAt = new Date().toISOString();
+    // Map handlerId to Rust tauri command name
+    const commandName = handlerId.replace(/\./g, '_');
 
-    return {
-      operationId: opId,
-      capabilityId,
-      status: 'completed',
-      startedAt,
-      completedAt,
-      durationMs: duration,
-      requiresRestart: false,
-      exitCode: 0,
-      stdout: `[KNOUX NATIVE SUITE v1.0.0]\nCapability ID: ${capabilityId}\nTarget OS: Windows 11 / 10\nExecution Context: Native Client Bridge\nResult: Code 0 (Success)\nTimestamp: ${completedAt}`,
-      summaryEn: `Operation ${capabilityId} executed safely with verified native return code 0.`,
-      summaryAr: `تم تنفيذ العملية ${capabilityId} بنجاح وبدون أخطاء بالنظام.`,
-      warnings: []
-    };
+    try {
+      return await this.invokeNative<OperationResult>(commandName, { opId, ...parameters });
+    } catch (err: any) {
+      return {
+        operationId: opId,
+        capabilityId,
+        handlerId,
+        status: 'failed',
+        startedAt,
+        completedAt: new Date().toISOString(),
+        durationMs: 0,
+        requiresRestart: false,
+        exitCode: 1,
+        summaryEn: `Native command ${commandName} failed: ${err.message || 'Unknown error'}`,
+        summaryAr: `فشلت العملية المحلية ${commandName}: ${err.message || 'خطأ غير معروف'}`,
+        warnings: [err.toString()],
+        errorCode: 'native_execution_failed'
+      };
+    }
   }
 }

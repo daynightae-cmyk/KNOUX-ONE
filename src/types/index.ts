@@ -37,6 +37,7 @@ export type RiskLevel = 'safe' | 'low' | 'moderate' | 'advanced' | 'high';
 export interface OperationResult<T = unknown> {
   operationId: string;
   capabilityId: string;
+  handlerId?: string;
   status: OperationStatus;
   startedAt: string;
   completedAt?: string;
@@ -48,6 +49,7 @@ export interface OperationResult<T = unknown> {
   summaryEn: string;
   summaryAr: string;
   warnings: string[];
+  errorCode?: string;
   data?: T;
 }
 
