@@ -32,6 +32,20 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install frontend dependencies
+        working-directory: ${{ github.workspace }}
+        run: npm ci
+
+      - name: Build frontend assets required by Tauri context
+        working-directory: ${{ github.workspace }}
+        run: npm run build
+
       - name: Install stable Rust toolchain
         uses: dtolnay/rust-toolchain@stable
         with:
