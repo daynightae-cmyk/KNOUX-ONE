@@ -1,84 +1,16 @@
-/**
- * KNOUX ONE — Module 03 Duplicate Finder Contracts
- */
-
-export type DuplicateScanMode =
-  | 'exact_blake3'
-  | 'fast_partial'
-  | 'similar_images'
-  | 'video_streams'
-  | 'audio_fingerprint'
-  | 'documents'
-  | 'archives'
-  | 'folder_structures';
-
-export interface DuplicateFileItem {
-  id: string;
-  path: string;
-  name: string;
-  extension: string;
-  sizeBytes: number;
-  modifiedTime: string;
-  createdTime: string;
-  hash: string;
-  partialHash?: string;
-  perceptualHash?: string;
-  similarityScore?: number; // 0 to 100 for perceptual matching
-  mimeType: string;
-  dimensions?: { width: number; height: number };
-  durationSeconds?: number;
-  isKeeper: boolean;
-  keeperReason?: string;
-  selectedForQuarantine: boolean;
-}
-
-export interface DuplicateGroup {
-  groupId: string;
-  mode: DuplicateScanMode;
-  category: 'images' | 'videos' | 'audio' | 'documents' | 'archives' | 'folders' | 'other';
-  files: DuplicateFileItem[];
-  wastedSizeBytes: number;
-  commonHash: string;
-}
-
-export interface KeeperRuleConfig {
-  preferDate: 'oldest' | 'newest';
-  preferPath: 'shortest' | 'longest' | 'preferred_dir';
-  preferredDirectory?: string;
-  preferResolution: 'highest' | 'lowest';
-  autoSelectNonKeepers: boolean;
-}
-
-export interface QuarantineRecord {
-  quarantineId: string;
-  originalPath: string;
-  quarantinePath: string;
-  fileName: string;
-  sizeBytes: number;
-  quarantinedAt: string;
-  hash: string;
-  status: 'quarantined' | 'restored' | 'purged';
-}
-
-export interface DuplicateScanSummary {
-  scanId: string;
-  startedAt: string;
-  completedAt: string;
-  targetFolders: string[];
-  totalFilesScanned: number;
-  totalBytesScanned: number;
-  duplicateGroupsFound: number;
-  duplicateFilesFound: number;
-  totalWastedBytes: number;
-  scanMode: DuplicateScanMode;
-}
-
-export interface DuplicateScanConfig {
-  targetPaths: string[];
-  excludedPaths: string[];
-  minSizeBytes: number;
-  maxSizeBytes?: number;
-  scanMode: DuplicateScanMode;
-  includeSubfolders: boolean;
-  perceptualSimilarityThreshold: number; // e.g. 90%
-}
+/** KNOUX ONE — Module 03 Duplicate Control Contracts */
+export type DuplicateScanMode = 'exact_blake3' | 'fast_partial' | 'similar_images' | 'video_streams' | 'audio_fingerprint' | 'documents' | 'archives' | 'folder_structures';
+export interface DuplicateFileItem { id:string; path:string; canonicalPath:string; name:string; extension:string; sizeBytes:number; modifiedTime:string; createdTime:string; hash:string; partialHash?:string; perceptualHash?:string; similarityScore?:number; mimeType:string; width?:number; height?:number; dimensions?:{width:number;height:number}; durationSeconds?:number; fileIdentity:string; hardLinkCount:number; isHardLinkAlias:boolean; protectedPath:boolean; isKeeper:boolean; keeperReason?:string; selectedForQuarantine:boolean; }
+export interface DuplicateGroup { groupId:string; mode:DuplicateScanMode; category:'images'|'videos'|'audio'|'documents'|'archives'|'folders'|'other'; files:DuplicateFileItem[]; wastedSizeBytes:number; commonHash:string; proofStatus:'verified_exact'|'candidate'|'visually_similar'|'hard_link_aliases'|string; confidence:number; actionable:boolean; warnings:string[]; }
+export interface KeeperRuleConfig { preferDate:'oldest'|'newest'; preferPath:'shortest'|'longest'|'preferred_dir'; preferredDirectory?:string; preferResolution:'highest'|'lowest'; protectedPaths:string[]; autoSelectNonKeepers:boolean; }
+export interface KeeperGroupPlan { groupId:string; keeperFileId:string; selectedFileIds:string[]; reason:string; blocked:boolean; warnings:string[]; }
+export interface KeeperPlanResult { plans:KeeperGroupPlan[]; blockedGroupIds:string[]; }
+export interface QuarantineRecord { quarantineId:string; scanSessionId?:string; groupId?:string; originalPath:string; quarantinePath:string; fileName:string; sizeBytes:number; hash:string; fileIdentity:string; createdTime:string; modifiedTime:string; quarantinedAt:string; reason:string; keeperPath:string; status:'quarantined'|'restored'|'purged'; verificationState:'verified'|'failed'|string; purgeState:'active'|'purged'|string; lastError?:string; }
+export interface QuarantineActionResult { records:QuarantineRecord[]; warnings:string[]; }
+export interface DuplicateScanSummary { scanId:string; operationId:string; startedAt:string; completedAt:string; targetFolders:string[]; totalFilesScanned:number; totalBytesScanned:number; duplicateGroupsFound:number; duplicateFilesFound:number; totalWastedBytes:number; scanMode:DuplicateScanMode; errorCount:number; }
+export interface DuplicateScanResult { jobId:string; groups:DuplicateGroup[]; summary:DuplicateScanSummary; warnings:string[]; }
+export interface DuplicateJobProgress { jobId:string; operationId:string; phase:'enumerating'|'grouping_by_size'|'partial_hashing'|'full_hashing'|'media_analysis'|'folder_digest'|'persisting'|'completed'|string; mode:'determinate'|'indeterminate'; scannedFiles:number; totalFiles?:number; scannedBytes:number; currentPath?:string; candidateGroups:number; verifiedGroups:number; errors:number; canPause:boolean; canCancel:boolean; }
+export interface DuplicateScanConfig { targetPaths:string[]; excludedPaths:string[]; minSizeBytes:number; maxSizeBytes?:number; scanMode:DuplicateScanMode; includeSubfolders:boolean; perceptualSimilarityThreshold:number; extensions:string[]; maxWorkers:number; }
+export interface DuplicateRuntimeState { available:boolean; messageEn:string; messageAr:string; }
+export interface DuplicateStoreError { code:string; message:string; }
+export interface FolderComparisonResult { folders:Array<{path:string;digest:string;fileCount:number;totalBytes:number;entries:string[]}>; comparisons:Array<{leftPath:string;rightPath:string;classification:string;commonEntries:number;leftOnlyEntries:number;rightOnlyEntries:number}>; }
