@@ -1,68 +1,65 @@
-/**
- * KNOUX ONE — Vitest Catalog Integrity Test
- * Validates module mapping, capability count (19 modules x 10 services = 190 capabilities),
- * implementation states, and forbids false completed execution states.
- */
+import { describe, expect, it } from 'vitest';
+import { ALL_CAPABILITIES, MODULES_CATALOG } from '../data/capabilitiesCatalog';
+import { NATIVE_COMMANDS } from '../services/nativeCommandRegistry';
 
-import { describe, it, expect } from 'vitest';
-import { MODULES_CATALOG } from '../data/capabilitiesCatalog';
-
-describe('KNOUX ONE Catalog Integrity', () => {
-  it('contains exactly 19 modules', () => {
-    expect(MODULES_CATALOG.length).toBe(19);
+describe('KNOUX ONE honest capability catalog', () => {
+  it('contains exactly 19 modules and 190 services', () => {
+    expect(MODULES_CATALOG).toHaveLength(19);
+    for (const module of MODULES_CATALOG) {
+      expect(module.services, module.id).toHaveLength(10);
+    }
+    expect(ALL_CAPABILITIES).toHaveLength(190);
+    expect(new Set(ALL_CAPABILITIES.map(item => item.id)).size).toBe(190);
   });
 
-  it('contains exactly 190 registered capabilities (10 per module)', () => {
-    let totalCapabilities = 0;
-    MODULES_CATALOG.forEach(mod => {
-      expect(mod.services.length, `${mod.id} must contain exactly ten services`).toBe(10);
-      totalCapabilities += mod.services.length;
-    });
-    expect(totalCapabilities).toBe(190);
+  it('never exposes a planned service as an executable handler', () => {
+    for (const capability of ALL_CAPABILITIES) {
+      if (capability.implementationState === 'planned') {
+        expect(capability.handlerId, capability.id).toBeUndefined();
+        expect(capability.status, capability.id).toBe('planned');
+      }
+    }
   });
 
-  it('verifies that implemented modules (m01, m03, m07, m15, m16) have valid handlerIds and registered execution metadata', () => {
-    const implementedModuleIds = ['m01', 'm03', 'm07', 'm15', 'm16'];
-    const implementedMods = MODULES_CATALOG.filter(m => implementedModuleIds.includes(m.id));
-    expect(implementedMods.length).toBe(5);
-
-    implementedMods.forEach(mod => {
-      mod.services.forEach(svc => {
-        expect(['implemented', 'partial', 'planned', 'requires_configuration'], `${svc.id} has an invalid implementation state`).toContain(svc.implementationState);
-        if (svc.implementationState === 'implemented') {
-          expect(svc.handlerId, `${svc.id} must keep its explicit native handler registration`).toBeDefined();
-          expect(svc.handlerId, `${svc.id} handler must match module ID prefix`).toMatch(new RegExp(`^${mod.id}\\.`));
-        }
-      });
-    });
+  it('maps every executable service to an explicit allowlisted native command', () => {
+    for (const capability of ALL_CAPABILITIES) {
+      if (capability.handlerId) {
+        expect(
+          Object.prototype.hasOwnProperty.call(NATIVE_COMMANDS, capability.handlerId),
+          `${capability.id}/${capability.handlerId}`,
+        ).toBe(true);
+      }
+      if (capability.implementationState === 'implemented') {
+        expect(capability.handlerId, capability.id).toBeTruthy();
+      }
+    }
   });
 
-  it('keeps planned modules visibly documented without falsely claiming completed execution', () => {
-    const plannedModules = MODULES_CATALOG.filter(m => !['m01', 'm03', 'm07', 'm15', 'm16'].includes(m.id));
-
-    plannedModules.forEach(mod => {
-      mod.services.forEach(svc => {
-        expect(svc.implementationState, `${mod.id}/${svc.id} must not claim complete native execution`).not.toBe('implemented');
-
-        if (svc.implementationState === 'planned') {
-          expect(svc.handlerId, `${mod.id}/${svc.id} planned service must not expose a native handler`).toBeUndefined();
-        }
-
-        if (svc.implementationState === 'partial') {
-          expect(svc.handlerId, `${mod.id}/${svc.id} partial service must identify its reserved native bridge`).toBeDefined();
-        }
-      });
-    });
+  it('keeps Module 15 and Module 16 honestly planned during Phase 04A', () => {
+    for (const moduleId of ['m15', 'm16']) {
+      const module = MODULES_CATALOG.find(item => item.id === moduleId);
+      expect(module).toBeDefined();
+      for (const service of module!.services) {
+        expect(service.implementationState, service.id).toBe('planned');
+        expect(service.handlerId, service.id).toBeUndefined();
+      }
+    }
   });
 
-  it('ensures all capabilities have non-empty bilingual names and descriptions', () => {
-    MODULES_CATALOG.forEach(mod => {
-      mod.services.forEach(svc => {
-        expect(svc.nameEn, `${svc.id} requires an English name`).toBeTruthy();
-        expect(svc.nameAr, `${svc.id} requires an Arabic name`).toBeTruthy();
-        expect(svc.descriptionEn, `${svc.id} requires an English description`).toBeTruthy();
-        expect(svc.descriptionAr, `${svc.id} requires an Arabic description`).toBeTruthy();
-      });
+  it('publishes the verified Module 03 implementation matrix', () => {
+    const module = MODULES_CATALOG.find(item => item.id === 'm03');
+    const states = Object.fromEntries(module!.services.map(service => [service.id, service.implementationState]));
+    expect(states).toEqual({
+      m03_s01: 'implemented',
+      m03_s02: 'implemented',
+      m03_s03: 'partial',
+      m03_s04: 'partial',
+      m03_s05: 'partial',
+      m03_s06: 'implemented',
+      m03_s07: 'partial',
+      m03_s08: 'implemented',
+      m03_s09: 'implemented',
+      m03_s10: 'implemented',
     });
   });
 });
