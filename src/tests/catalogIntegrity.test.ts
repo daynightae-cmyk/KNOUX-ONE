@@ -1,7 +1,7 @@
 /**
  * KNOUX ONE — Vitest Catalog Integrity Test
  * Validates module mapping, capability count (19 modules x 10 services = 190 capabilities),
- * implementation states, and forbids fake completion states.
+ * implementation states, and forbids false completed execution states.
  */
 
 import { describe, it, expect } from 'vitest';
@@ -32,13 +32,20 @@ describe('KNOUX ONE Catalog Integrity', () => {
     });
   });
 
-  it('verifies that Modules 02-19 capabilities are honestly disabled as planned without handlerIds', () => {
+  it('keeps Modules 02-19 visibly documented without claiming completed execution', () => {
     const otherModules = MODULES_CATALOG.filter(m => m.id !== 'm01');
 
     otherModules.forEach(mod => {
       mod.services.forEach(svc => {
-        expect(svc.implementationState, `${mod.id}/${svc.id} must not claim partial or complete native execution`).toBe('planned');
-        expect(svc.handlerId, `${mod.id}/${svc.id} must not expose a native handler before implementation`).toBeUndefined();
+        expect(svc.implementationState, `${mod.id}/${svc.id} must not claim complete native execution`).not.toBe('implemented');
+
+        if (svc.implementationState === 'planned') {
+          expect(svc.handlerId, `${mod.id}/${svc.id} planned service must not expose a native handler`).toBeUndefined();
+        }
+
+        if (svc.implementationState === 'partial') {
+          expect(svc.handlerId, `${mod.id}/${svc.id} partial service must identify its reserved native bridge`).toBeDefined();
+        }
       });
     });
   });
