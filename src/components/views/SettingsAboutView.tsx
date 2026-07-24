@@ -1,135 +1,106 @@
-/**
- * KNOUX ONE — Suite Settings & About Information
- */
-
-import React from 'react';
+import React, { useState } from 'react';
+import {
+  Accessibility,
+  ArrowUpRight,
+  Check,
+  Globe,
+  Image as ImageIcon,
+  Info,
+  Languages,
+  Moon,
+  Palette,
+  Settings,
+  ShieldCheck,
+  Sun,
+} from 'lucide-react';
 import { useKnoux } from '../../context/KnouxContext';
-import { OFFICIAL_LOGOS } from '../../data/brandAssets';
-import { Settings, Info, Sun, Moon, Globe, Image as ImageIcon, ShieldCheck, Check } from 'lucide-react';
+import { OFFICIAL_KNOUX_ASSETS, getOfficialKnouxLogo } from '../../data/officialBrand';
 
 export const SettingsAboutView: React.FC = () => {
   const { theme, setTheme, language, setLanguage, setCurrentRoute, t } = useKnoux();
+  const [logoFailed, setLogoFailed] = useState(false);
 
   return (
-    <div className="p-6 md:p-8 max-w-4xl mx-auto space-y-6">
-      {/* Settings Section */}
-      <div className="p-6 rounded-2xl knoux-depth-3 border border-[var(--knoux-glass-border)] space-y-4">
-        <h2 className="knoux-section-title flex items-center space-x-2.5 rtl:space-x-reverse">
-          <Settings className="w-5 h-5 text-[var(--knoux-primary)]" />
-          <span>{t('Suite Preferences & Appearance', 'إعدادات البرنامج والمظهر')}</span>
-        </h2>
-
-        <div className="space-y-3 text-xs font-mono">
-          {/* Theme Switcher */}
-          <div className="flex items-center justify-between p-4 rounded-xl bg-[var(--knoux-surface-muted)] border border-[var(--knoux-border)]">
-            <div>
-              <span className="font-bold text-[var(--knoux-text)] block">{t('Interface Theme Mode', 'نمط مظهر الواجهة')}</span>
-              <span className="text-[var(--knoux-text-muted)] text-sm">{t('Toggle between Dark and Light glass theme', 'التبديل بين المظهر الداكن والفاتح زجاجي')}</span>
-            </div>
-            <button
-              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-              className="knoux-button-secondary text-xs"
-            >
-              {theme === 'dark' ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-indigo-500" />}
-              <span className="capitalize">{theme} Mode</span>
-            </button>
+    <div className="knoux-page-container space-y-7">
+      <section className="knoux-glass-panel overflow-hidden p-6 md:p-8">
+        <div className="absolute inset-y-0 end-0 w-[42%] bg-[radial-gradient(circle_at_center,rgba(139,92,246,.16),transparent_68%)]" aria-hidden="true" />
+        <div className="relative flex flex-col gap-6 xl:flex-row xl:items-center xl:justify-between">
+          <div>
+            <div className="knoux-eyebrow"><Settings className="h-4 w-4" />{t('Preferences', 'التفضيلات')}</div>
+            <h1 className="mt-3 text-[clamp(2rem,4vw,3.1rem)] font-black leading-[1.08] tracking-[-.045em] text-[var(--knoux-text)]">{t('Shape KNOUX ONE around your work', 'اضبط كنوكس ون ليتوافق مع طريقة عملك')}</h1>
+            <p className="mt-4 max-w-3xl text-[14px] font-medium leading-7 text-[var(--knoux-text-secondary)]">{t('Manage appearance, language direction, accessibility, and product identity from one organized settings workspace.', 'أدر المظهر واتجاه اللغة وإمكانية الوصول وهوية المنتج من مساحة إعدادات واحدة منظمة.')}</p>
           </div>
-
-          {/* Language Switcher */}
-          <div className="flex items-center justify-between p-4 rounded-xl bg-[var(--knoux-surface-muted)] border border-[var(--knoux-border)]">
-            <div>
-              <span className="font-bold text-[var(--knoux-text)] block">{t('Language Direction (LTR / RTL)', 'لغة الواجهة والاتجاه')}</span>
-              <span className="text-[var(--knoux-text-muted)] text-sm">{t('Switch between English and Arabic UI', 'التحويل بين الإنجليزية والعربية')}</span>
-            </div>
-            <button
-              onClick={() => setLanguage(language === 'en' ? 'ar' : 'en')}
-              className="knoux-button-secondary text-xs"
-            >
-              <Globe className="w-4 h-4 text-[var(--knoux-primary)]" />
-              <span>{language === 'en' ? 'English (LTR)' : 'العربية (RTL)'}</span>
-            </button>
+          <div className="knoux-logo-orbit mx-auto h-[116px] w-[116px] shrink-0 xl:mx-10">
+            {!logoFailed ? <img src={getOfficialKnouxLogo(theme)} onError={() => setLogoFailed(true)} alt="KNOUX ONE" className="h-full w-full rounded-full object-cover" /> : <span className="text-4xl font-black text-[var(--knoux-primary-bright)]">K</span>}
           </div>
         </div>
-      </div>
+      </section>
 
-      {/* About & Branding Section */}
-      <div className="p-6 rounded-2xl knoux-depth-3 border border-[var(--knoux-glass-border)] space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[var(--knoux-border)] pb-4">
-          <div className="flex items-center space-x-3.5 rtl:space-x-reverse">
-            <div className="w-12 h-12 rounded-full bg-[var(--knoux-surface-elevated)] border border-[var(--knoux-glass-border-strong)] p-1 flex items-center justify-center overflow-hidden shadow-md shrink-0">
-              <img
-                src={theme === 'dark' ? OFFICIAL_LOGOS.night.localPath : OFFICIAL_LOGOS.day.localPath}
-                onError={(e) => { (e.target as HTMLImageElement).src = theme === 'dark' ? OFFICIAL_LOGOS.night.remoteUrl : OFFICIAL_LOGOS.day.remoteUrl; }}
-                alt="Knoux One Logo"
-                className="w-full h-full object-cover rounded-full"
-              />
+      <section className="grid gap-5 xl:grid-cols-[1.05fr_.95fr]">
+        <div className="space-y-5">
+          <article className="knoux-glass-panel p-6">
+            <div className="flex items-center gap-3 rtl:flex-row-reverse"><div className="knoux-icon-plate"><Palette className="h-[21px] w-[21px]" /></div><div><h2 className="text-[19px] font-black text-[var(--knoux-text)]">{t('Appearance', 'المظهر')}</h2><p className="mt-1 text-[12px] text-[var(--knoux-text-muted)]">{t('Choose a complete light or dark workspace—not a simple recolor.', 'اختر مساحة عمل نهارية أو ليلية متكاملة، لا مجرد تغيير لون.')}</p></div></div>
+            <div className="mt-5 grid gap-3 sm:grid-cols-2">
+              <button type="button" onClick={() => setTheme('dark')} className={`relative min-h-[150px] overflow-hidden rounded-2xl border p-4 text-start transition ${theme === 'dark' ? 'border-[var(--knoux-primary)] shadow-[0_14px_36px_rgba(139,92,246,.18)]' : 'border-[var(--knoux-border)]'}`} style={{ background: 'linear-gradient(145deg,#0d1020,#171229)' }}>
+                <div className="flex items-center justify-between"><Moon className="h-5 w-5 text-violet-300" />{theme === 'dark' && <span className="grid h-7 w-7 place-items-center rounded-full bg-violet-500 text-white"><Check className="h-4 w-4" /></span>}</div>
+                <p className="mt-8 text-[16px] font-black text-white">{t('Night workspace', 'مساحة العمل الليلية')}</p><p className="mt-1 text-[12px] text-white/55">{t('Deep graphite glass with violet and blue depth.', 'زجاج جرافيتي عميق بلمسات بنفسجية وزرقاء.')}</p>
+              </button>
+              <button type="button" onClick={() => setTheme('light')} className={`relative min-h-[150px] overflow-hidden rounded-2xl border p-4 text-start transition ${theme === 'light' ? 'border-[#7545e8] shadow-[0_14px_36px_rgba(117,69,232,.16)]' : 'border-[var(--knoux-border)]'}`} style={{ background: 'linear-gradient(145deg,#ffffff,#f0ebff)' }}>
+                <div className="flex items-center justify-between"><Sun className="h-5 w-5 text-amber-500" />{theme === 'light' && <span className="grid h-7 w-7 place-items-center rounded-full bg-[#7545e8] text-white"><Check className="h-4 w-4" /></span>}</div>
+                <p className="mt-8 text-[16px] font-black text-[#171425]">{t('Day workspace', 'مساحة العمل النهارية')}</p><p className="mt-1 text-[12px] text-[#655f72]">{t('Pearl-white glass with clear purple structure.', 'زجاج أبيض لؤلؤي بهيكل بنفسجي واضح.')}</p>
+              </button>
             </div>
-            <div>
-              <h2 className="knoux-module-title font-black text-[var(--knoux-text)] tracking-tight">
-                KNOUX ONE — Windows Intelligence Suite
-              </h2>
-              <p className="text-xs text-[var(--knoux-primary)] font-mono font-bold">Version 3.0 (Build 2026.07)</p>
-            </div>
-          </div>
+          </article>
 
-          <button
-            onClick={() => setCurrentRoute('brand-gallery')}
-            className="knoux-button-primary text-xs self-start sm:self-auto"
-          >
-            <ImageIcon className="w-4 h-4" />
-            <span>{t('View Brand Gallery', 'معرض المراجع البصرية')}</span>
-          </button>
+          <article className="knoux-glass-panel p-6">
+            <div className="flex items-center gap-3 rtl:flex-row-reverse"><div className="knoux-icon-plate"><Languages className="h-[21px] w-[21px]" /></div><div><h2 className="text-[19px] font-black text-[var(--knoux-text)]">{t('Language & direction', 'اللغة والاتجاه')}</h2><p className="mt-1 text-[12px] text-[var(--knoux-text-muted)]">{t('Arabic uses a deliberate RTL layout while technical strings remain LTR.', 'تستخدم العربية تخطيط RTL مقصودًا، بينما تظل النصوص التقنية باتجاه LTR.')}</p></div></div>
+            <div className="mt-5 grid gap-3 sm:grid-cols-2">
+              <button type="button" onClick={() => setLanguage('en')} className={`flex min-h-[78px] items-center justify-between rounded-2xl border p-4 text-start transition ${language === 'en' ? 'border-[var(--knoux-primary)] bg-[var(--knoux-primary)]/10' : 'border-[var(--knoux-border)] bg-[var(--knoux-surface-muted)]'}`}><div><p className="text-[14px] font-black text-[var(--knoux-text)]">English</p><p className="mt-1 text-[11px] text-[var(--knoux-text-muted)]">Left-to-right workspace</p></div>{language === 'en' && <Check className="h-5 w-5 text-[var(--knoux-primary-bright)]" />}</button>
+              <button type="button" onClick={() => setLanguage('ar')} className={`flex min-h-[78px] items-center justify-between rounded-2xl border p-4 text-start transition ${language === 'ar' ? 'border-[var(--knoux-primary)] bg-[var(--knoux-primary)]/10' : 'border-[var(--knoux-border)] bg-[var(--knoux-surface-muted)]'}`}><div><p className="text-[14px] font-black text-[var(--knoux-text)]">العربية</p><p className="mt-1 text-[11px] text-[var(--knoux-text-muted)]">مساحة عمل من اليمين إلى اليسار</p></div>{language === 'ar' && <Check className="h-5 w-5 text-[var(--knoux-primary-bright)]" />}</button>
+            </div>
+          </article>
+
+          <article className="knoux-glass-panel p-6">
+            <div className="flex items-center gap-3 rtl:flex-row-reverse"><div className="knoux-icon-plate"><Accessibility className="h-[21px] w-[21px]" /></div><div><h2 className="text-[19px] font-black text-[var(--knoux-text)]">{t('Accessibility foundation', 'أساس إمكانية الوصول')}</h2><p className="mt-1 text-[12px] text-[var(--knoux-text-muted)]">{t('The workspace supports visible focus, reduced motion, scalable text, and status labels beyond color.', 'تدعم مساحة العمل التركيز المرئي وتقليل الحركة وتكبير النص وحالات لا تعتمد على اللون وحده.')}</p></div></div>
+          </article>
         </div>
 
-        <p className="knoux-body leading-relaxed">
-          KNOUX ONE is an all-in-one Windows management, optimization, security, and developer suite providing 19 modular subsystems and 190 registered capabilities. Engineered for maximum speed, clean system maintenance, and developer productivity on Windows 11 and Windows 10.
-        </p>
-
-        {/* Official Brand Logos Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
-          <div className="p-4 rounded-xl bg-[var(--knoux-surface-muted)] border border-[var(--knoux-border)] space-y-2">
-            <span className="text-sm text-[var(--knoux-primary)] font-mono font-bold block">4.1 NIGHT MODE LOGO</span>
-            <div className="p-3 rounded-lg bg-[#070A12] border border-[var(--knoux-border)] flex items-center justify-center">
-              <img
-                src={OFFICIAL_LOGOS.night.localPath}
-                onError={(e) => { (e.target as HTMLImageElement).src = OFFICIAL_LOGOS.night.remoteUrl; }}
-                alt="Night Logo"
-                className="h-10 object-contain"
-              />
+        <article className="knoux-glass-panel p-6">
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex items-center gap-3 rtl:flex-row-reverse">
+              <div className="relative grid h-14 w-14 place-items-center overflow-hidden rounded-full border border-[var(--knoux-glass-border-strong)] bg-[var(--knoux-surface-elevated)]">
+                {!logoFailed ? <img src={getOfficialKnouxLogo(theme)} onError={() => setLogoFailed(true)} alt="KNOUX ONE" className="h-full w-full object-cover" /> : <span className="text-xl font-black text-[var(--knoux-primary-bright)]">K</span>}
+              </div>
+              <div><p className="text-[11px] font-bold uppercase tracking-[.1em] text-[var(--knoux-primary-bright)]">A Knoux Product</p><h2 className="mt-1 text-[24px] font-black tracking-[-.035em] text-[var(--knoux-text)]">KNOUX ONE</h2><p className="mt-1 text-[12px] font-semibold text-[var(--knoux-text-muted)]">Windows Intelligence & Developer Suite</p></div>
             </div>
-            <p className="text-xs text-[var(--knoux-text-muted)] font-mono">Path: <code className="text-[var(--knoux-primary)]">public/brand/logos/knoux-one-night.png</code></p>
+            <Info className="h-5 w-5 text-[var(--knoux-text-muted)]" />
           </div>
 
-          <div className="p-4 rounded-xl bg-[var(--knoux-surface-muted)] border border-[var(--knoux-border)] space-y-2">
-            <span className="text-sm text-[var(--knoux-warning)] font-mono font-bold block">4.2 DAY MODE LOGO</span>
-            <div className="p-3 rounded-lg bg-[#F5F7FC] border border-[var(--knoux-border)] flex items-center justify-center">
-              <img
-                src={OFFICIAL_LOGOS.day.localPath}
-                onError={(e) => { (e.target as HTMLImageElement).src = OFFICIAL_LOGOS.day.remoteUrl; }}
-                alt="Day Logo"
-                className="h-10 object-contain"
-              />
-            </div>
-            <p className="text-xs text-[var(--knoux-text-muted)] font-mono">Path: <code className="text-[var(--knoux-primary)]">public/brand/logos/knoux-one-day.png</code></p>
-          </div>
-        </div>
+          <p className="mt-6 text-[13px] font-medium leading-7 text-[var(--knoux-text-secondary)]">{t('A professional Windows workspace that organizes system care, security, recovery, applications, automation, developer tools, diagnostics, and hardware inspection into 19 focused areas with 190 registered services.', 'مساحة عمل احترافية لويندوز تنظم العناية بالنظام والأمان والاستعادة والبرامج والأتمتة وأدوات المطور والتشخيص وفحص المكونات داخل 19 مجالًا مركزًا يضم 190 خدمة مسجلة.')}</p>
 
-        <div className="p-4 rounded-xl bg-[var(--knoux-surface-muted)] border border-[var(--knoux-border)] text-xs font-mono space-y-2">
-          <div className="flex justify-between text-[var(--knoux-text-secondary)]">
-            <span>Author & Architect:</span>
-            <span className="font-bold text-[var(--knoux-primary)]">Eng. Sadek Elgazar (Knoux Founder)</span>
+          <div className="mt-6 grid gap-3 sm:grid-cols-2">
+            <div className="rounded-2xl border border-[var(--knoux-border)] bg-[#070A12] p-4"><p className="text-[11px] font-extrabold uppercase tracking-[.08em] text-violet-300">{t('Official night logo', 'الشعار الليلي الرسمي')}</p><img src={OFFICIAL_KNOUX_ASSETS.nightLogo} alt="KNOUX ONE Night" className="mx-auto mt-4 h-20 w-20 rounded-full object-cover" /></div>
+            <div className="rounded-2xl border border-[var(--knoux-border)] bg-[#F5F7FC] p-4"><p className="text-[11px] font-extrabold uppercase tracking-[.08em] text-[#7545e8]">{t('Official day logo', 'الشعار النهاري الرسمي')}</p><img src={OFFICIAL_KNOUX_ASSETS.dayLogo} alt="KNOUX ONE Day" className="mx-auto mt-4 h-20 w-20 rounded-full object-cover" /></div>
           </div>
-          <div className="flex justify-between text-[var(--knoux-text-secondary)]">
-            <span>Engine Architecture:</span>
-            <span className="text-[var(--knoux-text)]">19 Modules • 190 Capabilities</span>
+
+          <div className="mt-6 space-y-3 rounded-2xl border border-[var(--knoux-border)] bg-[var(--knoux-surface-muted)] p-4">
+            <div className="flex items-center justify-between gap-3 text-[12px] rtl:flex-row-reverse"><span className="text-[var(--knoux-text-muted)]">{t('Founder & architect', 'المؤسس والمهندس')}</span><span className="font-extrabold text-[var(--knoux-text)]">Eng. Sadek Elgazar — Knoux</span></div>
+            <div className="flex items-center justify-between gap-3 text-[12px] rtl:flex-row-reverse"><span className="text-[var(--knoux-text-muted)]">{t('Location', 'الموقع')}</span><span className="font-extrabold text-[var(--knoux-text)]">Abu Dhabi, UAE</span></div>
+            <div className="flex items-center justify-between gap-3 text-[12px] rtl:flex-row-reverse"><span className="text-[var(--knoux-text-muted)]">{t('Product structure', 'هيكل المنتج')}</span><span className="font-extrabold text-[var(--knoux-text)]">19 Workspaces • 190 Services</span></div>
+            <div className="flex items-center justify-between gap-3 text-[12px] rtl:flex-row-reverse"><span className="text-[var(--knoux-text-muted)]">{t('Tagline', 'الشعار النصي')}</span><span className="font-extrabold text-[var(--knoux-primary-bright)]">Build • Protect • Optimize</span></div>
           </div>
-          <div className="flex justify-between text-[var(--knoux-text-secondary)]">
-            <span>License:</span>
-            <span className="knoux-badge-success">KNOUX Enterprise Suite License</span>
+
+          <div className="mt-6 flex flex-wrap gap-3">
+            <button type="button" onClick={() => setCurrentRoute('brand-gallery')} className="knoux-card-action knoux-card-action--primary"><ImageIcon className="h-4 w-4" />{t('Open brand gallery', 'فتح معرض الهوية')}</button>
+            <a href={OFFICIAL_KNOUX_ASSETS.website} target="_blank" rel="noreferrer" className="knoux-card-action"><Globe className="h-4 w-4" />knoux.store<ArrowUpRight className="h-4 w-4 rtl:-scale-x-100" /></a>
           </div>
-        </div>
-      </div>
+        </article>
+      </section>
+
+      <section className="knoux-glass-panel flex items-start gap-3 p-5 rtl:flex-row-reverse">
+        <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-[var(--knoux-success)]" />
+        <div><h3 className="text-[13px] font-extrabold text-[var(--knoux-text)]">{t('Product status is represented honestly', 'حالة المنتج معروضة بصدق')}</h3><p className="mt-1 text-[12px] font-medium leading-5 text-[var(--knoux-text-muted)]">{t('This page does not claim an enterprise license, cloud connection, or completed native service unless the corresponding implementation is verified.', 'لا تدعي هذه الصفحة وجود ترخيص مؤسسي أو اتصال سحابي أو خدمة محلية مكتملة ما لم يكن التنفيذ المقابل موثقًا.')}</p></div>
+      </section>
     </div>
   );
 };
-
