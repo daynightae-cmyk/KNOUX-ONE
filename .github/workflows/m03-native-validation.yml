@@ -1,0 +1,55 @@
+name: Validate Module 03 Native Engine
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'src-tauri/**'
+      - 'src/features/duplicates/**'
+      - 'src/services/nativeClient.ts'
+      - 'src/services/nativeCommandRegistry.ts'
+      - 'src/services/operationService.ts'
+      - 'src/data/capabilitiesCatalog.ts'
+      - 'src/data/legacyCapabilitiesSeed.ts'
+      - 'src/tests/**'
+      - '.github/workflows/m03-native-validation.yml'
+  push:
+    branches: [feat/m03-real-duplicate-engine]
+
+permissions:
+  contents: read
+
+jobs:
+  rust:
+    name: Rust format, check, clippy, and tests
+    runs-on: windows-latest
+    timeout-minutes: 45
+    defaults:
+      run:
+        working-directory: src-tauri
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install stable Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - name: Cache Rust dependencies
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+
+      - name: Verify formatting
+        run: cargo fmt --check
+
+      - name: Compile native engine
+        run: cargo check --all-targets --all-features
+
+      - name: Enforce Clippy
+        run: cargo clippy --all-targets --all-features -- -D warnings
+
+      - name: Run native tests
+        run: cargo test --all-features
