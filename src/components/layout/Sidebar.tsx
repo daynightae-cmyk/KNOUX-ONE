@@ -1,235 +1,282 @@
-/**
- * KNOUX ONE — Navigation Sidebar Component
- */
-
-import React, { useState } from 'react';
-import { useKnoux } from '../../context/KnouxContext';
-import { 
-  LayoutDashboard, 
-  Sparkles, 
-  Download, 
-  Trash2, 
-  Copy, 
-  PieChart, 
-  Zap, 
-  Gauge, 
-  Wrench, 
-  Wifi, 
-  EyeOff, 
-  ShieldCheck, 
-  HardDrive, 
-  Package, 
-  FileCode, 
-  Terminal, 
-  Code2, 
-  FolderGit2, 
-  Activity, 
-  Cpu, 
-  Cloud, 
-  HelpCircle, 
-  Grid, 
-  Globe, 
-  Settings, 
-  Info, 
-  ChevronRight, 
+import React, { useEffect, useMemo, useState } from 'react';
+import {
+  Activity,
+  AppWindow,
+  Archive,
+  Braces,
   ChevronDown,
-  Layers,
-  Image as ImageIcon,
-  ChevronLeft
+  ChevronLeft,
+  ChevronRight,
+  Cloud,
+  Code2,
+  Copy,
+  Cpu,
+  FileCog,
+  Gauge,
+  Grid3X3,
+  HardDrive,
+  HelpCircle,
+  History,
+  Info,
+  LayoutDashboard,
+  Network,
+  PanelLeftClose,
+  PanelLeftOpen,
+  Rocket,
+  Settings,
+  ShieldCheck,
+  ShieldEllipsis,
+  SlidersHorizontal,
+  Sparkles,
+  TerminalSquare,
+  Trash2,
+  WandSparkles,
+  Wrench,
 } from 'lucide-react';
+import { useKnoux } from '../../context/KnouxContext';
+import { getOfficialKnouxLogo } from '../../data/officialBrand';
 
-interface NavGroup {
+interface NavItem {
+  id: string;
+  route: string;
   titleEn: string;
   titleAr: string;
-  items: {
-    id: string;
-    route: string;
-    titleEn: string;
-    titleAr: string;
-    icon: React.ElementType;
-    badge?: string;
-  }[];
+  descriptionEn: string;
+  descriptionAr: string;
+  icon: React.ElementType;
 }
 
-export const Sidebar: React.FC = () => {
-  const { currentRoute, setCurrentRoute, t } = useKnoux();
-  const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({});
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+interface NavGroup {
+  id: string;
+  titleEn: string;
+  titleAr: string;
+  items: NavItem[];
+}
 
-  const toggleGroup = (title: string) => {
-    setCollapsedGroups(prev => ({ ...prev, [title]: !prev[title] }));
+const GROUPS: NavGroup[] = [
+  {
+    id: 'overview',
+    titleEn: 'Overview',
+    titleAr: 'الرئيسية',
+    items: [
+      { id: 'dashboard', route: 'dashboard', titleEn: 'Dashboard', titleAr: 'لوحة التحكم', descriptionEn: 'Device overview and recommendations', descriptionAr: 'نظرة عامة وتوصيات الجهاز', icon: LayoutDashboard },
+      { id: 'first-run', route: 'first-run', titleEn: 'First-time setup', titleAr: 'الإعداد لأول مرة', descriptionEn: 'Prepare KNOUX ONE for this device', descriptionAr: 'تجهيز كنوكس ون لهذا الجهاز', icon: Sparkles },
+      { id: 'post-format', route: 'post-format', titleEn: 'After-format setup', titleAr: 'إعداد ما بعد الفورمات', descriptionEn: 'Install essential software and profiles', descriptionAr: 'تثبيت البرامج الأساسية والبروفايلات', icon: Rocket },
+      { id: 'catalog', route: 'catalog', titleEn: 'Workspace library', titleAr: 'مكتبة مساحات العمل', descriptionEn: 'Browse all modules and services', descriptionAr: 'استعراض جميع الأقسام والخدمات', icon: Grid3X3 },
+      { id: 'support', route: 'support', titleEn: 'Activity & support', titleAr: 'العمليات والدعم', descriptionEn: 'History, reports, and support drafts', descriptionAr: 'السجل والتقارير ومسودات الدعم', icon: History },
+    ],
+  },
+  {
+    id: 'system-care',
+    titleEn: 'System care',
+    titleAr: 'العناية بالنظام',
+    items: [
+      { id: 'cleanup', route: 'cleanup', titleEn: 'Smart cleanup', titleAr: 'التنظيف الذكي', descriptionEn: 'Review safe cleanup opportunities', descriptionAr: 'مراجعة فرص التنظيف الآمن', icon: Trash2 },
+      { id: 'duplicates', route: 'duplicates', titleEn: 'Duplicate finder', titleAr: 'الملفات المكررة', descriptionEn: 'Find exact and similar copies', descriptionAr: 'اكتشاف النسخ المتطابقة والمتشابهة', icon: Copy },
+      { id: 'storage', route: 'storage', titleEn: 'Storage analyzer', titleAr: 'تحليل التخزين', descriptionEn: 'Understand disk usage', descriptionAr: 'فهم استهلاك مساحة القرص', icon: HardDrive },
+      { id: 'startup', route: 'startup', titleEn: 'Startup & services', titleAr: 'بدء التشغيل والخدمات', descriptionEn: 'Manage startup behavior', descriptionAr: 'إدارة بدء التشغيل والخدمات', icon: SlidersHorizontal },
+      { id: 'performance', route: 'performance', titleEn: 'Performance center', titleAr: 'مركز الأداء', descriptionEn: 'Monitor resources and processes', descriptionAr: 'متابعة الموارد والعمليات', icon: Gauge },
+    ],
+  },
+  {
+    id: 'windows-security',
+    titleEn: 'Windows & security',
+    titleAr: 'ويندوز والأمان',
+    items: [
+      { id: 'repair', route: 'repair', titleEn: 'Windows repair', titleAr: 'إصلاح ويندوز', descriptionEn: 'Integrity and component repair', descriptionAr: 'إصلاح سلامة النظام ومكوناته', icon: Wrench },
+      { id: 'network', route: 'network', titleEn: 'Network & internet', titleAr: 'الشبكة والإنترنت', descriptionEn: 'Diagnostics and targeted repairs', descriptionAr: 'التشخيص والإصلاحات المستهدفة', icon: Network },
+      { id: 'privacy', route: 'privacy', titleEn: 'Privacy center', titleAr: 'مركز الخصوصية', descriptionEn: 'Review reversible privacy controls', descriptionAr: 'مراجعة إعدادات الخصوصية القابلة للاستعادة', icon: ShieldEllipsis },
+      { id: 'security', route: 'security', titleEn: 'Security center', titleAr: 'مركز الأمان', descriptionEn: 'Defender, Firewall, UAC, TPM', descriptionAr: 'Defender والجدار الناري وUAC وTPM', icon: ShieldCheck },
+      { id: 'backup', route: 'backup', titleEn: 'Backup & recovery', titleAr: 'النسخ والاستعادة', descriptionEn: 'Backups, restore points, recovery', descriptionAr: 'النسخ الاحتياطي ونقاط الاستعادة', icon: Archive },
+    ],
+  },
+  {
+    id: 'apps-tools',
+    titleEn: 'Applications & tools',
+    titleAr: 'التطبيقات والأدوات',
+    items: [
+      { id: 'applications', route: 'applications', titleEn: 'Apps & drivers', titleAr: 'البرامج والتعريفات', descriptionEn: 'Install, update, and review drivers', descriptionAr: 'تثبيت البرامج وتحديثها ومراجعة التعريفات', icon: AppWindow },
+      { id: 'file-tools', route: 'file-tools', titleEn: 'File utilities', titleAr: 'أدوات الملفات', descriptionEn: 'Rename, compare, archive, hash', descriptionAr: 'إعادة التسمية والمقارنة والأرشفة', icon: FileCog },
+      { id: 'automation', route: 'automation', titleEn: 'Automation', titleAr: 'الأتمتة والإنتاجية', descriptionEn: 'Workflows, schedules, workspaces', descriptionAr: 'مسارات العمل والجداول ومساحات العمل', icon: WandSparkles },
+    ],
+  },
+  {
+    id: 'developer',
+    titleEn: 'Development & diagnostics',
+    titleAr: 'التطوير والتشخيص',
+    items: [
+      { id: 'developer', route: 'developer', titleEn: 'Developer studio', titleAr: 'استوديو المطور', descriptionEn: 'Runtimes, PATH, tools, ports', descriptionAr: 'البيئات وPATH والأدوات والمنافذ', icon: TerminalSquare },
+      { id: 'project-tools', route: 'project-tools', titleEn: 'Code & projects', titleAr: 'الكود والمشروعات', descriptionEn: 'Repositories, dependencies, APIs', descriptionAr: 'المستودعات والاعتماديات وواجهات API', icon: Braces },
+      { id: 'diagnostics', route: 'diagnostics', titleEn: 'Logs & diagnostics', titleAr: 'السجلات والتشخيص', descriptionEn: 'Events, crashes, update failures', descriptionAr: 'الأحداث والأعطال ومشاكل التحديث', icon: Activity },
+      { id: 'hardware', route: 'hardware', titleEn: 'Hardware health', titleAr: 'صحة الجهاز والمكونات', descriptionEn: 'CPU, GPU, memory, disks, battery', descriptionAr: 'المعالج والرسوميات والذاكرة والأقراص', icon: Cpu },
+    ],
+  },
+  {
+    id: 'knoux',
+    titleEn: 'KNOUX',
+    titleAr: 'كنوكس',
+    items: [
+      { id: 'cloud', route: 'cloud', titleEn: 'Cloud & support', titleAr: 'السحابة والدعم', descriptionEn: 'Account and support capabilities', descriptionAr: 'خدمات الحساب والدعم', icon: Cloud },
+      { id: 'settings', route: 'settings', titleEn: 'Settings', titleAr: 'الإعدادات', descriptionEn: 'Appearance, language, accessibility', descriptionAr: 'المظهر واللغة وإمكانية الوصول', icon: Settings },
+      { id: 'about', route: 'about', titleEn: 'About KNOUX ONE', titleAr: 'عن كنوكس ون', descriptionEn: 'Product identity and architecture', descriptionAr: 'هوية المنتج ومعماريته', icon: Info },
+    ],
+  },
+];
+
+export const Sidebar: React.FC = () => {
+  const { currentRoute, setCurrentRoute, t, theme } = useKnoux();
+  const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({});
+  const [collapsed, setCollapsed] = useState(false);
+  const [logoFailed, setLogoFailed] = useState(false);
+
+  useEffect(() => {
+    const saved = window.localStorage.getItem('knoux.sidebar.collapsed');
+    if (saved !== null) {
+      setCollapsed(saved === 'true');
+      return;
+    }
+    setCollapsed(window.innerWidth < 1420);
+  }, []);
+
+  useEffect(() => {
+    window.localStorage.setItem('knoux.sidebar.collapsed', String(collapsed));
+  }, [collapsed]);
+
+  const activeGroup = useMemo(
+    () => GROUPS.find(group => group.items.some(item => item.route === currentRoute))?.id,
+    [currentRoute],
+  );
+
+  const toggleGroup = (groupId: string) => {
+    setCollapsedGroups(previous => ({ ...previous, [groupId]: !previous[groupId] }));
   };
 
-  const navGroups: NavGroup[] = [
-    {
-      titleEn: 'HOME & OVERVIEW',
-      titleAr: 'الرئيسية والوظائف',
-      items: [
-        { id: 'dashboard', route: 'dashboard', titleEn: 'Dashboard', titleAr: 'لوحة التحكم', icon: LayoutDashboard },
-        { id: 'first-run', route: 'first-run', titleEn: 'First Run', titleAr: 'البداية', icon: Sparkles, badge: 'M01' },
-        { id: 'post-format', route: 'post-format', titleEn: 'Post-Format Setup', titleAr: 'إعداد ما بعد الفورمات', icon: Download, badge: 'Popular' },
-        { id: 'catalog', route: 'catalog', titleEn: 'Command Center', titleAr: 'مركز الوظائف', icon: Grid, badge: '190' },
-        { id: 'support', route: 'support', titleEn: 'Activity History', titleAr: 'سجل العمليات والدعم', icon: HelpCircle }
-      ]
-    },
-    {
-      titleEn: 'SYSTEM CARE',
-      titleAr: 'العناية بالنظام',
-      items: [
-        { id: 'cleanup', route: 'cleanup', titleEn: 'Smart Cleanup', titleAr: 'التنظيف الذكي', icon: Trash2 },
-        { id: 'duplicates', route: 'duplicates', titleEn: 'Duplicate Finder', titleAr: 'مستكشف المكررات', icon: Copy },
-        { id: 'storage', route: 'storage', titleEn: 'Storage Analyzer', titleAr: 'محلل القرص', icon: PieChart },
-        { id: 'startup', route: 'startup', titleEn: 'Startup & Services', titleAr: 'إدارة بدء التشغيل', icon: Zap },
-        { id: 'performance', route: 'performance', titleEn: 'Performance Center', titleAr: 'مركز الأداء', icon: Gauge }
-      ]
-    },
-    {
-      titleEn: 'WINDOWS & SECURITY',
-      titleAr: 'ويندوز والأمان',
-      items: [
-        { id: 'repair', route: 'repair', titleEn: 'Windows Repair', titleAr: 'إصلاح ويندوز', icon: Wrench },
-        { id: 'network', route: 'network', titleEn: 'Network & Internet', titleAr: 'الشبكة والإنترنت', icon: Wifi },
-        { id: 'privacy', route: 'privacy', titleEn: 'Privacy Center', titleAr: 'مركز الخصوصية', icon: EyeOff },
-        { id: 'security', route: 'security', titleEn: 'Security Center', titleAr: 'مركز الأمان', icon: ShieldCheck },
-        { id: 'backup', route: 'backup', titleEn: 'Backup & Recovery', titleAr: 'النسخ الاحتياطي', icon: HardDrive }
-      ]
-    },
-    {
-      titleEn: 'APPLICATIONS & TOOLS',
-      titleAr: 'التطبيقات والأدوات',
-      items: [
-        { id: 'applications', route: 'applications', titleEn: 'Applications & Drivers', titleAr: 'التطبيقات والتعريفات', icon: Package },
-        { id: 'file-tools', route: 'file-tools', titleEn: 'File Utilities', titleAr: 'أدوات الملفات', icon: FileCode },
-        { id: 'automation', route: 'automation', titleEn: 'Automation & Productivity', titleAr: 'الأتمتة والإنتاجية', icon: Terminal }
-      ]
-    },
-    {
-      titleEn: 'DEVELOPMENT & DIAGNOSTICS',
-      titleAr: 'التطوير والتشخيص',
-      items: [
-        { id: 'developer', route: 'developer', titleEn: 'Developer Studio', titleAr: 'استوديو المطور', icon: Code2 },
-        { id: 'project-tools', route: 'project-tools', titleEn: 'Code & Project Tools', titleAr: 'أدوات الكود والمشاريع', icon: FolderGit2 },
-        { id: 'diagnostics', route: 'diagnostics', titleEn: 'Logs & Diagnostics', titleAr: 'السجلات والتشخيص', icon: Activity },
-        { id: 'hardware', route: 'hardware', titleEn: 'Hardware & Device Health', titleAr: 'صحة العتاد', icon: Cpu }
-      ]
-    },
-    {
-      titleEn: 'KNOUX SYSTEM',
-      titleAr: 'منظومة كنوكس',
-      items: [
-        { id: 'cloud', route: 'cloud', titleEn: 'KNOUX Cloud & Support', titleAr: 'سحابة ودعم كنوكس', icon: Cloud },
-        { id: 'brand-gallery', route: 'brand-gallery', titleEn: 'Brand & Assets', titleAr: 'الشعارات والمعرض', icon: ImageIcon, badge: 'Official' },
-        { id: 'web-landing', route: 'web-landing', titleEn: 'Web Landing Page', titleAr: 'صفحة الويب', icon: Globe },
-        { id: 'settings', route: 'settings', titleEn: 'Settings', titleAr: 'الإعدادات', icon: Settings },
-        { id: 'about', route: 'about', titleEn: 'About KNOUX ONE', titleAr: 'عن التطبيق', icon: Info }
-      ]
-    }
-  ];
-
   return (
-    <aside className={`${isSidebarCollapsed ? 'w-20' : 'w-68'} bg-[var(--knoux-sidebar)] border-r border-[var(--knoux-border)] flex flex-col h-[calc(100vh-4.5rem)] overflow-y-auto custom-scrollbar select-none shrink-0 transition-all duration-300 z-30`}>
-      {/* Sidebar Header Controls */}
-      <div className="p-3 border-b border-[var(--knoux-border)]">
-        <div className="flex items-center justify-between p-2 rounded-xl bg-[var(--knoux-surface-muted)] border border-[var(--knoux-border)]">
-          {!isSidebarCollapsed && (
-            <div className="flex items-center space-x-2 rtl:space-x-reverse px-1">
-              <Layers className="w-4 h-4 text-[var(--knoux-primary)]" />
-              <span className="text-xs font-mono font-bold text-[var(--knoux-text)] truncate">
-                {t('19 Modules Catalog', '19 موديول للذكاء')}
-              </span>
-            </div>
-          )}
+    <aside className={`knoux-sidebar-shell flex h-full shrink-0 flex-col transition-[width] duration-300 ${collapsed ? 'w-[82px]' : 'w-[264px]'}`}>
+      <div className="border-b border-[var(--knoux-border)] p-3">
+        <div className={`flex items-center ${collapsed ? 'justify-center' : 'justify-between'} gap-3 rounded-2xl p-2`}>
           <button
-            onClick={() => setIsSidebarCollapsed(prev => !prev)}
-            className="p-1.5 rounded-lg hover:bg-[var(--knoux-surface-elevated)] text-[var(--knoux-primary)] transition-colors mx-auto"
-            title={isSidebarCollapsed ? t('Expand Sidebar', 'توسيع القائمة') : t('Collapse Sidebar', 'طوي القائمة')}
+            type="button"
+            onClick={() => setCurrentRoute('dashboard')}
+            className={`flex min-w-0 items-center ${collapsed ? 'justify-center' : 'gap-3'} text-start`}
+            title={t('Open dashboard', 'فتح لوحة التحكم')}
           >
-            {isSidebarCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
+            <div className="relative grid h-11 w-11 shrink-0 place-items-center overflow-hidden rounded-full border border-[var(--knoux-glass-border-strong)] bg-[var(--knoux-surface-elevated)] shadow-[0_10px_28px_rgba(139,92,246,.2)]">
+              {!logoFailed ? (
+                <img
+                  src={getOfficialKnouxLogo(theme)}
+                  alt="KNOUX ONE"
+                  className="h-full w-full object-cover"
+                  onError={() => setLogoFailed(true)}
+                />
+              ) : (
+                <span className="text-base font-black text-[var(--knoux-primary-bright)]">K</span>
+              )}
+            </div>
+            {!collapsed && (
+              <div className="min-w-0">
+                <p className="truncate text-[15px] font-black tracking-[-.02em] text-[var(--knoux-text)]">KNOUX ONE</p>
+                <p className="truncate text-[11px] font-semibold text-[var(--knoux-text-muted)]">{t('Windows Intelligence Suite', 'منظومة ذكاء ويندوز')}</p>
+              </div>
+            )}
           </button>
+
+          {!collapsed && (
+            <button
+              type="button"
+              onClick={() => setCollapsed(true)}
+              className="grid h-9 w-9 place-items-center rounded-xl border border-[var(--knoux-border)] bg-[var(--knoux-surface-muted)] text-[var(--knoux-text-muted)] transition hover:border-[var(--knoux-primary)]/35 hover:text-[var(--knoux-primary-bright)]"
+              title={t('Collapse navigation', 'طي القائمة')}
+            >
+              <PanelLeftClose className="h-[18px] w-[18px]" />
+            </button>
+          )}
         </div>
       </div>
 
-      {/* Navigation Items List */}
-      <div className="p-3 space-y-4 flex-1">
-        {navGroups.map((group) => {
-          const isCollapsed = collapsedGroups[group.titleEn];
-          return (
-            <div key={group.titleEn} className="space-y-1">
-              {!isSidebarCollapsed && (
-                <button
-                  onClick={() => toggleGroup(group.titleEn)}
-                  className="w-full flex items-center justify-between px-2 py-1 text-xs font-mono font-bold uppercase tracking-wider text-[var(--knoux-text-muted)] hover:text-[var(--knoux-text)] transition-colors"
-                >
-                  <span>{t(group.titleEn, group.titleAr)}</span>
-                  {isCollapsed ? (
-                    <ChevronRight className="w-3 h-3 text-[var(--knoux-primary)]" />
-                  ) : (
-                    <ChevronDown className="w-3 h-3 text-[var(--knoux-primary)]" />
-                  )}
-                </button>
-              )}
+      {collapsed && (
+        <div className="px-3 pt-3">
+          <button
+            type="button"
+            onClick={() => setCollapsed(false)}
+            className="grid h-11 w-full place-items-center rounded-xl border border-[var(--knoux-border)] bg-[var(--knoux-surface-muted)] text-[var(--knoux-primary-bright)] transition hover:border-[var(--knoux-primary)]/40"
+            title={t('Expand navigation', 'توسيع القائمة')}
+          >
+            <PanelLeftOpen className="h-5 w-5" />
+          </button>
+        </div>
+      )}
 
-              {(!isCollapsed || isSidebarCollapsed) && (
-                <div className="space-y-1 mt-1">
-                  {group.items.map((item) => {
-                    const Icon = item.icon;
-                    const isActive = currentRoute === item.route;
-                    return (
-                      <button
-                        key={item.id}
-                        onClick={() => setCurrentRoute(item.route)}
-                        title={isSidebarCollapsed ? t(item.titleEn, item.titleAr) : undefined}
-                        className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-semibold transition-all duration-150 ${
-                          isActive
-                            ? 'bg-gradient-to-r from-[var(--knoux-primary)] to-[var(--knoux-primary-hover)] text-white shadow-lg shadow-[var(--knoux-primary)]/25 font-bold border border-white/10'
-                            : 'text-[var(--knoux-text-secondary)] hover:bg-[var(--knoux-surface-muted)] hover:text-[var(--knoux-text)]'
-                        }`}
-                      >
-                        <div className={`flex items-center ${isSidebarCollapsed ? 'justify-center w-full' : 'space-x-3 rtl:space-x-reverse'} min-w-0`}>
-                          <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-white' : 'text-[var(--knoux-primary)]'}`} />
-                          {!isSidebarCollapsed && (
-                            <span className="truncate">{t(item.titleEn, item.titleAr)}</span>
-                          )}
-                        </div>
-                        {!isSidebarCollapsed && item.badge && (
-                          <span
-                            className={`text-xs px-1.5 py-0.5 rounded font-mono font-bold uppercase tracking-tight shrink-0 ${
-                              isActive
-                                ? 'bg-white/20 text-white'
-                                : 'knoux-badge-primary'
-                            }`}
-                          >
-                            {item.badge}
+      <nav className="custom-scrollbar min-h-0 flex-1 overflow-y-auto p-3">
+        <div className="space-y-4">
+          {GROUPS.map(group => {
+            const groupCollapsed = collapsedGroups[group.id];
+            const groupActive = activeGroup === group.id;
+            return (
+              <section key={group.id}>
+                {!collapsed && (
+                  <button
+                    type="button"
+                    onClick={() => toggleGroup(group.id)}
+                    className={`mb-1.5 flex w-full items-center justify-between rounded-lg px-2 py-1.5 text-[11px] font-extrabold uppercase tracking-[.1em] transition ${groupActive ? 'text-[var(--knoux-primary-bright)]' : 'text-[var(--knoux-text-muted)] hover:text-[var(--knoux-text-secondary)]'}`}
+                  >
+                    <span>{t(group.titleEn, group.titleAr)}</span>
+                    {groupCollapsed ? <ChevronRight className="h-3.5 w-3.5 rtl:rotate-180" /> : <ChevronDown className="h-3.5 w-3.5" />}
+                  </button>
+                )}
+
+                {(!groupCollapsed || collapsed) && (
+                  <div className="space-y-1.5">
+                    {group.items.map(item => {
+                      const Icon = item.icon;
+                      const active = currentRoute === item.route;
+                      return (
+                        <button
+                          type="button"
+                          key={item.id}
+                          onClick={() => setCurrentRoute(item.route)}
+                          title={collapsed ? t(item.titleEn, item.titleAr) : undefined}
+                          className={`group relative flex w-full items-center rounded-xl border text-start transition-all duration-150 ${collapsed ? 'h-11 justify-center px-2' : 'min-h-[48px] gap-3 px-3 py-2'} ${active ? 'border-[var(--knoux-primary)]/35 bg-[linear-gradient(135deg,rgba(139,92,246,.18),rgba(76,141,255,.07))] text-[var(--knoux-text)] shadow-[0_10px_24px_rgba(139,92,246,.12)]' : 'border-transparent text-[var(--knoux-text-secondary)] hover:border-[var(--knoux-border)] hover:bg-[var(--knoux-surface-muted)] hover:text-[var(--knoux-text)]'}`}
+                        >
+                          {active && <span className="absolute inset-y-2 start-0 w-[3px] rounded-full bg-[linear-gradient(to_bottom,var(--knoux-primary-bright),var(--knoux-accent-blue))]" />}
+                          <span className={`grid h-8 w-8 shrink-0 place-items-center rounded-[10px] transition ${active ? 'bg-[var(--knoux-primary)]/18 text-[var(--knoux-primary-bright)]' : 'bg-[var(--knoux-surface-muted)] text-[var(--knoux-text-muted)] group-hover:text-[var(--knoux-primary-bright)]'}`}>
+                            <Icon className="h-[18px] w-[18px]" strokeWidth={1.9} />
                           </span>
-                        )}
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-          );
-        })}
-      </div>
+                          {!collapsed && (
+                            <span className="min-w-0">
+                              <span className="block truncate text-[13px] font-bold">{t(item.titleEn, item.titleAr)}</span>
+                              <span className="mt-0.5 block truncate text-[11px] font-medium text-[var(--knoux-text-muted)]">{t(item.descriptionEn, item.descriptionAr)}</span>
+                            </span>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </section>
+            );
+          })}
+        </div>
+      </nav>
 
-      {/* Footer Branding */}
-      <div className="p-3 border-t border-[var(--knoux-border)] bg-[var(--knoux-surface-muted)]">
-        <div className="p-2.5 rounded-xl bg-[var(--knoux-surface)] border border-[var(--knoux-border)] text-center">
-          {!isSidebarCollapsed ? (
-            <>
-              <p className="text-sm text-[var(--knoux-text)] font-semibold font-mono">
-                Engineered by <span className="text-[var(--knoux-primary)] font-bold">Eng. Sadek Elgazar</span>
-              </p>
-              <p className="text-xs text-[var(--knoux-text-muted)] font-mono mt-0.5">
-                KNOUX ONE Architecture
-              </p>
-            </>
+      <div className="border-t border-[var(--knoux-border)] p-3">
+        <div className={`rounded-2xl border border-[var(--knoux-border)] bg-[var(--knoux-surface-muted)] ${collapsed ? 'p-2' : 'p-3'}`}>
+          {collapsed ? (
+            <div className="grid place-items-center text-[var(--knoux-primary-bright)]">
+              <Code2 className="h-5 w-5" />
+            </div>
           ) : (
-            <span className="text-sm font-black font-mono text-[var(--knoux-primary)]">K1</span>
+            <div className="flex items-center gap-3 rtl:flex-row-reverse">
+              <div className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-[linear-gradient(135deg,var(--knoux-primary),var(--knoux-accent-blue))] text-[12px] font-black text-white">SE</div>
+              <div className="min-w-0">
+                <p className="truncate text-[12px] font-extrabold text-[var(--knoux-text)]">Eng. Sadek Elgazar</p>
+                <p className="truncate text-[10px] font-semibold text-[var(--knoux-primary-bright)]">Knoux • Abu Dhabi</p>
+              </div>
+              <HelpCircle className="ms-auto h-4 w-4 text-[var(--knoux-text-muted)]" />
+            </div>
           )}
         </div>
       </div>
     </aside>
   );
 };
-
