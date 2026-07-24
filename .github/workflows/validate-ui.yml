@@ -29,16 +29,32 @@ jobs:
       - name: Install dependencies
         run: npm install --no-audit --no-fund --loglevel=error
 
-      - name: Typecheck
+      - name: Capture typecheck
+        id: typecheck
         shell: bash
         run: |
-          npm run typecheck > typecheck.log 2>&1 || {
-            echo "::group::TypeScript errors"
-            tail -n 120 typecheck.log
-            echo "::endgroup::"
-            exit 1
-          }
+          set +e
+          npm run typecheck > typecheck.log 2>&1
+          code=$?
+          echo "$code" > typecheck.exit
+          echo "exit_code=$code" >> "$GITHUB_OUTPUT"
+          exit 0
+
+      - name: Upload typecheck log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: typecheck-log
+          path: |
+            typecheck.log
+            typecheck.exit
+          if-no-files-found: error
+
+      - name: Enforce typecheck
+        shell: bash
+        run: |
           cat typecheck.log
+          test "$(cat typecheck.exit)" = "0"
 
       - name: Unit tests
         run: npm run test
