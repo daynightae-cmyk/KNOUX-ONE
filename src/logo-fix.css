@@ -7,7 +7,7 @@
 }
 
 .knoux-logo-orbit,
-.knoux-sidebar-shell img[alt='KNOUX ONE'] {
+img[alt='KNOUX ONE'] {
   border-radius: 9999px;
 }
 
@@ -20,7 +20,8 @@
 }
 
 .knoux-logo-orbit img[alt='KNOUX ONE'],
-.knoux-sidebar-shell img[alt='KNOUX ONE'] {
+.knoux-sidebar-shell img[alt='KNOUX ONE'],
+img[alt='KNOUX ONE'] {
   display: block;
   width: 100%;
   height: 100%;
@@ -90,15 +91,13 @@
   filter: saturate(1.04) contrast(1.035);
 }
 
-html.light .knoux-logo-orbit img[alt='KNOUX ONE'],
-html.light .knoux-sidebar-shell img[alt='KNOUX ONE'],
+html.light img[alt='KNOUX ONE'],
 html.light .knoux-official-logo-preview > img {
   filter: saturate(1.02) contrast(1.02);
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .knoux-logo-orbit img[alt='KNOUX ONE'],
-  .knoux-sidebar-shell img[alt='KNOUX ONE'],
+  img[alt='KNOUX ONE'],
   .knoux-official-logo-preview > img {
     transition: none !important;
   }
