@@ -1,262 +1,195 @@
-/**
- * KNOUX ONE — Official Visual Reference Gallery & Brand Asset Showcase
- */
-
-import React, { useState } from 'react';
-import { useKnoux } from '../../context/KnouxContext';
-import { OFFICIAL_LOGOS, VISUAL_GALLERY_ASSETS, GalleryAsset } from '../../data/brandAssets';
-import { 
-  Image as ImageIcon, 
-  Download, 
-  ExternalLink, 
-  ZoomIn, 
-  X, 
-  Sparkles, 
-  Check, 
-  Copy, 
-  Sun, 
-  Moon, 
-  Layers 
+import React, { useMemo, useState } from 'react';
+import {
+  Check,
+  Copy,
+  ExternalLink,
+  Image as ImageIcon,
+  Layers3,
+  Moon,
+  Sparkles,
+  Sun,
+  X,
+  ZoomIn,
 } from 'lucide-react';
+import { useKnoux } from '../../context/KnouxContext';
+import { OFFICIAL_KNOUX_ASSETS, getOfficialKnouxLogo } from '../../data/officialBrand';
+import { GalleryAsset, VISUAL_GALLERY_ASSETS } from '../../data/brandAssets';
+
+interface LogoCardProps {
+  mode: 'night' | 'day';
+  copiedUrl: string | null;
+  onCopy: (url: string) => void;
+}
+
+const LogoCard: React.FC<LogoCardProps> = ({ mode, copiedUrl, onCopy }) => {
+  const { t } = useKnoux();
+  const isNight = mode === 'night';
+  const url = isNight ? OFFICIAL_KNOUX_ASSETS.nightLogo : OFFICIAL_KNOUX_ASSETS.dayLogo;
+  const Icon = isNight ? Moon : Sun;
+
+  return (
+    <article className="knoux-glass-panel overflow-hidden p-5 md:p-6">
+      <div
+        className="absolute inset-x-0 top-0 h-32 opacity-70"
+        style={{
+          background: isNight
+            ? 'radial-gradient(circle at 50% 0%, rgba(139,92,246,.24), transparent 68%)'
+            : 'radial-gradient(circle at 50% 0%, rgba(124,58,237,.15), transparent 68%)',
+        }}
+        aria-hidden="true"
+      />
+
+      <div className="relative flex items-start justify-between gap-4">
+        <div>
+          <div className="knoux-eyebrow">
+            <Icon className={`h-4 w-4 ${isNight ? '' : 'text-amber-500'}`} />
+            {t(isNight ? 'Night identity' : 'Day identity', isNight ? 'الهوية الليلية' : 'الهوية النهارية')}
+          </div>
+          <h2 className="mt-2 text-[20px] font-black tracking-[-.025em] text-[var(--knoux-text)]">
+            {t('Official circular KNOUX ONE logo', 'شعار KNOUX ONE الدائري الرسمي')}
+          </h2>
+          <p className="mt-2 max-w-md text-[12px] font-medium leading-6 text-[var(--knoux-text-muted)]">
+            {t(
+              'Used as a true circular product emblem with no square image card or legacy local fallback.',
+              'يُستخدم كشعار منتج دائري حقيقي دون بطاقة صورة مربعة أو رجوع إلى ملف محلي قديم.',
+            )}
+          </p>
+        </div>
+
+        <button type="button" onClick={() => onCopy(url)} className="knoux-card-action shrink-0">
+          {copiedUrl === url ? <Check className="h-4 w-4 text-[var(--knoux-success)]" /> : <Copy className="h-4 w-4" />}
+          <span className="hidden sm:inline">{copiedUrl === url ? t('Copied', 'تم النسخ') : t('Copy URL', 'نسخ الرابط')}</span>
+        </button>
+      </div>
+
+      <div className={`relative mt-7 rounded-[24px] border border-[var(--knoux-border)] p-7 ${isNight ? 'bg-[#070914]' : 'bg-[#f4f1ff]'}`}>
+        <div className="knoux-official-logo-preview">
+          <img src={`${url}?knoux_logo=2026-07-24.3`} alt={isNight ? 'KNOUX official night emblem' : 'KNOUX official day emblem'} />
+        </div>
+      </div>
+
+      <div className="relative mt-5 flex flex-wrap gap-2">
+        <span className="knoux-chip">{t('Circular crop', 'قص دائري')}</span>
+        <span className="knoux-chip">{t('Clear safe area', 'مساحة آمنة واضحة')}</span>
+        <span className="knoux-chip">{t('Official source', 'المصدر الرسمي')}</span>
+        <span className="knoux-chip knoux-chip--accent">{isNight ? 'Dark mode' : 'Light mode'}</span>
+      </div>
+    </article>
+  );
+};
 
 export const BrandGalleryView: React.FC = () => {
   const { theme, t } = useKnoux();
   const [selectedAsset, setSelectedAsset] = useState<GalleryAsset | null>(null);
   const [copiedUrl, setCopiedUrl] = useState<string | null>(null);
-  const [filterModule, setFilterModule] = useState<string>('all');
+  const [query, setQuery] = useState('');
 
-  const currentLogo = theme === 'dark' ? OFFICIAL_LOGOS.night : OFFICIAL_LOGOS.day;
+  const filteredAssets = useMemo(() => {
+    const normalized = query.trim().toLowerCase();
+    if (!normalized) return VISUAL_GALLERY_ASSETS;
+
+    return VISUAL_GALLERY_ASSETS.filter(asset =>
+      [asset.titleEn, asset.titleAr, asset.moduleNameEn, asset.moduleNameAr, asset.descriptionEn, asset.descriptionAr]
+        .some(value => value.toLowerCase().includes(normalized)),
+    );
+  }, [query]);
 
   const handleCopy = (url: string) => {
     navigator.clipboard.writeText(url);
     setCopiedUrl(url);
-    setTimeout(() => setCopiedUrl(null), 2000);
+    window.setTimeout(() => setCopiedUrl(null), 1800);
   };
 
-  const filteredAssets = VISUAL_GALLERY_ASSETS.filter(item => {
-    if (filterModule === 'all') return true;
-    return item.moduleId === filterModule;
-  });
-
   return (
-    <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-8">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[var(--knoux-border)] pb-5">
-        <div>
-          <div className="inline-flex items-center space-x-2 rtl:space-x-reverse px-2.5 py-0.5 rounded-md bg-[var(--knoux-surface-muted)] border border-[var(--knoux-border)] text-[var(--knoux-primary)] text-xs font-mono mb-1.5">
-            <ImageIcon className="w-3.5 h-3.5" />
-            <span>OFFICIAL BRANDING • LOGOS & 19 VISUAL REFERENCES</span>
-          </div>
-          <h1 className="knoux-hero-title">
-            {t('Official Visual Gallery & Identity', 'معرض المراجع البصرية والهوية الرسمية')}
-          </h1>
-          <p className="knoux-body mt-1">
-            {t(
-              'Explore official KNOUX ONE high-resolution branding assets, night/day logos, and 19 visual reference screenshots.',
-              'استعرض الشعارات الرسمية بالنمطين الفاتح والداكن وجميع المراجع البصرية الـ 19 للتطبيق.'
-            )}
-          </p>
-        </div>
-      </div>
-
-      {/* Official Logos Section */}
-      <div className="space-y-4">
-        <h2 className="knoux-section-title flex items-center space-x-2 rtl:space-x-reverse">
-          <Sparkles className="w-4 h-4 text-[var(--knoux-primary)]" />
-          <span>{t('4.1 & 4.2 Official Identity Logos (Night & Day)', '4.1 و 4.2 الشعارات الرسمية للنظام (الداكن والفاتح)')}</span>
-        </h2>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Night Logo Card */}
-          <div className="p-5 rounded-2xl knoux-depth-3 border border-[var(--knoux-glass-border)] space-y-4 relative group">
-            <div className="flex justify-between items-start">
-              <div>
-                <span className="inline-flex items-center space-x-1 rtl:space-x-reverse text-xs px-2 py-0.5 rounded bg-[var(--knoux-surface-muted)] border border-[var(--knoux-border)] text-[var(--knoux-primary)] font-mono font-bold">
-                  <Moon className="w-3 h-3" />
-                  <span>DARK MODE LOGO (4.1)</span>
-                </span>
-                <h3 className="font-bold text-base text-[var(--knoux-text)] mt-1.5">{OFFICIAL_LOGOS.night.nameEn}</h3>
-              </div>
-              <button
-                onClick={() => handleCopy(OFFICIAL_LOGOS.night.remoteUrl)}
-                className="knoux-button-secondary text-xs"
-              >
-                {copiedUrl === OFFICIAL_LOGOS.night.remoteUrl ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-                <span>{copiedUrl === OFFICIAL_LOGOS.night.remoteUrl ? 'Copied' : 'Copy URL'}</span>
-              </button>
-            </div>
-
-            {/* Logo Image Box */}
-            <div className="p-6 rounded-xl bg-[#08031A] border border-[var(--knoux-border)] flex items-center justify-center min-h-[160px] overflow-hidden">
-              <img
-                src={OFFICIAL_LOGOS.night.localPath}
-                onError={(e) => { (e.target as HTMLImageElement).src = OFFICIAL_LOGOS.night.remoteUrl; }}
-                alt="Knoux One Night Logo"
-                className="max-h-28 object-contain transition-transform duration-300 group-hover:scale-105"
-              />
-            </div>
-
-            {/* Usage Specs */}
-            <div className="space-y-1.5">
-              <span className="text-sm font-mono text-[var(--knoux-primary)] block font-bold">{t('Designated Usage:', 'الاستخدامات المخصصة:')}</span>
-              <div className="flex flex-wrap gap-1.5">
-                {OFFICIAL_LOGOS.night.usage.map((use, i) => (
-                  <span key={i} className="text-xs px-2 py-0.5 rounded-md bg-[var(--knoux-surface-muted)] border border-[var(--knoux-border)] text-[var(--knoux-text-secondary)] font-mono">
-                    {use}
-                  </span>
-                ))}
-              </div>
-            </div>
+    <div className="knoux-page-container space-y-7">
+      <section className="knoux-glass-panel overflow-hidden p-6 md:p-8">
+        <div className="absolute inset-y-0 end-0 w-[45%] bg-[radial-gradient(circle_at_center,rgba(139,92,246,.16),transparent_68%)]" aria-hidden="true" />
+        <div className="relative flex flex-col gap-6 xl:flex-row xl:items-center xl:justify-between">
+          <div>
+            <div className="knoux-eyebrow"><Sparkles className="h-4 w-4" />{t('Official identity', 'الهوية الرسمية')}</div>
+            <h1 className="mt-3 text-[clamp(2rem,4vw,3.2rem)] font-black leading-[1.08] tracking-[-.045em] text-[var(--knoux-text)]">
+              {t('KNOUX ONE brand and visual references', 'هوية KNOUX ONE والمراجع البصرية')}
+            </h1>
+            <p className="mt-4 max-w-3xl text-[14px] font-medium leading-7 text-[var(--knoux-text-secondary)]">
+              {t('The new official night and day logos are the only identity sources used by this workspace.', 'الشعاران الرسميان الجديدان الليلي والنهاري هما مصدرا الهوية الوحيدان المستخدمان داخل مساحة العمل.')}
+            </p>
           </div>
 
-          {/* Day Logo Card */}
-          <div className="p-5 rounded-2xl knoux-depth-3 border border-[var(--knoux-glass-border)] space-y-4 relative group">
-            <div className="flex justify-between items-start">
-              <div>
-                <span className="inline-flex items-center space-x-1 rtl:space-x-reverse text-xs px-2 py-0.5 rounded bg-[var(--knoux-surface-muted)] border border-[var(--knoux-border)] text-[var(--knoux-warning)] font-mono font-bold">
-                  <Sun className="w-3 h-3 text-amber-500" />
-                  <span>LIGHT MODE LOGO (4.2)</span>
-                </span>
-                <h3 className="font-bold text-base text-[var(--knoux-text)] mt-1.5">{OFFICIAL_LOGOS.day.nameEn}</h3>
-              </div>
-              <button
-                onClick={() => handleCopy(OFFICIAL_LOGOS.day.remoteUrl)}
-                className="knoux-button-secondary text-xs"
-              >
-                {copiedUrl === OFFICIAL_LOGOS.day.remoteUrl ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-                <span>{copiedUrl === OFFICIAL_LOGOS.day.remoteUrl ? 'Copied' : 'Copy URL'}</span>
-              </button>
-            </div>
-
-            {/* Logo Image Box */}
-            <div className="p-6 rounded-xl bg-[#F5F7FC] border border-[var(--knoux-border)] flex items-center justify-center min-h-[160px] overflow-hidden">
-              <img
-                src={OFFICIAL_LOGOS.day.localPath}
-                onError={(e) => { (e.target as HTMLImageElement).src = OFFICIAL_LOGOS.day.remoteUrl; }}
-                alt="Knoux One Day Logo"
-                className="max-h-28 object-contain transition-transform duration-300 group-hover:scale-105"
-              />
-            </div>
-
-            {/* Usage Specs */}
-            <div className="space-y-1.5">
-              <span className="text-sm font-mono text-[var(--knoux-primary)] block font-bold">{t('Designated Usage:', 'الاستخدامات المخصصة:')}</span>
-              <div className="flex flex-wrap gap-1.5">
-                {OFFICIAL_LOGOS.day.usage.map((use, i) => (
-                  <span key={i} className="text-xs px-2 py-0.5 rounded-md bg-[var(--knoux-surface-muted)] border border-[var(--knoux-border)] text-[var(--knoux-text-secondary)] font-mono">
-                    {use}
-                  </span>
-                ))}
-              </div>
-            </div>
+          <div className="knoux-official-logo-preview shrink-0">
+            <img src={getOfficialKnouxLogo(theme)} alt="KNOUX ONE" />
           </div>
         </div>
-      </div>
+      </section>
 
-      {/* Visual Reference Gallery Section */}
-      <div className="space-y-4 pt-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <h2 className="knoux-section-title flex items-center space-x-2 rtl:space-x-reverse">
-            <Layers className="w-4 h-4 text-[var(--knoux-accent-blue)]" />
-            <span>{t('4.3 Official Visual Reference Gallery (19 References)', '4.3 المعرض البصري المرجعي الشامل (19 صورة)')}</span>
-          </h2>
+      <section className="grid gap-5 xl:grid-cols-2">
+        <LogoCard mode="night" copiedUrl={copiedUrl} onCopy={handleCopy} />
+        <LogoCard mode="day" copiedUrl={copiedUrl} onCopy={handleCopy} />
+      </section>
 
-          <div className="text-xs font-mono text-[var(--knoux-primary)]">
-            Total Images: <strong className="text-[var(--knoux-text)]">{VISUAL_GALLERY_ASSETS.length}</strong> High-Res References
+      <section className="space-y-4">
+        <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+          <div>
+            <div className="knoux-eyebrow"><Layers3 className="h-4 w-4" />{t('Visual reference library', 'مكتبة المراجع البصرية')}</div>
+            <h2 className="mt-2 text-[24px] font-black tracking-[-.03em] text-[var(--knoux-text)]">{t('Product reference collection', 'مجموعة مراجع المنتج')}</h2>
+          </div>
+          <div className="w-full md:w-[340px]">
+            <label className="sr-only" htmlFor="brand-gallery-search">{t('Search visual references', 'البحث في المراجع البصرية')}</label>
+            <input
+              id="brand-gallery-search"
+              value={query}
+              onChange={event => setQuery(event.target.value)}
+              placeholder={t('Search references…', 'ابحث في المراجع…')}
+              className="knoux-search-field px-4"
+            />
           </div>
         </div>
 
-        {/* Gallery Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {filteredAssets.map(asset => (
-            <div
+            <button
               key={asset.id}
+              type="button"
               onClick={() => setSelectedAsset(asset)}
-              className="p-3.5 rounded-2xl knoux-card cursor-pointer group flex flex-col justify-between space-y-3"
+              className="knoux-service-card group overflow-hidden p-3 text-start"
+              data-accent="violet"
             >
-              {/* Image Preview Window */}
-              <div className="relative rounded-xl overflow-hidden bg-[var(--knoux-surface-muted)] aspect-video border border-[var(--knoux-border)] flex items-center justify-center">
+              <div className="relative aspect-video overflow-hidden rounded-[14px] border border-[var(--knoux-border)] bg-[var(--knoux-surface-muted)]">
                 <img
                   src={asset.localPath}
-                  onError={(e) => { (e.target as HTMLImageElement).src = asset.remoteUrl; }}
+                  onError={event => { event.currentTarget.src = asset.remoteUrl; }}
                   alt={asset.titleEn}
-                  className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                  className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.03]"
                 />
-                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center space-x-2">
-                  <span className="p-2 rounded-full bg-[var(--knoux-primary)] text-white shadow-lg">
-                    <ZoomIn className="w-4 h-4" />
-                  </span>
-                </div>
-                <div className="absolute top-2 left-2 rtl:right-2 rtl:left-auto px-2 py-0.5 rounded bg-black/70 backdrop-blur-md text-white text-xs font-mono border border-white/20">
-                  {asset.id.toUpperCase()}
-                </div>
+                <span className="absolute end-3 top-3 grid h-9 w-9 place-items-center rounded-xl border border-white/15 bg-black/45 text-white backdrop-blur-md"><ZoomIn className="h-4 w-4" /></span>
               </div>
-
-              {/* Text Info */}
-              <div className="space-y-1">
-                <span className="text-xs text-[var(--knoux-primary)] font-mono block font-bold">
-                  {t(asset.moduleNameEn, asset.moduleNameAr)}
-                </span>
-                <h3 className="text-xs font-bold text-[var(--knoux-text)] line-clamp-1 group-hover:text-[var(--knoux-primary)] transition-colors">
-                  {t(asset.titleEn, asset.titleAr)}
-                </h3>
-                <p className="text-sm text-[var(--knoux-text-muted)] line-clamp-2 leading-relaxed">
-                  {t(asset.descriptionEn, asset.descriptionAr)}
-                </p>
+              <div className="p-2 pb-1 pt-4">
+                <p className="text-[11px] font-extrabold uppercase tracking-[.08em] text-[var(--knoux-primary-bright)]">{t(asset.moduleNameEn, asset.moduleNameAr)}</p>
+                <h3 className="mt-2 line-clamp-2 text-[15px] font-black leading-6 text-[var(--knoux-text)]">{t(asset.titleEn, asset.titleAr)}</h3>
+                <p className="mt-2 line-clamp-2 text-[12px] font-medium leading-5 text-[var(--knoux-text-muted)]">{t(asset.descriptionEn, asset.descriptionAr)}</p>
               </div>
-            </div>
+            </button>
           ))}
         </div>
-      </div>
+      </section>
 
-      {/* Fullscreen Lightbox Modal */}
       {selectedAsset && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in">
-          <div className="max-w-5xl w-full knoux-depth-5 border border-[var(--knoux-glass-border-strong)] rounded-2xl overflow-hidden shadow-2xl space-y-4 p-6 relative">
-            <button
-              onClick={() => setSelectedAsset(null)}
-              className="absolute top-4 right-4 rtl:left-4 rtl:right-auto p-2 rounded-xl bg-[var(--knoux-surface-muted)] hover:bg-[var(--knoux-surface-elevated)] border border-[var(--knoux-border)] text-[var(--knoux-text)] transition-colors"
-            >
-              <X className="w-5 h-5" />
-            </button>
-
-            <div className="space-y-1 pr-12 rtl:pl-12 rtl:pr-0">
-              <span className="text-xs text-[var(--knoux-primary)] font-mono font-bold">{selectedAsset.id.toUpperCase()} • {t(selectedAsset.moduleNameEn, selectedAsset.moduleNameAr)}</span>
-              <h2 className="text-lg font-extrabold text-[var(--knoux-text)]">{t(selectedAsset.titleEn, selectedAsset.titleAr)}</h2>
-              <p className="text-xs text-[var(--knoux-text-muted)]">{t(selectedAsset.descriptionEn, selectedAsset.descriptionAr)}</p>
-            </div>
-
-            {/* High Res Image */}
-            <div className="rounded-xl overflow-hidden bg-black/60 border border-[var(--knoux-border)] max-h-[60vh] flex items-center justify-center">
-              <img
-                src={selectedAsset.localPath}
-                onError={(e) => { (e.target as HTMLImageElement).src = selectedAsset.remoteUrl; }}
-                alt={selectedAsset.titleEn}
-                className="max-h-[60vh] w-auto object-contain"
-              />
-            </div>
-
-            {/* Actions */}
-            <div className="flex flex-wrap items-center justify-between gap-3 pt-2 text-xs font-mono">
-              <span className="text-[var(--knoux-text-muted)]">URL: <code className="text-[var(--knoux-primary)]">{selectedAsset.remoteUrl}</code></span>
-              <div className="flex items-center space-x-2 rtl:space-x-reverse">
-                <button
-                  onClick={() => handleCopy(selectedAsset.remoteUrl)}
-                  className="knoux-button-secondary text-xs"
-                >
-                  <Copy className="w-3.5 h-3.5" />
-                  <span>{copiedUrl === selectedAsset.remoteUrl ? 'Copied Link' : 'Copy Direct Link'}</span>
-                </button>
-                <a
-                  href={selectedAsset.remoteUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="knoux-button-primary text-xs"
-                >
-                  <ExternalLink className="w-3.5 h-3.5" />
-                  <span>Open Full Resolution</span>
-                </a>
+        <div className="fixed inset-0 z-50 grid place-items-center bg-black/75 p-4 backdrop-blur-xl" role="dialog" aria-modal="true">
+          <div className="knoux-glass-panel max-h-[90vh] w-full max-w-6xl overflow-hidden p-5 md:p-6">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-[11px] font-extrabold uppercase tracking-[.08em] text-[var(--knoux-primary-bright)]">{t(selectedAsset.moduleNameEn, selectedAsset.moduleNameAr)}</p>
+                <h2 className="mt-1 text-[22px] font-black tracking-[-.025em] text-[var(--knoux-text)]">{t(selectedAsset.titleEn, selectedAsset.titleAr)}</h2>
               </div>
+              <button type="button" onClick={() => setSelectedAsset(null)} className="grid h-10 w-10 place-items-center rounded-xl border border-[var(--knoux-border)] bg-[var(--knoux-surface-muted)] text-[var(--knoux-text-secondary)]"><X className="h-5 w-5" /></button>
+            </div>
+
+            <div className="mt-5 flex max-h-[65vh] items-center justify-center overflow-hidden rounded-2xl border border-[var(--knoux-border)] bg-black/45">
+              <img src={selectedAsset.localPath} onError={event => { event.currentTarget.src = selectedAsset.remoteUrl; }} alt={selectedAsset.titleEn} className="max-h-[65vh] w-auto object-contain" />
+            </div>
+
+            <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
+              <p className="max-w-3xl text-[12px] font-medium leading-6 text-[var(--knoux-text-muted)]">{t(selectedAsset.descriptionEn, selectedAsset.descriptionAr)}</p>
+              <a href={selectedAsset.remoteUrl} target="_blank" rel="noreferrer" className="knoux-card-action knoux-card-action--primary"><ExternalLink className="h-4 w-4" />{t('Open original', 'فتح الأصل')}</a>
             </div>
           </div>
         </div>
@@ -264,4 +197,3 @@ export const BrandGalleryView: React.FC = () => {
     </div>
   );
 };
-
