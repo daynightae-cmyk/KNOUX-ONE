@@ -64,7 +64,7 @@ fn identity(_metadata: &fs::Metadata, canonical: &Path) -> (String, u64) {
             null_mut(),
             OPEN_EXISTING,
             FILE_FLAG_BACKUP_SEMANTICS,
-            0,
+            null_mut(),
         )
     };
     if handle == INVALID_HANDLE_VALUE {
@@ -117,10 +117,9 @@ pub fn is_protected_path(path: &Path) -> bool {
             "c:\\programdata".into(),
         ]);
     }
-    protected_roots
-        .iter()
-        .any(|root| normalized == *root || normalized.starts_with(&format!("{root}\\")))
-        || normalized.contains(":\\system volume information")
+    protected_roots.iter().any(|root| {
+        normalized == *root || normalized.starts_with(&format!("{root}\\"))
+    }) || normalized.contains(":\\system volume information")
         || normalized.contains(":\\$recycle.bin")
         || normalized.contains("\\windowsapps")
         || normalized.ends_with(":\\boot")
@@ -135,11 +134,10 @@ fn extension_allowed(path: &Path, request: &DuplicateScanRequest) -> bool {
         .and_then(|value| value.to_str())
         .unwrap_or_default()
         .to_lowercase();
-    request.extensions.iter().any(|allowed| {
-        allowed
-            .trim_start_matches('.')
-            .eq_ignore_ascii_case(&extension)
-    })
+    request
+        .extensions
+        .iter()
+        .any(|allowed| allowed.trim_start_matches('.').eq_ignore_ascii_case(&extension))
 }
 
 pub fn collect_files(
@@ -217,14 +215,16 @@ pub fn collect_files(
             let metadata = match fs::metadata(&canonical) {
                 Ok(value) => value,
                 Err(error) => {
-                    result
-                        .errors
-                        .push(format!("metadata_failed: {}: {error}", canonical.display()));
+                    result.errors.push(format!(
+                        "metadata_failed: {}: {error}",
+                        canonical.display()
+                    ));
                     continue;
                 }
             };
             let size = metadata.len();
-            if size < request.min_size_bytes || request.max_size_bytes.is_some_and(|max| size > max)
+            if size < request.min_size_bytes
+                || request.max_size_bytes.is_some_and(|max| size > max)
             {
                 continue;
             }
