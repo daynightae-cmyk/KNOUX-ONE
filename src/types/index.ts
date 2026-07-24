@@ -58,7 +58,7 @@ export interface KnouxCapability {
   moduleId: string;
   moduleNameEn: string;
   moduleNameAr: string;
-  serviceNumber: number; // 1 to 10 within module
+  serviceNumber: number;
   nameEn: string;
   nameAr: string;
   descriptionEn: string;
@@ -88,7 +88,7 @@ export interface KnouxCapability {
 
 export interface KnouxModule {
   id: string;
-  number: number; // 1 to 19
+  number: number;
   nameEn: string;
   nameAr: string;
   titleEn?: string;
@@ -220,7 +220,7 @@ export interface SupportTicket {
   subject: string;
   category: string;
   priority: 'low' | 'medium' | 'high';
-  status: 'Open' | 'In Progress' | 'Resolved';
+  status: 'Draft' | 'Open' | 'In Progress' | 'Resolved';
   createdAt: string;
   lastUpdate: string;
   messagesCount: number;
