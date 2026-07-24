@@ -74,7 +74,7 @@ export const WebLandingView: React.FC = () => {
 
       {/* Feature Highlights Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4">
-        <div className="p-6 rounded-2xl bg-purple-950/20 border border-purple-900/40 space-y-2">
+        <div className="knoux-card p-6 space-y-2">
           <Download className="w-8 h-8 text-[#8226EE]" />
           <h3 className="font-bold text-base text-white">{t('Post-Format Installer', 'حزمة ما بعد الفورمات')}</h3>
           <p className="text-xs text-gray-300 leading-relaxed">
@@ -82,7 +82,7 @@ export const WebLandingView: React.FC = () => {
           </p>
         </div>
 
-        <div className="p-6 rounded-2xl bg-purple-950/20 border border-purple-900/40 space-y-2">
+        <div className="knoux-card p-6 space-y-2">
           <ShieldCheck className="w-8 h-8 text-emerald-400" />
           <h3 className="font-bold text-base text-white">{t('BLAKE3 Deduplication', 'مطابقة التشفير الذكية')}</h3>
           <p className="text-xs text-gray-300 leading-relaxed">
@@ -90,7 +90,7 @@ export const WebLandingView: React.FC = () => {
           </p>
         </div>
 
-        <div className="p-6 rounded-2xl bg-purple-950/20 border border-purple-900/40 space-y-2">
+        <div className="knoux-card p-6 space-y-2">
           <Terminal className="w-8 h-8 text-cyan-400" />
           <h3 className="font-bold text-base text-white">{t('190 PowerShell Tools', '190 أداة باورشيل')}</h3>
           <p className="text-xs text-gray-300 leading-relaxed">
@@ -100,7 +100,7 @@ export const WebLandingView: React.FC = () => {
       </div>
 
       {/* Official Visual Reference Gallery Showcase */}
-      <div className="p-6 rounded-3xl bg-purple-950/20 border border-purple-900/50 space-y-6">
+      <div className="knoux-card p-6 space-y-6">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <span className="text-xs text-purple-400 font-mono block mb-1">SECTION 4.3 • VISUAL REFERENCES</span>

@@ -1,8 +1,8 @@
 /**
  * KNOUX ONE — Operation Lifecycle Manager
- * Handles previewing, elevation requirements, cancelling, and local action history.
+ * Handles previewing, elevation requirements, and native execution contracts.
+ * Strict honesty: No fake simulation loops or simulated success states.
  */
-
 import { KnouxCapability, OperationResult } from '../types';
 import { NativeClient } from './nativeClient';
 
@@ -29,7 +29,7 @@ export class OperationService {
   }
 
   /**
-   * Runs capability execution through NativeClient and logs result
+   * Runs capability execution through NativeClient or returns desktop_runtime_unavailable in web preview.
    */
   static async executeCapability(
     capability: KnouxCapability,
@@ -37,17 +37,20 @@ export class OperationService {
   ): Promise<OperationResult> {
     const startedAt = new Date().toISOString();
     const opId = `op_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+    const handlerId = capability.handlerId || capability.id.replace('_', '.');
 
-    // Check if capability has an actual implemented handlerId
-    if (!capability.handlerId || capability.implementationState !== 'implemented') {
+    if (onProgress) {
+      onProgress(0, `[INIT] Preparing execution for ${capability.nameEn} (${capability.id})...`);
+    }
+
+    if (!capability.handlerId || capability.implementationState === 'planned') {
       if (onProgress) {
-        onProgress(0, `Capability ${capability.id} is currently planned.`);
+        onProgress(0, `Capability ${capability.id} is currently planned for a future phase.`);
       }
-
       return {
         operationId: opId,
         capabilityId: capability.id,
-        handlerId: capability.handlerId || 'none',
+        handlerId,
         status: 'planned',
         startedAt,
         completedAt: new Date().toISOString(),
@@ -61,19 +64,60 @@ export class OperationService {
       };
     }
 
-    if (onProgress) {
-      onProgress(0, `Starting native handler for ${capability.nameEn}...`);
+    // Check if running in Desktop Tauri runtime
+    if (!NativeClient.isTauriAvailable()) {
+      if (onProgress) {
+        onProgress(0, `Desktop runtime unavailable in web preview environment.`);
+      }
+      return {
+        operationId: opId,
+        capabilityId: capability.id,
+        handlerId,
+        status: 'unavailable',
+        startedAt,
+        completedAt: new Date().toISOString(),
+        durationMs: 0,
+        requiresRestart: false,
+        exitCode: 1,
+        stdout: undefined,
+        stderr: 'Desktop runtime unavailable. Native operations require KNOUX ONE Desktop container.',
+        summaryEn: 'Desktop runtime unavailable. Open KNOUX ONE Desktop to execute native commands.',
+        summaryAr: 'بيئة سطح المكتب غير متاحة. افتح تطبيق KNOUX ONE Desktop لتشغيل العمليات المحلية.',
+        warnings: ['Web preview environment detected. Native execution disabled.'],
+        errorCode: 'desktop_runtime_unavailable',
+      };
     }
 
-    const result = await NativeClient.executeModule01Capability(
-      capability.id,
-      capability.handlerId
-    );
-
+    // Execute via Native Tauri Bridge
     if (onProgress) {
-      onProgress(100, `Operation completed with status: ${result.status}`);
+      onProgress(10, `Invoking native handler ${handlerId}...`);
     }
 
-    return result;
+    try {
+      const result = await NativeClient.executeModule01Capability(capability.id, handlerId);
+      if (onProgress) {
+        onProgress(100, `Native operation completed with status: ${result.status}`);
+      }
+      return result;
+    } catch (err: any) {
+      if (onProgress) {
+        onProgress(100, `Native operation failed: ${err.message || 'Unknown native error'}`);
+      }
+      return {
+        operationId: opId,
+        capabilityId: capability.id,
+        handlerId,
+        status: 'failed',
+        startedAt,
+        completedAt: new Date().toISOString(),
+        durationMs: 0,
+        requiresRestart: false,
+        exitCode: 1,
+        summaryEn: `Native command execution failed: ${err.message || 'Unknown error'}`,
+        summaryAr: `فشلت عملية التنفيذ المحلية: ${err.message || 'خطأ غير معروف'}`,
+        warnings: [err.toString()],
+        errorCode: 'native_execution_failed',
+      };
+    }
   }
 }

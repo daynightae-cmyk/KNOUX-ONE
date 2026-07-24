@@ -97,7 +97,6 @@ export const BrandGalleryView: React.FC = () => {
   const handleCopy = (url: string) => {
     navigator.clipboard.writeText(url);
     setCopiedUrl(url);
-    window.setTimeout(() => setCopiedUrl(null), 1800);
   };
 
   return (

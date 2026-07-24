@@ -177,21 +177,20 @@ export const KnouxProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     // Optimistically mark as installed if it's already installed, or if user is just toggling (we shouldn't really toggle off, just install)
     if (appToInstall.installed) return; // Cannot uninstall right now
 
-    setEssentialApps(prev => prev.map(app => app.id === id ? { ...app, installed: true } : app));
-
     if (NativeClient.isTauriAvailable()) {
+      setEssentialApps(prev => prev.map(app => app.id === id ? { ...app, installed: true } : app));
       try {
         const res = await NativeClient.executeModule01Capability('m01_s05', 'm01.winget.install', { package_id: appToInstall.wingetId });
         addLog('m01_s05', `Install ${appToInstall.name}`, res.status === 'completed' ? 'completed' : 'failed', res.summaryEn);
+        if (res.status !== 'completed') {
+          setEssentialApps(prev => prev.map(app => app.id === id ? { ...app, installed: false } : app));
+        }
       } catch (err: any) {
         addLog('m01_s05', `Install ${appToInstall.name}`, 'failed', `Error: ${err.message || err}`);
-        // Revert state on failure
         setEssentialApps(prev => prev.map(app => app.id === id ? { ...app, installed: false } : app));
       }
     } else {
       addLog('m01_s05', `Install ${appToInstall.name}`, 'failed', 'Desktop runtime unavailable. Launch KNOUX ONE Windows Desktop app to install.');
-      // Revert state for preview
-      setTimeout(() => setEssentialApps(prev => prev.map(app => app.id === id ? { ...app, installed: false } : app)), 3000);
     }
   };
 

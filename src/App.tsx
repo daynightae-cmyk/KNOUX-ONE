@@ -33,7 +33,8 @@ import { CloudSupportView } from './components/views/CloudSupportView';
 import { CapabilitiesCatalogView } from './components/views/CapabilitiesCatalogView';
 import { WebLandingView } from './components/views/WebLandingView';
 import { SupportPortalView } from './components/views/SupportPortalView';
-import { SettingsAboutView } from './components/views/SettingsAboutView';
+import { SettingsView } from './components/views/SettingsView';
+import { AboutView } from './components/views/AboutView';
 import { BrandGalleryView } from './components/views/BrandGalleryView';
 
 const AppContent: React.FC = () => {
@@ -66,8 +67,8 @@ const AppContent: React.FC = () => {
       case 'web-landing': return <WebLandingView />;
       case 'support': return <SupportPortalView />;
       case 'brand-gallery': return <BrandGalleryView />;
-      case 'settings':
-      case 'about': return <SettingsAboutView />;
+      case 'settings': return <SettingsView />;
+      case 'about': return <AboutView />;
       default: return <DashboardView />;
     }
   };

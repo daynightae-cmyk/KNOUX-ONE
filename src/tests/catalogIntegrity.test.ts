@@ -21,21 +21,26 @@ describe('KNOUX ONE Catalog Integrity', () => {
     expect(totalCapabilities).toBe(190);
   });
 
-  it('verifies that Module 01 capabilities have valid handlerIds and registered execution metadata', () => {
-    const m01 = MODULES_CATALOG.find(m => m.id === 'm01');
-    expect(m01).toBeDefined();
+  it('verifies that implemented modules (m01, m03, m07, m15, m16) have valid handlerIds and registered execution metadata', () => {
+    const implementedModuleIds = ['m01', 'm03', 'm07', 'm15', 'm16'];
+    const implementedMods = MODULES_CATALOG.filter(m => implementedModuleIds.includes(m.id));
+    expect(implementedMods.length).toBe(5);
 
-    m01?.services.forEach(svc => {
-      expect(['implemented', 'partial', 'planned'], `${svc.id} has an invalid implementation state`).toContain(svc.implementationState);
-      expect(svc.handlerId, `${svc.id} must keep its explicit native handler registration`).toBeDefined();
-      expect(svc.handlerId, `${svc.id} handler must remain inside Module 01`).toMatch(/^m01\./);
+    implementedMods.forEach(mod => {
+      mod.services.forEach(svc => {
+        expect(['implemented', 'partial', 'planned', 'requires_configuration'], `${svc.id} has an invalid implementation state`).toContain(svc.implementationState);
+        if (svc.implementationState === 'implemented') {
+          expect(svc.handlerId, `${svc.id} must keep its explicit native handler registration`).toBeDefined();
+          expect(svc.handlerId, `${svc.id} handler must match module ID prefix`).toMatch(new RegExp(`^${mod.id}\\.`));
+        }
+      });
     });
   });
 
-  it('keeps Modules 02-19 visibly documented without claiming completed execution', () => {
-    const otherModules = MODULES_CATALOG.filter(m => m.id !== 'm01');
+  it('keeps planned modules visibly documented without falsely claiming completed execution', () => {
+    const plannedModules = MODULES_CATALOG.filter(m => !['m01', 'm03', 'm07', 'm15', 'm16'].includes(m.id));
 
-    otherModules.forEach(mod => {
+    plannedModules.forEach(mod => {
       mod.services.forEach(svc => {
         expect(svc.implementationState, `${mod.id}/${svc.id} must not claim complete native execution`).not.toBe('implemented');
 

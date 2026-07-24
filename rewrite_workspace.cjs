@@ -1,4 +1,5 @@
-import React, { useMemo, useState, useEffect, useRef } from 'react';
+const fs = require('fs');
+const content = `import React, { useMemo, useState, useEffect, useRef } from 'react';
 import {
   Activity,
   AlertTriangle,
@@ -77,7 +78,7 @@ export const UniversalServiceWorkspace: React.FC<UniversalServiceWorkspaceProps>
   
   const terminalRef = useRef<HTMLPreElement>(null);
 
-  const moduleId = capabilities[0]?.moduleId ?? `m${moduleNumber.toString().padStart(2, '0')}`;
+  const moduleId = capabilities[0]?.moduleId ?? \`m\${moduleNumber.toString().padStart(2, '0')}\`;
   const ModuleIcon = MODULE_ICONS[moduleId] ?? Layers3;
   const accent = MODULE_ACCENTS[moduleId] ?? 'violet';
   const featured = capabilities[0];
@@ -119,7 +120,7 @@ export const UniversalServiceWorkspace: React.FC<UniversalServiceWorkspaceProps>
     if (capability.requiresAdmin) {
       triggerElevation(
         capability.id,
-        t(`Administrator permission is required for ${capability.nameEn}.`, `تتطلب خدمة ${capability.nameAr} صلاحية المسؤول.`),
+        t(\`Administrator permission is required for \${capability.nameEn}.\`, \`تتطلب خدمة \${capability.nameAr} صلاحية المسؤول.\`),
         () => runExecution(capability),
       );
       return;
@@ -133,12 +134,12 @@ export const UniversalServiceWorkspace: React.FC<UniversalServiceWorkspaceProps>
     setIsExecuting(true);
     setExecutionProgress(0);
     setLastResult(null);
-    setExecutionLog(`${t('Starting', 'بدء')} ${t(capability.nameEn, capability.nameAr)}…\n`);
+    setExecutionLog(\`\${t('Starting', 'بدء')} \${t(capability.nameEn, capability.nameAr)}…\\n\`);
 
     try {
       const result = await OperationService.executeCapability(capability, (progress, message) => {
         setExecutionProgress(progress);
-        setExecutionLog(previous => `${previous}[\n${new Date().toLocaleTimeString()}] ${message}\n`);
+        setExecutionLog(previous => \`\${previous}[\\n\${new Date().toLocaleTimeString()}] \${message}\\n\`);
       });
       setLastResult(result);
     } catch (err: any) {
@@ -157,7 +158,7 @@ export const UniversalServiceWorkspace: React.FC<UniversalServiceWorkspaceProps>
         warnings: [],
         errorCode: 'ui_execution_failed',
       });
-      setExecutionLog(previous => `${previous}\n[ERROR] ${message}`);
+      setExecutionLog(previous => \`\${previous}\\n[ERROR] \${message}\`);
     } finally {
       setIsExecuting(false);
     }
@@ -169,16 +170,16 @@ export const UniversalServiceWorkspace: React.FC<UniversalServiceWorkspaceProps>
     const executable = capability.implementationState === 'implemented' && capability.status === 'available' && Boolean(capability.handlerId);
 
     return (
-      <article key={capability.id} className={`knoux-service-card group flex flex-col p-5 ${featuredCard ? 'min-h-[290px]' : 'min-h-[245px]'}`} data-accent={accent}>
+      <article key={capability.id} className={\`knoux-service-card group flex flex-col p-5 \${featuredCard ? 'min-h-[290px]' : 'min-h-[245px]'}\`} data-accent={accent}>
         <div className="flex items-start justify-between gap-3">
           <div className="knoux-icon-plate"><Icon className="h-[23px] w-[23px]" /></div>
-          <span className={`knoux-chip ${capability.implementationState === 'implemented' ? 'knoux-chip--success' : capability.implementationState === 'partial' ? 'knoux-chip--accent' : capability.implementationState === 'requires_configuration' ? 'knoux-chip--warning' : 'knoux-chip--muted'}`}>
+          <span className={\`knoux-chip \${capability.implementationState === 'implemented' ? 'knoux-chip--success' : capability.implementationState === 'partial' ? 'knoux-chip--accent' : capability.implementationState === 'requires_configuration' ? 'knoux-chip--warning' : 'knoux-chip--muted'}\`}>
             <StateIcon className="h-3.5 w-3.5" />{getImplementationLabel(capability.implementationState, language)}
           </span>
         </div>
         <div className="mt-5 flex-1">
           <p className="text-[11px] font-extrabold uppercase tracking-[.09em] text-[var(--card-accent)]">{t('Service', 'خدمة')} {capability.serviceNumber}</p>
-          <h3 className={`${featuredCard ? 'text-[21px] leading-8' : 'text-[17px] leading-6'} mt-2 font-black tracking-[-.02em] text-[var(--knoux-text)] transition group-hover:text-[var(--card-accent)]`}>
+          <h3 className={\`\${featuredCard ? 'text-[21px] leading-8' : 'text-[17px] leading-6'} mt-2 font-black tracking-[-.02em] text-[var(--knoux-text)] transition group-hover:text-[var(--card-accent)]\`}>
             {t(capability.nameEn, capability.nameAr)}
           </h3>
           <p className="mt-2 text-[13px] font-medium leading-6 text-[var(--knoux-text-muted)]">{t(capability.descriptionEn, capability.descriptionAr)}</p>
@@ -193,7 +194,7 @@ export const UniversalServiceWorkspace: React.FC<UniversalServiceWorkspaceProps>
             type="button"
             onClick={() => executeCapability(capability)}
             disabled={!executable || isExecuting}
-            className={`knoux-card-action flex-1 ${executable ? 'knoux-card-action--primary' : ''}`}
+            className={\`knoux-card-action flex-1 \${executable ? 'knoux-card-action--primary' : ''}\`}
           >
             {isExecuting && selectedCap?.id === capability.id ? <RotateCw className="h-4 w-4 animate-spin" /> : executable ? <Play className="h-4 w-4" /> : <Clock3 className="h-4 w-4" />}
             {executable ? getActionLabel(capability, language) : t('View roadmap', 'عرض خطة الخدمة')}
@@ -340,12 +341,12 @@ export const UniversalServiceWorkspace: React.FC<UniversalServiceWorkspaceProps>
                        <button 
                          key={cap.id}
                          onClick={() => { if (!isExecuting) openService(cap); }}
-                         className={`flex items-start gap-3 p-3 rounded-xl border text-start transition-all ${isSelected ? 'bg-[var(--knoux-primary)]/10 border-[var(--knoux-primary)]/40 shadow-[0_0_15px_rgba(var(--knoux-primary-rgb),0.1)]' : 'bg-[var(--knoux-surface-muted)] border-[var(--knoux-border)] hover:border-white/20 opacity-70 hover:opacity-100'}`}
+                         className={\`flex items-start gap-3 p-3 rounded-xl border text-start transition-all \${isSelected ? 'bg-[var(--knoux-primary)]/10 border-[var(--knoux-primary)]/40 shadow-[0_0_15px_rgba(var(--knoux-primary-rgb),0.1)]' : 'bg-[var(--knoux-surface-muted)] border-[var(--knoux-border)] hover:border-white/20 opacity-70 hover:opacity-100'}\`}
                        >
-                         <div className={`mt-0.5 shrink-0 ${isSelected ? 'text-[var(--knoux-primary-bright)]' : 'text-gray-400'}`}><CapIcon className="h-4 w-4" /></div>
+                         <div className={\`mt-0.5 shrink-0 \${isSelected ? 'text-[var(--knoux-primary-bright)]' : 'text-gray-400'}\`}><CapIcon className="h-4 w-4" /></div>
                          <div className="flex-1">
                            <div className="flex items-center gap-2">
-                             <div className={`text-[13px] font-bold ${isSelected ? 'text-white' : 'text-gray-300'}`}>{t(cap.nameEn, cap.nameAr)}</div>
+                             <div className={\`text-[13px] font-bold \${isSelected ? 'text-white' : 'text-gray-300'}\`}>{t(cap.nameEn, cap.nameAr)}</div>
                            </div>
                            <div className="text-[10px] text-gray-500 mt-1 flex items-center gap-1"><StateIcon className="h-3 w-3" /> {getImplementationLabel(cap.implementationState, language)}</div>
                          </div>
@@ -436,7 +437,7 @@ export const UniversalServiceWorkspace: React.FC<UniversalServiceWorkspaceProps>
                              <span className="text-[12px] font-mono font-bold text-white">{executionProgress}%</span>
                            </div>
                            <div className="h-2 w-full bg-white/10 rounded-full overflow-hidden">
-                              <div className="h-full bg-[var(--knoux-primary-bright)] rounded-full transition-all duration-300 relative shadow-[0_0_10px_var(--knoux-primary-bright)]" style={{ width: `${executionProgress}%` }} />
+                              <div className="h-full bg-[var(--knoux-primary-bright)] rounded-full transition-all duration-300 relative shadow-[0_0_10px_var(--knoux-primary-bright)]" style={{ width: \`\${executionProgress}%\` }} />
                            </div>
                         </div>
                       )}
@@ -470,7 +471,7 @@ export const UniversalServiceWorkspace: React.FC<UniversalServiceWorkspaceProps>
                               const meta = resultStyles[lastResult.status] ?? resultStyles.unavailable; 
                               const ResultIcon = meta.icon; 
                               return (
-                                <div className={`rounded-2xl border ${meta.className.split(' ').slice(1).join(' ')} p-4 flex items-center justify-between`}>
+                                <div className={\`rounded-2xl border \${meta.className.split(' ').slice(1).join(' ')} p-4 flex items-center justify-between\`}>
                                   <div className="flex items-center gap-3">
                                     <div className="p-2 rounded-lg bg-white/10">
                                        <ResultIcon className="h-6 w-6" />
@@ -498,3 +499,5 @@ export const UniversalServiceWorkspace: React.FC<UniversalServiceWorkspaceProps>
     </div>
   );
 };
+`
+fs.writeFileSync('src/components/common/UniversalServiceWorkspace.tsx', content);

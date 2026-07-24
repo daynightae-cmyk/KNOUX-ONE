@@ -59,7 +59,7 @@ describe('Anti-Cheating Verification', () => {
     expect(zeroVulnsMock, 'Should not hardcode 0 Vulnerabilities').toBe(0);
     expect(wingetVersionMock, 'Should not hardcode Winget v1.8').toBe(0);
     expect(staticChartMock, 'Should not use static chart arrays').toBe(0);
-    // expect(setTimeoutMock, 'Should not use setTimeout for operations').toBe(0);
+    expect(setTimeoutMock, 'Should not use setTimeout for operations').toBe(0);
     expect(desktopElevatedMock, 'Should not use setRuntimeMode for elevation').toBe(0);
     expect(nightShaMock, 'Should not use night_sha_verified').toBe(0);
     expect(dayShaMock, 'Should not use day_sha_verified').toBe(0);
