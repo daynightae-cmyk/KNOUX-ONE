@@ -1,236 +1,29 @@
-/**
- * KNOUX ONE — Module 03 Scan Setup Panel
- */
+/** KNOUX ONE — Module 03 Scan Builder */
 import React, { useState } from 'react';
-import {
-  FolderPlus,
-  FolderMinus,
-  Settings,
-  Sparkles,
-  Zap,
-  Image,
-  Video,
-  FileText,
-  Archive,
-  FolderTree,
-  Shield,
-  Play
-} from 'lucide-react';
+import { Archive, FileAudio, FileText, FolderMinus, FolderPlus, FolderTree, Image, Play, Settings, ShieldCheck, Video, Zap } from 'lucide-react';
 import { useTranslation } from '../../i18n';
-import { DuplicateScanMode } from './duplicateContracts';
+import type { DuplicateScanMode } from './duplicateContracts';
 
-export function DuplicateScanSetup({ store }: { store: any }) {
-  const { t } = useTranslation();
-  const [newFolderPath, setNewFolderPath] = useState('');
-
-  const addFolder = () => {
-    if (!newFolderPath.trim()) return;
-    store.setScanConfig((prev: any) => ({
-      ...prev,
-      targetPaths: [...prev.targetPaths, newFolderPath.trim()],
-    }));
-    setNewFolderPath('');
-  };
-
-  const removeFolder = (index: number) => {
-    store.setScanConfig((prev: any) => ({
-      ...prev,
-      targetPaths: prev.targetPaths.filter((_: any, i: number) => i !== index),
-    }));
-  };
-
-  const scanModes: { mode: DuplicateScanMode; icon: any; titleEn: string; titleAr: string; descEn: string; descAr: string }[] = [
-    {
-      mode: 'exact_blake3',
-      icon: Zap,
-      titleEn: 'Exact BLAKE3 Cryptographic Scan',
-      titleAr: 'الفحص الرقمي المطلق BLAKE3',
-      descEn: 'Byte-for-byte matching using multi-threaded cryptographic hash comparison.',
-      descAr: 'مطابقة تامة للملفات بالبصمة الرقمية الفائقة بأمان عالي.'
-    },
-    {
-      mode: 'fast_partial',
-      icon: Sparkles,
-      titleEn: 'Fast Partial-Hash Acceleration',
-      titleAr: 'فحص البصمة الجزئية السريعة',
-      descEn: 'High-speed size grouping and initial head-block scan for multi-TB drives.',
-      descAr: 'تسريع كاسح للأقراص الضخمة عبر فحص الأحجام ورؤوس الملفات.'
-    },
-    {
-      mode: 'similar_images',
-      icon: Image,
-      titleEn: 'Perceptual Similar Image Match',
-      titleAr: 'مطابقة الصور المتشابهة بصرياً',
-      descEn: 'Detects resized, compressed, or slightly edited image duplicates.',
-      descAr: 'اكتشاف الصور المتشابهة حتى في حال تغيير الأبعاد أو الضغط.'
-    },
-    {
-      mode: 'video_streams',
-      icon: Video,
-      titleEn: 'Duplicate Video Stream Analyzer',
-      titleAr: 'محلل مقاطع الفيديو المكررة',
-      descEn: 'Compares video stream duration, resolution, and audio/video track fingerprints.',
-      descAr: 'تحليل دقيق لملفات الفيديو والأبعاد والمقاطع المكررة.'
-    },
-    {
-      mode: 'documents',
-      icon: FileText,
-      titleEn: 'Duplicate Document Matching',
-      titleAr: 'فحص المستندات والملفات المكررة',
-      descEn: 'Matches identical PDF, Word, Excel, and text document copies.',
-      descAr: 'اكتشاف نسخ المستندات والملفات النصية المكررة.'
-    },
-    {
-      mode: 'archives',
-      icon: Archive,
-      titleEn: 'Duplicate Archive Inspector',
-      titleAr: 'فحص الملفات المضغوطة المكررة',
-      descEn: 'Compares inner structures of ZIP, RAR, 7Z, and TAR archives.',
-      descAr: 'مقارنة محتويات وأجزاء الملفات المضغوطة المكررة.'
-    },
-    {
-      mode: 'folder_structures',
-      icon: FolderTree,
-      titleEn: 'Duplicate Folder Hierarchy Scanner',
-      titleAr: 'فحص المجلدات المتطابقة بالكامل',
-      descEn: 'Detects entire redundant folder trees across directory locations.',
-      descAr: 'اكتشاف مجلدات كاملة مكررة بكافة مساراتها.'
-    }
-  ];
-
-  return (
-    <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
-      {/* Target Directories Panel */}
-      <div className="xl:col-span-1 space-y-6">
-        <div className="knoux-card p-6 border border-[var(--knoux-border)] bg-[var(--knoux-card-bg)] rounded-xl">
-          <h3 className="text-base font-bold text-[var(--knoux-text)] flex items-center gap-2">
-            <FolderPlus className="h-5 w-5 text-blue-400" />
-            {t('Target Folder Paths', 'مسارات المجلدات المستهدفة')}
-          </h3>
-          <p className="mt-1 text-xs text-[var(--knoux-subtext)]">
-            {t('Select local drives or custom folders for deep duplicate analysis.', 'اختر الأقراص المحلية أو المجلدات للفحص العميق.')}
-          </p>
-
-          <div className="mt-4 flex gap-2">
-            <input
-              type="text"
-              value={newFolderPath}
-              onChange={e => setNewFolderPath(e.target.value)}
-              placeholder="e.g. C:\Users\User\Pictures"
-              className="knoux-input flex-1 text-xs"
-            />
-            <button onClick={addFolder} className="knoux-btn-primary px-3 text-xs flex items-center gap-1">
-              <FolderPlus className="h-3.5 w-3.5" />
-              {t('Add', 'إضافة')}
-            </button>
-          </div>
-
-          <div className="mt-4 space-y-2 max-h-[220px] overflow-y-auto pr-1">
-            {store.scanConfig.targetPaths.map((pathStr: string, idx: number) => (
-              <div key={idx} className="flex items-center justify-between rounded-lg bg-[var(--knoux-bg-soft)] p-2.5 text-xs border border-[var(--knoux-border)]">
-                <span className="font-mono text-[var(--knoux-text)] truncate max-w-[200px]">{pathStr}</span>
-                <button
-                  onClick={() => removeFolder(idx)}
-                  className="text-rose-400 hover:text-rose-300 p-1"
-                  title={t('Remove', 'إزالة')}
-                >
-                  <FolderMinus className="h-4 w-4" />
-                </button>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="knoux-card p-6 border border-[var(--knoux-border)] bg-[var(--knoux-card-bg)] rounded-xl">
-          <h3 className="text-base font-bold text-[var(--knoux-text)] flex items-center gap-2">
-            <Settings className="h-5 w-5 text-purple-400" />
-            {t('Scan Constraints & Exclusions', 'محددات واستثناءات الفحص')}
-          </h3>
-
-          <div className="mt-4 space-y-4">
-            <div>
-              <label className="text-xs font-semibold text-[var(--knoux-subtext)] block mb-1">
-                {t('Minimum File Size Filter', 'الحد الأدنى لحجم الملف')}
-              </label>
-              <select
-                value={store.scanConfig.minSizeBytes}
-                onChange={e => store.setScanConfig((prev: any) => ({ ...prev, minSizeBytes: Number(e.target.value) }))}
-                className="knoux-select text-xs w-full"
-              >
-                <option value={0}>{t('All Files (0 KB+)', 'جميع الملفات (أكبر من 0 كيلوبايت)')}</option>
-                <option value={1024}>{t('Files > 1 KB', 'أكبر من 1 كيلوبايت')}</option>
-                <option value={1048576}>{t('Files > 1 MB', 'أكبر من 1 ميجابايت')}</option>
-                <option value={10485760}>{t('Files > 10 MB', 'أكبر من 10 ميجابايت')}</option>
-                <option value={104857600}>{t('Files > 100 MB', 'أكبر من 100 ميجابايت')}</option>
-              </select>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                id="subfolders"
-                checked={store.scanConfig.includeSubfolders}
-                onChange={e => store.setScanConfig((prev: any) => ({ ...prev, includeSubfolders: e.target.checked }))}
-                className="rounded border-[var(--knoux-border)] bg-[var(--knoux-bg-soft)] text-blue-500"
-              />
-              <label htmlFor="subfolders" className="text-xs text-[var(--knoux-text)] cursor-pointer">
-                {t('Recursively scan nested subfolders', 'فحص جميع المجلدات الفرعية بعمق')}
-              </label>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Scan Mode Selection */}
-      <div className="xl:col-span-2 space-y-4">
-        <h3 className="text-base font-bold text-[var(--knoux-text)] flex items-center gap-2">
-          <Zap className="h-5 w-5 text-amber-400" />
-          {t('Select Dedicated Scan Engine Mode', 'اختر نمط محرك الفحص المتخصص')}
-        </h3>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          {scanModes.map((item) => {
-            const IconComp = item.icon;
-            const isSelected = store.scanConfig.scanMode === item.mode;
-            return (
-              <div
-                key={item.mode}
-                onClick={() => store.setScanConfig((prev: any) => ({ ...prev, scanMode: item.mode }))}
-                className={`p-4 rounded-xl border cursor-pointer transition-all ${
-                  isSelected
-                    ? 'border-blue-500 bg-blue-500/10 shadow-lg shadow-blue-500/10'
-                    : 'border-[var(--knoux-border)] bg-[var(--knoux-card-bg)] hover:border-[var(--knoux-border-hover)]'
-                }`}
-              >
-                <div className="flex items-start gap-3">
-                  <div className={`p-2.5 rounded-lg ${isSelected ? 'bg-blue-500 text-white' : 'bg-[var(--knoux-bg-soft)] text-blue-400'}`}>
-                    <IconComp className="h-5 w-5" />
-                  </div>
-                  <div className="flex-1">
-                    <h4 className="text-sm font-bold text-[var(--knoux-text)]">
-                      {t(item.titleEn, item.titleAr)}
-                    </h4>
-                    <p className="mt-1 text-xs text-[var(--knoux-subtext)] leading-snug">
-                      {t(item.descEn, item.descAr)}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-
-        <div className="mt-6 flex justify-end">
-          <button
-            onClick={store.startScan}
-            disabled={store.isScanning}
-            className="knoux-btn-primary bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold px-8 py-3 rounded-xl shadow-xl shadow-blue-500/25 flex items-center gap-2 text-sm"
-          >
-            <Play className="h-5 w-5" />
-            {t('Launch Selected Duplicate Scanner', 'بدء فحص المحرك المختار')}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
+export function DuplicateScanSetup({store}:{store:any}){
+ const {t}=useTranslation(); const [manualPath,setManualPath]=useState('');
+ const addManualPath=()=>{const value=manualPath.trim();if(!value)return;store.setScanConfig((previous:any)=>({...previous,targetPaths:previous.targetPaths.includes(value)?previous.targetPaths:[...previous.targetPaths,value]}));setManualPath('');};
+ const scanModes:Array<{mode:DuplicateScanMode;icon:React.ElementType;titleEn:string;titleAr:string;descriptionEn:string;descriptionAr:string;state:'implemented'|'partial'}>=[
+  {mode:'exact_blake3',icon:Zap,titleEn:'Exact BLAKE3 verification',titleAr:'التحقق التام عبر BLAKE3',descriptionEn:'Size grouping, partial samples, full streaming hash, change revalidation, and hard-link awareness.',descriptionAr:'تجميع بالحجم ثم بصمة جزئية وكاملة مع إعادة التحقق واكتشاف الروابط الصلبة.',state:'implemented'},
+  {mode:'fast_partial',icon:Zap,titleEn:'Fast candidate scan',titleAr:'الفحص السريع للمرشحين',descriptionEn:'Creates candidates only. Full verification is mandatory before quarantine.',descriptionAr:'ينشئ مرشحين فقط، ولا يسمح بالمحجر قبل التحقق الكامل.',state:'implemented'},
+  {mode:'similar_images',icon:Image,titleEn:'Similar image review',titleAr:'مراجعة الصور المتشابهة',descriptionEn:'Exact hashes plus local perceptual dHash comparison. Similar files require manual review.',descriptionAr:'بصمة تامة مع مقارنة بصرية محلية، والملفات المتشابهة تحتاج مراجعة يدوية.',state:'partial'},
+  {mode:'video_streams',icon:Video,titleEn:'Video duplicate review',titleAr:'مراجعة الفيديوهات المكررة',descriptionEn:'Exact file verification is active. Advanced stream similarity requires ffprobe.',descriptionAr:'التحقق التام للملف متاح، أما تشابه المسارات المتقدم فيحتاج ffprobe.',state:'partial'},
+  {mode:'audio_fingerprint',icon:FileAudio,titleEn:'Audio duplicate review',titleAr:'مراجعة الملفات الصوتية',descriptionEn:'Exact duplicates are active. Acoustic fingerprinting requires a reviewed optional engine.',descriptionAr:'اكتشاف النسخ التامة متاح، والبصمة الصوتية تحتاج محركًا اختياريًا معتمدًا.',state:'partial'},
+  {mode:'documents',icon:FileText,titleEn:'Document duplicate verification',titleAr:'التحقق من المستندات المكررة',descriptionEn:'Local exact hashing for PDF, Office, text, configuration, and source-code files.',descriptionAr:'بصمة محلية تامة لملفات PDF وOffice والنصوص والإعدادات والكود.',state:'implemented'},
+  {mode:'archives',icon:Archive,titleEn:'Archive duplicate review',titleAr:'مراجعة الأرشيفات المكررة',descriptionEn:'Exact archive verification without unsafe automatic extraction.',descriptionAr:'تحقق تام من ملفات الأرشيف دون فك ضغط تلقائي غير آمن.',state:'partial'},
+  {mode:'folder_structures',icon:FolderTree,titleEn:'Folder structure comparison',titleAr:'مقارنة هياكل المجلدات',descriptionEn:'Deterministic folder digests and item-level overlap evidence.',descriptionAr:'بصمة حتمية للمجلدات مع أدلة تفصيلية للعناصر المتطابقة والمختلفة.',state:'implemented'},
+ ];
+ return <div className="grid gap-6 xl:grid-cols-[minmax(320px,.85fr)_minmax(0,1.8fr)]">
+  <div className="space-y-5">
+   <section className="knoux-glass-panel p-5"><div className="flex items-start justify-between gap-3"><div><h2 className="flex items-center gap-2 text-base font-black text-[var(--knoux-text)]"><FolderPlus className="h-5 w-5 text-blue-400"/>{t('Scan sources','مصادر الفحص')}</h2><p className="mt-1 text-xs leading-6 text-[var(--knoux-subtext)]">{t('Choose local folders or enter a trusted absolute path.','اختر مجلدات محلية أو أدخل مسارًا مطلقًا موثوقًا.')}</p></div><button type="button" onClick={store.selectFolder} disabled={!store.runtime.available} className="knoux-btn-secondary text-xs disabled:opacity-50">{t('Browse','استعراض')}</button></div>
+   <div className="mt-4 flex gap-2"><input value={manualPath} onChange={event=>setManualPath(event.target.value)} onKeyDown={event=>{if(event.key==='Enter')addManualPath();}} placeholder="C:\\Users\\Name\\Pictures" className="knoux-input min-w-0 flex-1 font-mono text-xs" dir="ltr"/><button type="button" onClick={addManualPath} className="knoux-btn-primary px-4 text-xs">{t('Add','إضافة')}</button></div>
+   <div className="mt-4 space-y-2">{store.scanConfig.targetPaths.length===0?<div className="rounded-xl border border-dashed border-[var(--knoux-border)] p-5 text-center text-xs text-[var(--knoux-subtext)]">{t('No scan source selected.','لم يتم اختيار مصدر للفحص.')}</div>:store.scanConfig.targetPaths.map((path:string)=><div key={path} className="flex items-center gap-2 rounded-xl border border-[var(--knoux-border)] bg-[var(--knoux-bg-soft)] p-3"><span className="min-w-0 flex-1 truncate font-mono text-xs text-[var(--knoux-text)]" dir="ltr">{path}</span><button type="button" onClick={()=>store.setScanConfig((previous:any)=>({...previous,targetPaths:previous.targetPaths.filter((value:string)=>value!==path)}))} className="grid h-8 w-8 place-items-center rounded-lg text-rose-300 hover:bg-rose-500/10" aria-label={t('Remove path','إزالة المسار')}><FolderMinus className="h-4 w-4"/></button></div>)}</div></section>
+   <section className="knoux-glass-panel p-5"><h2 className="flex items-center gap-2 text-base font-black text-[var(--knoux-text)]"><Settings className="h-5 w-5 text-violet-400"/>{t('Limits and safety','الحدود والحماية')}</h2><label className="mt-4 block text-xs font-bold text-[var(--knoux-subtext)]">{t('Minimum file size','الحد الأدنى لحجم الملف')}</label><select value={store.scanConfig.minSizeBytes} onChange={event=>store.setScanConfig((previous:any)=>({...previous,minSizeBytes:Number(event.target.value)}))} className="knoux-select mt-2 w-full text-xs"><option value={0}>{t('All files','كل الملفات')}</option><option value={1024}>1 KB+</option><option value={1048576}>1 MB+</option><option value={10485760}>10 MB+</option><option value={104857600}>100 MB+</option></select><label className="mt-4 flex items-center gap-2 text-xs text-[var(--knoux-text)]"><input type="checkbox" checked={store.scanConfig.includeSubfolders} onChange={event=>store.setScanConfig((previous:any)=>({...previous,includeSubfolders:event.target.checked}))}/>{t('Include nested folders','تضمين المجلدات الفرعية')}</label><div className="mt-4 rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-3 text-xs leading-6 text-emerald-100"><ShieldCheck className="me-2 inline h-4 w-4"/>{t('Windows, Program Files, ProgramData, Recycle Bin, and system-volume paths remain protected.','تظل مسارات Windows وProgram Files وProgramData وسلة المحذوفات ووحدة النظام محمية.')}</div></section>
+  </div>
+  <section className="space-y-4"><div><h2 className="text-lg font-black text-[var(--knoux-text)]">{t('Choose a verified scan engine','اختر محرك فحص موثق')}</h2><p className="mt-1 text-xs text-[var(--knoux-subtext)]">{t('Every mode states its actual implementation level.','يعرض كل نمط مستوى تنفيذه الحقيقي بوضوح.')}</p></div><div className="grid gap-3 md:grid-cols-2">{scanModes.map(item=>{const Icon=item.icon;const selected=store.scanConfig.scanMode===item.mode;return <button key={item.mode} type="button" onClick={()=>store.setScanConfig((previous:any)=>({...previous,scanMode:item.mode}))} className={`rounded-2xl border p-4 text-start transition ${selected?'border-blue-500/60 bg-blue-500/10 shadow-lg shadow-blue-500/10':'border-[var(--knoux-border)] bg-[var(--knoux-card-bg)] hover:border-[var(--knoux-border-hover)]'}`}><div className="flex items-start gap-3"><div className={`grid h-11 w-11 shrink-0 place-items-center rounded-xl ${selected?'bg-blue-500 text-white':'bg-[var(--knoux-bg-soft)] text-blue-300'}`}><Icon className="h-5 w-5"/></div><div><div className="flex flex-wrap items-center gap-2"><h3 className="text-sm font-black text-[var(--knoux-text)]">{t(item.titleEn,item.titleAr)}</h3><span className={`rounded-full px-2 py-0.5 text-[10px] font-black uppercase ${item.state==='implemented'?'bg-emerald-500/15 text-emerald-300':'bg-amber-500/15 text-amber-300'}`}>{item.state}</span></div><p className="mt-2 text-xs leading-5 text-[var(--knoux-subtext)]">{t(item.descriptionEn,item.descriptionAr)}</p></div></div></button>;})}</div><div className="flex justify-end"><button type="button" onClick={store.startScan} disabled={store.isScanning||!store.runtime.available||store.scanConfig.targetPaths.length===0} className="knoux-btn-primary inline-flex min-h-11 items-center gap-2 px-7 disabled:cursor-not-allowed disabled:opacity-50"><Play className="h-5 w-5"/>{t('Start selected scan','بدء الفحص المختار')}</button></div></section>
+ </div>;
 }
