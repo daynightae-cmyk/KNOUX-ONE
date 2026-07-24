@@ -1,0 +1,71 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --bg-dark: #0D0527;
+    --panel-dark: #151027;
+    --surface-dark: #1D1633;
+    --border-dark: #2D224D;
+    
+    --bg-light: #F8F6FF;
+    --panel-light: #FFFFFF;
+    --surface-light: #F3EEFF;
+    --border-light: #E2D7FE;
+
+    --primary: #8226EE;
+    --primary-hover: #701AD3;
+    --accent: #A74CE7;
+  }
+
+  body {
+    font-family: 'Inter', 'Cairo', sans-serif;
+    overflow-x: hidden;
+  }
+
+  /* Custom scrollbar styling */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(130, 38, 238, 0.3);
+    border-radius: 9999px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(130, 38, 238, 0.6);
+  }
+}
+
+.font-mono {
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.font-arabic {
+  font-family: 'Cairo', 'Tajawal', sans-serif;
+}
+
+/* Glassmorphic card styling for dark/light modes */
+.knoux-glass-dark {
+  background: rgba(21, 16, 39, 0.75);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(130, 38, 238, 0.18);
+}
+
+.knoux-glass-light {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(130, 38, 238, 0.15);
+}
+
+/* Purple glowing effects */
+.knoux-glow-purple {
+  box-shadow: 0 0 30px -5px rgba(130, 38, 238, 0.35);
+}
+
+.knoux-glow-sm {
+  box-shadow: 0 0 15px -3px rgba(130, 38, 238, 0.25);
+}
+
