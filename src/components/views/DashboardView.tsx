@@ -1,441 +1,402 @@
-/**
- * KNOUX ONE — Main Application Dashboard View
- * Primary Reference: AiDEA node 17245:92328
- * Secondary Detail Reference: AiDEA node 19211:66140
- * Atmospheric Reference: SleekSphere node 0:1
- */
-
-import React, { useState } from 'react';
-import { useKnoux } from '../../context/KnouxContext';
-import { DashboardHero } from '../dashboard/DashboardHero';
-import { StatusCardsGrid } from '../dashboard/StatusCardsGrid';
-import { 
-  ShieldCheck, 
-  Cpu, 
-  HardDrive, 
-  Activity, 
-  Sparkles, 
-  Trash2, 
-  Wrench, 
-  Download, 
-  Zap, 
-  CheckCircle2, 
-  Clock, 
-  Terminal, 
+import React, { useMemo, useState } from 'react';
+import {
+  Activity,
   ArrowUpRight,
+  CheckCircle2,
+  ChevronRight,
+  CircleAlert,
+  Clock3,
+  Cpu,
+  HardDrive,
+  Layers3,
+  MemoryStick,
   Monitor,
-  Package,
-  Copy,
-  Layers,
-  AlertTriangle,
-  Info,
-  Server,
-  Play,
-  RotateCw,
-  Sliders,
-  BellRing
+  PackageCheck,
+  SearchCheck,
+  ShieldCheck,
+  Sparkles,
+  TerminalSquare,
+  WandSparkles,
 } from 'lucide-react';
+import { useKnoux } from '../../context/KnouxContext';
+import { MODULES_CATALOG } from '../../data/capabilitiesCatalog';
+import { getOfficialKnouxLogo } from '../../data/officialBrand';
+import { NativeClient } from '../../services/nativeClient';
+import {
+  MODULE_ACCENTS,
+  MODULE_ICONS,
+  MODULE_ROUTE_MAP,
+  getImplementationLabel,
+  getModuleSummary,
+  getServiceIcon,
+} from '../workspace/workspaceMeta';
+
+interface StatusCardProps {
+  icon: React.ElementType;
+  label: string;
+  value: string;
+  detail: string;
+  accent: string;
+  progress?: number;
+  state?: 'ready' | 'warning' | 'muted';
+}
+
+const StatusCard: React.FC<StatusCardProps> = ({ icon: Icon, label, value, detail, accent, progress, state = 'muted' }) => (
+  <article className="knoux-service-card min-h-[158px] p-5" data-accent={accent}>
+    <div className="flex items-start justify-between gap-3">
+      <div className="knoux-icon-plate">
+        <Icon className="h-[21px] w-[21px]" strokeWidth={1.9} />
+      </div>
+      <span className={`knoux-chip ${state === 'ready' ? 'knoux-chip--success' : state === 'warning' ? 'knoux-chip--warning' : 'knoux-chip--muted'}`}>
+        <span className={`h-2 w-2 rounded-full ${state === 'ready' ? 'bg-[var(--knoux-success)]' : state === 'warning' ? 'bg-[var(--knoux-warning)]' : 'bg-[var(--knoux-text-muted)]'}`} />
+        {state === 'ready' ? 'Ready' : state === 'warning' ? 'Review' : 'Waiting'}
+      </span>
+    </div>
+    <div className="mt-5">
+      <p className="text-[12px] font-bold uppercase tracking-[.08em] text-[var(--knoux-text-muted)]">{label}</p>
+      <p className="mt-1 text-[23px] font-black tracking-[-.025em] text-[var(--knoux-text)]">{value}</p>
+      <p className="mt-1 text-[12px] font-medium leading-5 text-[var(--knoux-text-muted)]">{detail}</p>
+    </div>
+    {typeof progress === 'number' && (
+      <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-[var(--knoux-surface-muted)]">
+        <div className="h-full rounded-full bg-[linear-gradient(90deg,var(--card-accent),var(--knoux-primary-bright))]" style={{ width: `${Math.min(Math.max(progress, 0), 100)}%` }} />
+      </div>
+    )}
+  </article>
+);
 
 export const DashboardView: React.FC = () => {
-  const { 
-    systemSpecs, 
-    setCurrentRoute, 
-    runSmartScan, 
-    isScanning, 
-    actionLogs, 
+  const {
+    systemSpecs,
+    setCurrentRoute,
+    runSmartScan,
+    isScanning,
+    actionLogs,
     theme,
-    runtimeMode,
-    t 
+    language,
+    t,
   } = useKnoux();
 
-  const [activeTab, setActiveTab] = useState<'all' | 'activity' | 'queue'>('all');
+  const [logoFailed, setLogoFailed] = useState(false);
+  const runtime = NativeClient.getRuntimeState();
+  const hasTelemetry = runtime.available && (systemSpecs.totalRamGB > 0 || systemSpecs.diskTotalGB > 0 || systemSpecs.cpuCores > 0);
 
-  // Empty recommendations since they should be based on real telemetry
-  const recommendations: any[] = [];
+  const capabilityCounts = useMemo(() => {
+    const services = MODULES_CATALOG.flatMap(module => module.services);
+    return services.reduce(
+      (counts, service) => {
+        const state = service.implementationState ?? 'planned';
+        counts[state] += 1;
+        return counts;
+      },
+      { implemented: 0, partial: 0, planned: 0, requires_configuration: 0, unsupported: 0 } as Record<'implemented' | 'partial' | 'planned' | 'requires_configuration' | 'unsupported', number>,
+    );
+  }, []);
+
+  const recommendations = useMemo(() => {
+    const items: Array<{ id: string; title: string; body: string; route: string; kind: 'info' | 'warning' }> = [];
+    if (!runtime.available) {
+      items.push({
+        id: 'desktop-runtime',
+        title: t('Open the desktop workspace', 'افتح مساحة عمل سطح المكتب'),
+        body: t('Native Windows readings and operations are disabled in the web preview.', 'قراءات ويندوز والعمليات المحلية غير متاحة داخل معاينة الويب.'),
+        route: 'first-run',
+        kind: 'warning',
+      });
+    } else if (!hasTelemetry) {
+      items.push({
+        id: 'device-scan',
+        title: t('Read this device', 'اقرأ بيانات هذا الجهاز'),
+        body: t('Run device discovery to populate accurate hardware and Windows information.', 'شغّل فحص الجهاز لعرض معلومات دقيقة عن المكونات وويندوز.'),
+        route: 'first-run',
+        kind: 'info',
+      });
+    }
+    if (actionLogs.some(log => log.status === 'failed')) {
+      items.push({
+        id: 'failed-operation',
+        title: t('Review failed operations', 'راجع العمليات الفاشلة'),
+        body: t('One or more local operations require your attention.', 'توجد عملية محلية واحدة أو أكثر تحتاج إلى مراجعتك.'),
+        route: 'support',
+        kind: 'warning',
+      });
+    }
+    return items;
+  }, [actionLogs, hasTelemetry, runtime.available, t]);
+
+  const statusCards: StatusCardProps[] = [
+    {
+      icon: Monitor,
+      label: t('Device workspace', 'مساحة الجهاز'),
+      value: runtime.available ? (hasTelemetry ? systemSpecs.osEdition : t('Not scanned', 'لم يُفحص')) : t('Web preview', 'معاينة الويب'),
+      detail: runtime.available ? (hasTelemetry ? systemSpecs.computerName : t('Run device discovery to identify this Windows host.', 'شغّل فحص الجهاز للتعرف على بيئة ويندوز.')) : t('Desktop operations remain safely disabled.', 'العمليات المحلية معطلة بأمان.'),
+      accent: 'violet',
+      state: hasTelemetry ? 'ready' : 'warning',
+    },
+    {
+      icon: MemoryStick,
+      label: t('CPU & memory', 'المعالج والذاكرة'),
+      value: hasTelemetry ? `${systemSpecs.usedRamGB.toFixed(1)} / ${systemSpecs.totalRamGB.toFixed(1)} GB` : '—',
+      detail: hasTelemetry ? `${systemSpecs.processor} • ${systemSpecs.cpuCores} ${t('threads', 'خيطًا')}` : t('Live readings are not active yet.', 'القراءات المباشرة غير مفعلة بعد.'),
+      accent: 'blue',
+      progress: hasTelemetry ? systemSpecs.ramLoadPercentage : undefined,
+      state: hasTelemetry ? 'ready' : 'muted',
+    },
+    {
+      icon: HardDrive,
+      label: t('Storage', 'مساحة التخزين'),
+      value: hasTelemetry ? `${systemSpecs.diskFreeGB.toFixed(0)} GB ${t('free', 'متاحة')}` : '—',
+      detail: hasTelemetry ? `${systemSpecs.diskUsedGB.toFixed(0)} / ${systemSpecs.diskTotalGB.toFixed(0)} GB ${t('used', 'مستخدمة')}` : t('No storage scan has been performed.', 'لم يتم إجراء فحص لمساحة التخزين.'),
+      accent: 'amber',
+      progress: hasTelemetry && systemSpecs.diskTotalGB > 0 ? (systemSpecs.diskUsedGB / systemSpecs.diskTotalGB) * 100 : undefined,
+      state: hasTelemetry ? 'ready' : 'muted',
+    },
+    {
+      icon: ShieldCheck,
+      label: t('Windows security', 'أمان ويندوز'),
+      value: hasTelemetry ? (systemSpecs.defenderStatus && systemSpecs.firewallStatus ? t('Protection detected', 'تم رصد الحماية') : t('Needs review', 'تحتاج مراجعة')) : t('Not evaluated', 'لم تُقيّم'),
+      detail: hasTelemetry ? t('Based on the latest local reading.', 'بناءً على آخر قراءة محلية.') : t('Security status appears only after a real device scan.', 'تظهر حالة الأمان بعد فحص حقيقي للجهاز.'),
+      accent: 'emerald',
+      state: hasTelemetry && systemSpecs.defenderStatus && systemSpecs.firewallStatus ? 'ready' : hasTelemetry ? 'warning' : 'muted',
+    },
+    {
+      icon: PackageCheck,
+      label: t('Software setup', 'إعداد البرامج'),
+      value: t('Catalog available', 'الكتالوج متاح'),
+      detail: runtime.available ? t('Verify Winget before installing or updating packages.', 'تحقق من Winget قبل تثبيت الحزم أو تحديثها.') : t('Browse the catalog now; installation requires Desktop.', 'تصفح الكتالوج الآن؛ التثبيت يتطلب سطح المكتب.'),
+      accent: 'cyan',
+      state: runtime.available ? 'warning' : 'muted',
+    },
+  ];
+
+  const quickServices = [
+    MODULES_CATALOG[0].services[0],
+    MODULES_CATALOG[0].services[1],
+    MODULES_CATALOG[0].services[4],
+    MODULES_CATALOG[0].services[3],
+    MODULES_CATALOG[1].services[0],
+    MODULES_CATALOG[2].services[0],
+    MODULES_CATALOG[6].services[0],
+    MODULES_CATALOG[0].services[9],
+  ];
+
+  const featuredModules = MODULES_CATALOG.slice(0, 8);
 
   return (
-    <div className="p-6 md:p-8 space-y-6 max-w-7xl mx-auto transition-colors duration-200">
-      
-      {/* SECTION A: Welcome & System Context Hero Card */}
-      <DashboardHero />
-
-      {/* SECTION B: Five Primary Status Cards */}
-      <StatusCardsGrid isLoading={isScanning} />
-
-      {/* SECTION C: Quick Actions Grid (8 Tiles) */}
-      <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="knoux-section-title flex items-center space-x-2 rtl:space-x-reverse">
-            <Zap className="w-4 h-4 text-[var(--knoux-primary)]" />
-            <span>{t('Quick Actions Hub', 'الوصول السريع للخدمات')}</span>
-          </h2>
-          <button
-            onClick={() => setCurrentRoute('catalog')}
-            className="text-xs text-[var(--knoux-primary)] hover:underline font-mono flex items-center space-x-1 rtl:space-x-reverse"
-          >
-            <span>{t('View All 190 Capabilities', 'عرض جميع الـ 190 أداة')}</span>
-            <ArrowUpRight className="w-3.5 h-3.5" />
-          </button>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {/* Tile 1: Device Discovery */}
-          <div
-            onClick={() => setCurrentRoute('first-run')}
-            className="p-4.5 rounded-2xl knoux-card cursor-pointer group space-y-2.5"
-          >
-            <div className="flex items-center justify-between">
-              <div className="knoux-icon-capsule group-hover:border-[var(--knoux-primary)] transition-all">
-                <Monitor className="w-4 h-4 text-[var(--knoux-primary)]" />
-              </div>
-              <span className="knoux-badge-neutral">
-                m01_s01
-              </span>
-            </div>
-            <h3 className="font-bold text-xs text-[var(--knoux-text)] group-hover:text-[var(--knoux-primary)] transition-colors">
-              {t('Device Discovery', 'فحص واستكشاف الجهاز')}
-            </h3>
-            <p className="knoux-body text-sm line-clamp-2">
-              {t('Audit CPU, motherboard, RAM modules, disks, and OS build natively.', 'فحص وقراءة جميع مواصفات الجهاز المعالج واللوحة والذاكرة.')}
-            </p>
-          </div>
-
-          {/* Tile 2: Verify Winget */}
-          <div
-            onClick={() => setCurrentRoute('post-format')}
-            className="p-4.5 rounded-2xl knoux-card cursor-pointer group space-y-2.5"
-          >
-            <div className="flex items-center justify-between">
-              <div className="knoux-icon-capsule group-hover:border-[var(--knoux-primary)] transition-all">
-                <Package className="w-4 h-4 text-[var(--knoux-primary)]" />
-              </div>
-              <span className="knoux-badge-neutral">
-                m01_s02
-              </span>
-            </div>
-            <h3 className="font-bold text-xs text-[var(--knoux-text)] group-hover:text-[var(--knoux-primary)] transition-colors">
-              {t('Verify Winget Client', 'التحقق من أداة Winget')}
-            </h3>
-            <p className="knoux-body text-sm line-clamp-2">
-              {t('Confirm App Installer executable path, source accessibility, and client version.', 'التحقق من جودة ومسار تشغيل مدير الحزم الخفيف Winget.')}
-            </p>
-          </div>
-
-          {/* Tile 3: Post-Format Setup */}
-          <div
-            onClick={() => setCurrentRoute('post-format')}
-            className="p-4.5 rounded-2xl knoux-card cursor-pointer group space-y-2.5"
-          >
-            <div className="flex items-center justify-between">
-              <div className="knoux-icon-capsule group-hover:border-[var(--knoux-primary)] transition-all">
-                <Download className="w-4 h-4 text-[var(--knoux-primary)]" />
-              </div>
-              <span className="knoux-badge-neutral">
-                m01_s05
-              </span>
-            </div>
-            <h3 className="font-bold text-xs text-[var(--knoux-text)] group-hover:text-[var(--knoux-primary)] transition-colors">
-              {t('Bulk Software Queue', 'تثبيت البرامج دفعة واحدة')}
-            </h3>
-            <p className="knoux-body text-sm line-clamp-2">
-              {t('Install Chrome, VS Code, Git, 7-Zip, Discord, and tools via Winget queue.', 'طابور تثبيت متسلسل ومأمون للبرامج الأساسية بعد الفورمات.')}
-            </p>
-          </div>
-
-          {/* Tile 4: Essential Apps Catalog */}
-          <div
-            onClick={() => setCurrentRoute('applications')}
-            className="p-4.5 rounded-2xl knoux-card cursor-pointer group space-y-2.5"
-          >
-            <div className="flex items-center justify-between">
-              <div className="knoux-icon-capsule group-hover:border-[var(--knoux-primary)] transition-all">
-                <Package className="w-4 h-4 text-[var(--knoux-primary)]" />
-              </div>
-              <span className="knoux-badge-neutral">
-                m01_s04
-              </span>
-            </div>
-            <h3 className="font-bold text-xs text-[var(--knoux-text)] group-hover:text-[var(--knoux-primary)] transition-colors">
-              {t('Essential Apps Catalog', 'متجر البرامج الأساسية')}
-            </h3>
-            <p className="knoux-body text-sm line-clamp-2">
-              {t('Browse curated manifest containing verified publisher package IDs.', 'دليل البرامج الموثقة والمفهرسة بمعرفات حزم رسمية.')}
-            </p>
-          </div>
-
-          {/* Tile 5: Smart Cleanup */}
-          <div
-            onClick={() => setCurrentRoute('cleanup')}
-            className="p-4.5 rounded-2xl knoux-card cursor-pointer group space-y-2.5"
-          >
-            <div className="flex items-center justify-between">
-              <div className="knoux-icon-capsule group-hover:border-[var(--knoux-primary)] transition-all">
-                <Trash2 className="w-4 h-4 text-[var(--knoux-primary)]" />
-              </div>
-              <span className="knoux-badge-neutral">
-                m02_s01
-              </span>
-            </div>
-            <h3 className="font-bold text-xs text-[var(--knoux-text)] group-hover:text-[var(--knoux-primary)] transition-colors">
-              {t('Smart Storage Cleanup', 'التنظيف الذكي')}
-            </h3>
-            <p className="knoux-body text-sm line-clamp-2">
-              {t('Recycle browser cache, crash dumps, and temp files with 0 risk.', 'تنظيف الملفات المؤقتة والمخادعة للذاكرة بأمان بدون مخاطر.')}
-            </p>
-          </div>
-
-          {/* Tile 6: Duplicate Finder */}
-          <div
-            onClick={() => setCurrentRoute('duplicates')}
-            className="p-4.5 rounded-2xl knoux-card cursor-pointer group space-y-2.5"
-          >
-            <div className="flex items-center justify-between">
-              <div className="knoux-icon-capsule group-hover:border-[var(--knoux-primary)] transition-all">
-                <Copy className="w-4 h-4 text-[var(--knoux-primary)]" />
-              </div>
-              <span className="knoux-badge-neutral">
-                m03_s01
-              </span>
-            </div>
-            <h3 className="font-bold text-xs text-[var(--knoux-text)] group-hover:text-[var(--knoux-primary)] transition-colors">
-              {t('Duplicate File Finder', 'مستكشف الملفات المكررة')}
-            </h3>
-            <p className="knoux-body text-sm line-clamp-2">
-              {t('BLAKE3 hash-based precise duplicate identification and quarantine.', 'كشف ومطابقة الملفات المكررة باستخدام التشفير الفائق.')}
-            </p>
-          </div>
-
-          {/* Tile 7: Windows Repair */}
-          <div
-            onClick={() => setCurrentRoute('repair')}
-            className="p-4.5 rounded-2xl knoux-card cursor-pointer group space-y-2.5"
-          >
-            <div className="flex items-center justify-between">
-              <div className="knoux-icon-capsule group-hover:border-[var(--knoux-primary)] transition-all">
-                <Wrench className="w-4 h-4 text-[var(--knoux-primary)]" />
-              </div>
-              <span className="knoux-badge-neutral">
-                m07_s01
-              </span>
-            </div>
-            <h3 className="font-bold text-xs text-[var(--knoux-text)] group-hover:text-[var(--knoux-primary)] transition-colors">
-              {t('Windows System Repair', 'إصلاح وصيانة ويندوز')}
-            </h3>
-            <p className="knoux-body text-sm line-clamp-2">
-              {t('SFC /scannow and DISM image repair targeting broken system binaries.', 'تصليح وتصحيح ملفات النظام المتضررة وتحديثات النظام.')}
-            </p>
-          </div>
-
-          {/* Tile 8: Restore Point */}
-          <div
-            onClick={() => setCurrentRoute('backup')}
-            className="p-4.5 rounded-2xl knoux-card cursor-pointer group space-y-2.5"
-          >
-            <div className="flex items-center justify-between">
-              <div className="knoux-icon-capsule group-hover:border-[var(--knoux-primary)] transition-all">
-                <HardDrive className="w-4 h-4 text-[var(--knoux-primary)]" />
-              </div>
-              <span className="knoux-badge-neutral">
-                m01_s10
-              </span>
-            </div>
-            <h3 className="font-bold text-xs text-[var(--knoux-text)] group-hover:text-[var(--knoux-primary)] transition-colors">
-              {t('Create System Restore Point', 'إنشاء نقطة استعادة')}
-            </h3>
-            <p className="knoux-body text-sm line-clamp-2">
-              {t('UAC-elevated SystemRestore checkpoint before post-format execution.', 'إنشاء نقطة استعادة مأمونة بـ UAC قبل البدء في التعديلات.')}
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* SECTION D & E: Live Device Activity & KNOUX Recommendations */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Section D: Live Device Activity */}
-        <div className="lg:col-span-2 p-6 rounded-2xl knoux-depth-3 border border-[var(--knoux-glass-border)] space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="knoux-section-title flex items-center space-x-2 rtl:space-x-reverse">
-              <Activity className="w-4 h-4 text-[var(--knoux-accent-blue)]" />
-              <span>{t('Live Device Activity', 'نشاط الجهاز المباشر')}</span>
-            </h3>
-            <span className="knoux-badge-primary">
-              Host API Stream
-            </span>
-          </div>
-
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs font-mono">
-            <div className="p-3.5 rounded-xl bg-[var(--knoux-surface-muted)] border border-[var(--knoux-border)]">
-              <span className="text-xs text-[var(--knoux-text-muted)] block font-sans">{t('CPU Load', 'استهلاك المعالج')}</span>
-              <span className="text-xl font-bold text-[var(--knoux-primary)]">{systemSpecs.cpuLoadPercentage}%</span>
-            </div>
-            <div className="p-3.5 rounded-xl bg-[var(--knoux-surface-muted)] border border-[var(--knoux-border)]">
-              <span className="text-xs text-[var(--knoux-text-muted)] block font-sans">{t('RAM Memory', 'الذاكرة العشوائية')}</span>
-              <span className="text-xl font-bold text-[var(--knoux-accent-blue)]">{systemSpecs.usedRamGB} GB</span>
-            </div>
-            <div className="p-3.5 rounded-xl bg-[var(--knoux-surface-muted)] border border-[var(--knoux-border)]">
-              <span className="text-xs text-[var(--knoux-text-muted)] block font-sans">{t('Disk Free', 'المساحة المتاحة')}</span>
-              <span className="text-xl font-bold text-[var(--knoux-warning)]">{systemSpecs.diskFreeGB} GB</span>
-            </div>
-            <div className="p-3.5 rounded-xl bg-[var(--knoux-surface-muted)] border border-[var(--knoux-border)]">
-              <span className="text-xs text-[var(--knoux-text-muted)] block font-sans">{t('Health Score', 'مؤشر الصحة')}</span>
-              <span className="text-xl font-bold text-[var(--knoux-success)]">{systemSpecs.healthScore}/100</span>
-            </div>
-          </div>
-
-          {/* Area Chart Representation - Removed mock data */}
-          <div className="p-4.5 rounded-xl bg-[var(--knoux-surface-muted)] border border-[var(--knoux-border)] space-y-2">
-            <div className="flex justify-between text-xs font-mono text-[var(--knoux-text-muted)]">
-              <span>{t('System Metric Load Timeline', 'مخطط استهلاك موارد الجهاز')}</span>
-              <span>Interval: 1000ms</span>
-            </div>
-            <div className="h-28 flex items-center justify-center text-xs text-[var(--knoux-text-muted)] border-t border-[var(--knoux-border)] mt-4 pt-4">
-              {t('Awaiting Telemetry Data', 'بانتظار قراءات الجهاز')}
-            </div>
-          </div>
-        </div>
-
-        {/* Section E: KNOUX Recommendations Panel */}
-        <div className="p-6 rounded-2xl knoux-depth-3 border border-[var(--knoux-glass-border)] space-y-4 flex flex-col justify-between">
+    <div className="knoux-page-container space-y-7">
+      <section className="knoux-glass-panel overflow-hidden p-6 md:p-8">
+        <div className="absolute inset-y-0 end-0 w-[44%] bg-[radial-gradient(circle_at_center,rgba(139,92,246,.18),transparent_65%)]" aria-hidden="true" />
+        <div className="relative grid items-center gap-8 xl:grid-cols-[1.4fr_.6fr]">
           <div>
-            <div className="flex items-center justify-between mb-3.5">
-              <h3 className="knoux-section-title flex items-center space-x-2 rtl:space-x-reverse">
-                <BellRing className="w-4 h-4 text-[var(--knoux-primary)]" />
-                <span>{t('KNOUX Recommendations', 'توصيات كنوكس')}</span>
-              </h3>
-              <span className="knoux-badge-neutral">
-                {recommendations.length > 0 ? `${recommendations.length} Findings` : t('No Findings', 'لا توجد توصيات')}
-              </span>
+            <div className="knoux-eyebrow">
+              <Sparkles className="h-4 w-4" />
+              <span>{t('Windows intelligence workspace', 'مساحة عمل ذكاء ويندوز')}</span>
+            </div>
+            <h1 className="mt-4 max-w-4xl text-[clamp(2rem,4vw,3.5rem)] font-black leading-[1.08] tracking-[-.045em] text-[var(--knoux-text)]">
+              {t('Welcome back, Eng. Sadek', 'مرحبًا بك يا مهندس صادق')}
+            </h1>
+            <p className="mt-4 max-w-3xl text-[15px] font-medium leading-7 text-[var(--knoux-text-secondary)]">
+              {t('Inspect, configure, protect, and maintain this Windows device through organized professional workspaces—not a random list of tools.', 'افحص جهاز ويندوز وجهّزه واحمه وصنه من خلال مساحات عمل احترافية منظمة، وليس قائمة عشوائية من الأدوات.')}
+            </p>
+
+            <div className="mt-5 flex flex-wrap gap-2">
+              <span className="knoux-chip knoux-chip--accent"><Monitor className="h-3.5 w-3.5" />{runtime.available ? t('Desktop connected', 'سطح المكتب متصل') : t('Web preview', 'معاينة الويب')}</span>
+              <span className="knoux-chip"><Layers3 className="h-3.5 w-3.5" />19 {t('workspaces', 'مساحة عمل')}</span>
+              <span className="knoux-chip"><TerminalSquare className="h-3.5 w-3.5" />190 {t('registered services', 'خدمة مسجلة')}</span>
             </div>
 
-            <div className="space-y-3">
-              {recommendations.length > 0 ? recommendations.map((rec) => (
-                <div 
-                  key={rec.id}
-                  className="p-3.5 rounded-xl bg-[var(--knoux-surface-muted)] border border-[var(--knoux-border)] space-y-2"
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="font-bold text-xs text-[var(--knoux-text)]">
-                      {t(rec.titleEn, rec.titleAr)}
-                    </span>
-                    <span className={
-                      rec.severity === 'warning' ? 'knoux-badge-warning' :
-                      rec.severity === 'suggestion' ? 'knoux-badge-success' :
-                      'knoux-badge-primary'
-                    }>
-                      {rec.severity}
-                    </span>
-                  </div>
-                  <p className="knoux-body text-sm leading-tight">
-                    {t(rec.reasonEn, rec.reasonAr)}
-                  </p>
-                  <button
-                    onClick={() => setCurrentRoute(rec.actionRoute)}
-                    className="text-sm font-mono font-bold text-[var(--knoux-primary)] hover:underline flex items-center space-x-1 rtl:space-x-reverse pt-1"
-                  >
-                    <span>{t(rec.actionLabelEn, rec.actionLabelAr)}</span>
-                    <ArrowUpRight className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-              )) : (
-                <div className="p-6 text-center text-xs text-[var(--knoux-text-muted)] border border-dashed border-[var(--knoux-border)] rounded-xl">
-                  {t('No recommendations available yet.', 'لا توجد توصيات متاحة حالياً.')}
-                </div>
+            <div className="mt-7 flex flex-wrap gap-3">
+              <button type="button" onClick={runSmartScan} disabled={isScanning} className="knoux-card-action knoux-card-action--primary min-w-[160px]">
+                <SearchCheck className={`h-[18px] w-[18px] ${isScanning ? 'animate-spin' : ''}`} />
+                {isScanning ? t('Reading device…', 'جاري قراءة الجهاز…') : t('Scan this device', 'فحص هذا الجهاز')}
+              </button>
+              <button type="button" onClick={() => setCurrentRoute('post-format')} className="knoux-card-action min-w-[170px]">
+                <WandSparkles className="h-[18px] w-[18px]" />
+                {t('After-format setup', 'إعداد ما بعد الفورمات')}
+              </button>
+              <button type="button" onClick={() => setCurrentRoute('catalog')} className="knoux-card-action">
+                <Layers3 className="h-[18px] w-[18px]" />
+                {t('Open workspace library', 'فتح مكتبة مساحات العمل')}
+              </button>
+            </div>
+          </div>
+
+          <div className="relative hidden min-h-[230px] place-items-center xl:grid">
+            <div className="knoux-logo-orbit h-[152px] w-[152px] bg-[var(--knoux-surface-elevated)] shadow-[0_0_80px_rgba(139,92,246,.24)]">
+              {!logoFailed ? (
+                <img src={getOfficialKnouxLogo(theme)} onError={() => setLogoFailed(true)} alt="KNOUX ONE" className="h-full w-full rounded-full object-cover" />
+              ) : (
+                <span className="text-5xl font-black text-[var(--knoux-primary-bright)]">K</span>
               )}
             </div>
           </div>
         </div>
-      </div>
+      </section>
 
-      {/* SECTION F: Module Implementation Overview */}
-      <div className="p-6 rounded-2xl knoux-depth-3 border border-[var(--knoux-glass-border)] space-y-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2.5 rtl:space-x-reverse">
-            <Layers className="w-4 h-4 text-[var(--knoux-primary)]" />
-            <h3 className="knoux-section-title">
-              {t('Module Implementation Status (19 Modules / 190 Services)', 'حالة تنفيذ الموديولات (19 قسم / 190 خدمة)')}
-            </h3>
+      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+        {statusCards.map(card => <StatusCard key={card.label} {...card} />)}
+      </section>
+
+      <section className="space-y-4">
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <div className="knoux-eyebrow"><WandSparkles className="h-4 w-4" />{t('Quick actions', 'الإجراءات السريعة')}</div>
+            <h2 className="mt-2 text-[24px] font-black tracking-[-.03em] text-[var(--knoux-text)]">{t('Start with a clear task', 'ابدأ بمهمة واضحة')}</h2>
           </div>
-          <button
-            onClick={() => setCurrentRoute('catalog')}
-            className="text-xs text-[var(--knoux-primary)] hover:underline font-mono flex items-center space-x-1 rtl:space-x-reverse"
-          >
-            <span>{t('View Capabilities Catalog', 'عرض الكتالوج الكامل')}</span>
-            <ArrowUpRight className="w-3.5 h-3.5" />
+          <button type="button" onClick={() => setCurrentRoute('catalog')} className="knoux-card-action">
+            {t('Browse all services', 'استعراض جميع الخدمات')}<ArrowUpRight className="h-4 w-4 rtl:-scale-x-100" />
           </button>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-3 font-mono text-xs">
-          <div className="p-3.5 rounded-xl bg-[var(--knoux-surface-muted)] border border-[var(--knoux-border)]">
-            <span className="text-xs text-[var(--knoux-text-muted)] block font-sans">{t('Implemented (M01)', 'المنفذ فعليًا')}</span>
-            <span className="text-lg font-bold text-[var(--knoux-success)]">10 Services</span>
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          {quickServices.map(service => {
+            const Icon = getServiceIcon(service);
+            const moduleAccent = MODULE_ACCENTS[service.moduleId] ?? 'violet';
+            const moduleRoute = MODULE_ROUTE_MAP[service.moduleId] ?? 'catalog';
+            return (
+              <button key={service.id} type="button" onClick={() => setCurrentRoute(moduleRoute)} className="knoux-service-card group min-h-[178px] p-5 text-start" data-accent={moduleAccent}>
+                <div className="flex items-start justify-between gap-3">
+                  <div className="knoux-icon-plate"><Icon className="h-[22px] w-[22px]" /></div>
+                  <span className="knoux-chip knoux-chip--muted">{getImplementationLabel(service.implementationState, language)}</span>
+                </div>
+                <h3 className="mt-5 text-[16px] font-extrabold tracking-[-.015em] text-[var(--knoux-text)] transition group-hover:text-[var(--card-accent)]">{t(service.nameEn, service.nameAr)}</h3>
+                <p className="mt-2 line-clamp-2 text-[13px] font-medium leading-6 text-[var(--knoux-text-muted)]">{t(service.descriptionEn, service.descriptionAr)}</p>
+                <div className="mt-4 flex items-center gap-2 text-[12px] font-bold text-[var(--card-accent)] rtl:flex-row-reverse">
+                  <span>{t('Open workspace', 'فتح مساحة العمل')}</span><ChevronRight className="h-4 w-4 rtl:rotate-180" />
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      </section>
+
+      <section className="space-y-4">
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <div className="knoux-eyebrow"><Layers3 className="h-4 w-4" />{t('Workspace collection', 'مجموعة مساحات العمل')}</div>
+            <h2 className="mt-2 text-[24px] font-black tracking-[-.03em] text-[var(--knoux-text)]">{t('Organized by outcome—not module codes', 'منظمة حسب الهدف، لا حسب رموز الأقسام')}</h2>
           </div>
-          <div className="p-3.5 rounded-xl bg-[var(--knoux-surface-muted)] border border-[var(--knoux-border)]">
-            <span className="text-xs text-[var(--knoux-text-muted)] block font-sans">{t('Planned (M02-M18)', 'مخطط للتنفيذ')}</span>
-            <span className="text-lg font-bold text-[var(--knoux-primary)]">170 Services</span>
+          <div className="flex flex-wrap gap-2">
+            <span className="knoux-chip knoux-chip--success">{capabilityCounts.implemented} {t('ready', 'جاهزة')}</span>
+            <span className="knoux-chip knoux-chip--accent">{capabilityCounts.partial} {t('desktop previews', 'معاينة سطح المكتب')}</span>
+            <span className="knoux-chip">{capabilityCounts.planned} {t('roadmap', 'ضمن الخطة')}</span>
           </div>
-          <div className="p-3.5 rounded-xl bg-[var(--knoux-surface-muted)] border border-[var(--knoux-border)]">
-            <span className="text-xs text-[var(--knoux-text-muted)] block font-sans">{t('Config Required (M19)', 'يتطلب ضبط')}</span>
-            <span className="text-lg font-bold text-[var(--knoux-warning)]">10 Services</span>
-          </div>
-          <div className="p-3.5 rounded-xl bg-[var(--knoux-surface-muted)] border border-[var(--knoux-border)] col-span-2 sm:col-span-1 lg:col-span-3 flex items-center justify-between px-4">
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          {featuredModules.map(module => {
+            const Icon = MODULE_ICONS[module.id] ?? Layers3;
+            const accent = MODULE_ACCENTS[module.id] ?? 'violet';
+            const previewNames = module.services.slice(0, 3).map(service => t(service.nameEn, service.nameAr));
+            return (
+              <button key={module.id} type="button" onClick={() => setCurrentRoute(MODULE_ROUTE_MAP[module.id] ?? 'catalog')} className="knoux-module-card group min-h-[250px] p-5 text-start" data-accent={accent}>
+                <div className="flex items-start justify-between gap-3">
+                  <div className="knoux-icon-plate"><Icon className="h-[23px] w-[23px]" /></div>
+                  <span className="knoux-chip">10 {t('services', 'خدمات')}</span>
+                </div>
+                <h3 className="mt-5 text-[18px] font-black tracking-[-.02em] text-[var(--knoux-text)] transition group-hover:text-[var(--card-accent)]">{t(module.nameEn, module.nameAr)}</h3>
+                <p className="mt-2 text-[13px] font-medium leading-6 text-[var(--knoux-text-muted)]">{getModuleSummary(module.id, language)}</p>
+                <div className="mt-4 space-y-2 border-t border-[var(--knoux-border)] pt-4">
+                  {previewNames.map(name => (
+                    <div key={name} className="flex items-center gap-2 text-[12px] font-semibold text-[var(--knoux-text-secondary)] rtl:flex-row-reverse">
+                      <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-[var(--card-accent)]" /><span className="truncate">{name}</span>
+                    </div>
+                  ))}
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      </section>
+
+      <section className="grid gap-5 xl:grid-cols-[1.45fr_.55fr]">
+        <article className="knoux-glass-panel p-6">
+          <div className="flex items-center justify-between gap-3">
             <div>
-              <span className="text-xs text-[var(--knoux-text-muted)] block font-sans">{t('Total Registered Suite Capabilities', 'إجمالي وظائف المنظومة')}</span>
-              <span className="text-base font-bold text-[var(--knoux-text)]">190 Registered Capabilities</span>
+              <div className="knoux-eyebrow"><Activity className="h-4 w-4" />{t('Device activity', 'نشاط الجهاز')}</div>
+              <h2 className="mt-2 text-[20px] font-black text-[var(--knoux-text)]">{t('Live readings and operation context', 'القراءات المباشرة وسياق العمليات')}</h2>
             </div>
-            <span className="knoux-badge-primary opacity-0">
-              100% Honest
-            </span>
+            <span className="knoux-chip">{runtime.available ? t('Desktop source', 'مصدر سطح المكتب') : t('No native source', 'لا يوجد مصدر محلي')}</span>
           </div>
-        </div>
-      </div>
 
-      {/* SECTION G: Recent Operations Table (AiDEA node 19211:66140 style) */}
-      <div className="p-6 rounded-2xl knoux-depth-3 border border-[var(--knoux-glass-border)] space-y-4">
-        <div className="flex items-center justify-between">
-          <h3 className="knoux-section-title flex items-center space-x-2 rtl:space-x-reverse">
-            <Clock className="w-4 h-4 text-[var(--knoux-primary)]" />
-            <span>{t('Recent Operations Log', 'سجل العمليات الأخيرة')}</span>
-          </h3>
-          <span className="knoux-badge-neutral">
-            {actionLogs.length} Records
-          </span>
-        </div>
-
-        <div className="overflow-x-auto custom-scrollbar">
-          <table className="w-full text-left rtl:text-right text-xs font-mono">
-            <thead>
-              <tr className="border-b border-[var(--knoux-border)] text-[var(--knoux-text-muted)] uppercase text-xs">
-                <th className="py-2.5 px-3">{t('Capability ID', 'معرف الوظيفة')}</th>
-                <th className="py-2.5 px-3">{t('Name', 'الاسم')}</th>
-                <th className="py-2.5 px-3">{t('Status', 'الحالة')}</th>
-                <th className="py-2.5 px-3">{t('Timestamp', 'التوقيت')}</th>
-                <th className="py-2.5 px-3">{t('Details', 'التفاصيل')}</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-[var(--knoux-border)]">
-              {actionLogs.slice(0, 5).map((log) => (
-                <tr key={log.id} className="hover:bg-[var(--knoux-surface-muted)] transition-colors">
-                  <td className="py-2.5 px-3 font-bold text-[var(--knoux-primary)]">{log.capabilityId.toUpperCase()}</td>
-                  <td className="py-2.5 px-3 text-[var(--knoux-text)] font-semibold">{log.capabilityName}</td>
-                  <td className="py-2.5 px-3">
-                    <span className={
-                      log.status === 'completed' ? 'knoux-badge-success' :
-                      log.status === 'failed' ? 'knoux-badge-danger' :
-                      'knoux-badge-primary'
-                    }>
-                      {log.status}
-                    </span>
-                  </td>
-                  <td className="py-2.5 px-3 text-[var(--knoux-text-muted)]">{log.timestamp}</td>
-                  <td className="py-2.5 px-3 text-[var(--knoux-text-muted)] max-w-xs truncate">{log.details}</td>
-                </tr>
+          {hasTelemetry ? (
+            <div className="mt-6 grid gap-4 sm:grid-cols-3">
+              {[
+                { label: t('CPU load', 'استهلاك المعالج'), value: `${systemSpecs.cpuLoadPercentage}%`, color: 'var(--knoux-primary)' },
+                { label: t('Memory load', 'استهلاك الذاكرة'), value: `${systemSpecs.ramLoadPercentage}%`, color: 'var(--knoux-accent-blue)' },
+                { label: t('Free storage', 'المساحة المتاحة'), value: `${systemSpecs.diskFreeGB.toFixed(0)} GB`, color: 'var(--knoux-success)' },
+              ].map(metric => (
+                <div key={metric.label} className="rounded-2xl border border-[var(--knoux-border)] bg-[var(--knoux-surface-muted)] p-5">
+                  <p className="text-[12px] font-bold text-[var(--knoux-text-muted)]">{metric.label}</p>
+                  <p className="mt-2 text-[27px] font-black" style={{ color: metric.color }}>{metric.value}</p>
+                </div>
               ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
+            </div>
+          ) : (
+            <div className="mt-6 flex min-h-[190px] flex-col items-center justify-center rounded-2xl border border-dashed border-[var(--knoux-border)] bg-[var(--knoux-surface-muted)] px-6 text-center">
+              <Cpu className="h-10 w-10 text-[var(--knoux-primary)]" />
+              <h3 className="mt-4 text-[16px] font-extrabold text-[var(--knoux-text)]">{t('No live device readings yet', 'لا توجد قراءات مباشرة للجهاز بعد')}</h3>
+              <p className="mt-2 max-w-xl text-[13px] leading-6 text-[var(--knoux-text-muted)]">{t('Open KNOUX ONE Desktop and run Device Scan. The dashboard will never animate fake metrics.', 'افتح تطبيق كنوكس ون لسطح المكتب وشغّل فحص الجهاز. لن تعرض اللوحة قراءات متحركة وهمية.')}</p>
+            </div>
+          )}
+        </article>
 
+        <article className="knoux-glass-panel p-6">
+          <div className="knoux-eyebrow"><CircleAlert className="h-4 w-4" />{t('Recommendations', 'التوصيات')}</div>
+          <h2 className="mt-2 text-[20px] font-black text-[var(--knoux-text)]">{t('What needs attention', 'ما يحتاج إلى انتباهك')}</h2>
+
+          <div className="mt-5 space-y-3">
+            {recommendations.length > 0 ? recommendations.map(item => (
+              <button key={item.id} type="button" onClick={() => setCurrentRoute(item.route)} className="flex w-full items-start gap-3 rounded-2xl border border-[var(--knoux-border)] bg-[var(--knoux-surface-muted)] p-4 text-start transition hover:border-[var(--knoux-primary)]/35 rtl:flex-row-reverse">
+                <span className={`mt-0.5 grid h-9 w-9 shrink-0 place-items-center rounded-xl ${item.kind === 'warning' ? 'bg-[var(--knoux-warning)]/12 text-[var(--knoux-warning)]' : 'bg-[var(--knoux-primary)]/12 text-[var(--knoux-primary-bright)]'}`}>
+                  {item.kind === 'warning' ? <CircleAlert className="h-[18px] w-[18px]" /> : <Sparkles className="h-[18px] w-[18px]" />}
+                </span>
+                <span className="min-w-0">
+                  <span className="block text-[13px] font-extrabold text-[var(--knoux-text)]">{item.title}</span>
+                  <span className="mt-1 block text-[12px] font-medium leading-5 text-[var(--knoux-text-muted)]">{item.body}</span>
+                </span>
+              </button>
+            )) : (
+              <div className="rounded-2xl border border-dashed border-[var(--knoux-border)] bg-[var(--knoux-surface-muted)] p-5 text-center">
+                <CheckCircle2 className="mx-auto h-8 w-8 text-[var(--knoux-success)]" />
+                <p className="mt-3 text-[13px] font-extrabold text-[var(--knoux-text)]">{t('No recommendations yet', 'لا توجد توصيات بعد')}</p>
+                <p className="mt-1 text-[12px] leading-5 text-[var(--knoux-text-muted)]">{t('Run a real device scan to generate accurate recommendations.', 'شغّل فحصًا حقيقيًا للجهاز لإنشاء توصيات دقيقة.')}</p>
+              </div>
+            )}
+          </div>
+        </article>
+      </section>
+
+      <section className="knoux-glass-panel p-6">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <div className="knoux-eyebrow"><Clock3 className="h-4 w-4" />{t('Recent activity', 'العمليات الأخيرة')}</div>
+            <h2 className="mt-2 text-[20px] font-black text-[var(--knoux-text)]">{t('Verified operation history', 'سجل العمليات الموثق')}</h2>
+          </div>
+          <button type="button" onClick={() => setCurrentRoute('support')} className="knoux-card-action">{t('Open full activity', 'فتح السجل الكامل')}<ArrowUpRight className="h-4 w-4 rtl:-scale-x-100" /></button>
+        </div>
+
+        {actionLogs.length > 0 ? (
+          <div className="mt-5 overflow-hidden rounded-2xl border border-[var(--knoux-border)]">
+            {actionLogs.slice(0, 5).map(log => (
+              <div key={log.id} className="grid gap-3 border-b border-[var(--knoux-border)] bg-[var(--knoux-surface-muted)] px-4 py-3 last:border-b-0 md:grid-cols-[1fr_160px_130px] md:items-center">
+                <div className="min-w-0">
+                  <p className="truncate text-[13px] font-extrabold text-[var(--knoux-text)]">{log.capabilityName}</p>
+                  <p className="mt-0.5 truncate text-[11px] font-medium text-[var(--knoux-text-muted)]">{log.details}</p>
+                </div>
+                <span className={`knoux-chip w-fit ${log.status === 'completed' ? 'knoux-chip--success' : log.status === 'failed' ? 'knoux-chip--warning' : ''}`}>{log.status}</span>
+                <span className="text-[11px] font-semibold text-[var(--knoux-text-muted)]">{log.timestamp}</span>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="mt-5 flex min-h-[150px] flex-col items-center justify-center rounded-2xl border border-dashed border-[var(--knoux-border)] bg-[var(--knoux-surface-muted)] text-center">
+            <Activity className="h-8 w-8 text-[var(--knoux-text-muted)]" />
+            <p className="mt-3 text-[13px] font-extrabold text-[var(--knoux-text)]">{t('No operations have been recorded', 'لم يتم تسجيل أي عمليات')}</p>
+            <p className="mt-1 text-[12px] text-[var(--knoux-text-muted)]">{t('Real operation results will appear here.', 'ستظهر نتائج العمليات الحقيقية هنا.')}</p>
+          </div>
+        )}
+      </section>
     </div>
   );
 };
-

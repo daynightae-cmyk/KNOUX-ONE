@@ -13,6 +13,9 @@ export interface NativeRuntimeState {
   reasonAr?: string;
 }
 
+export type NativeCapabilityData = Record<string, any>;
+export type NativeCapabilityResult = OperationResult<NativeCapabilityData>;
+
 export class NativeClient {
   /**
    * Check if running inside real Tauri desktop environment
@@ -43,13 +46,17 @@ export class NativeClient {
         throw err;
       }
     }
-    throw new Error(`desktop_runtime_unavailable`);
+    throw new Error('desktop_runtime_unavailable');
   }
 
   /**
    * Execute explicit Module 01 capability handler
    */
-  static async executeModule01Capability(capabilityId: string, handlerId: string, parameters: Record<string, any> = {}): Promise<OperationResult> {
+  static async executeModule01Capability(
+    capabilityId: string,
+    handlerId: string,
+    parameters: Record<string, any> = {},
+  ): Promise<NativeCapabilityResult> {
     const startedAt = new Date().toISOString();
     const opId = `op_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
 
@@ -69,15 +76,14 @@ export class NativeClient {
         summaryEn: 'Desktop runtime unavailable. Open KNOUX ONE Desktop to execute native commands.',
         summaryAr: 'بيئة سطح المكتب غير متاحة. افتح تطبيق KNOUX ONE Desktop لتشغيل العمليات المحلية.',
         warnings: ['Web preview environment detected. Native execution disabled.'],
-        errorCode: 'desktop_runtime_unavailable'
+        errorCode: 'desktop_runtime_unavailable',
       };
     }
 
-    // Map handlerId to Rust tauri command name
     const commandName = handlerId.replace(/\./g, '_');
 
     try {
-      return await this.invokeNative<OperationResult>(commandName, { op_id: opId, ...parameters });
+      return await this.invokeNative<NativeCapabilityResult>(commandName, { op_id: opId, ...parameters });
     } catch (err: any) {
       return {
         operationId: opId,
@@ -92,7 +98,7 @@ export class NativeClient {
         summaryEn: `Native command ${commandName} failed: ${err.message || 'Unknown error'}`,
         summaryAr: `فشلت العملية المحلية ${commandName}: ${err.message || 'خطأ غير معروف'}`,
         warnings: [err.toString()],
-        errorCode: 'native_execution_failed'
+        errorCode: 'native_execution_failed',
       };
     }
   }

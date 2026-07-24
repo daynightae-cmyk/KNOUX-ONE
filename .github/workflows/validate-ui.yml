@@ -1,0 +1,81 @@
+name: Validate KNOUX Workspace
+
+on:
+  push:
+    branches:
+      - feat/premium-workspace-rebuild
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  frontend:
+    name: Typecheck, test, and build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund --loglevel=error
+
+      - name: Capture typecheck
+        shell: bash
+        run: |
+          set +e
+          npm run typecheck > typecheck.log 2>&1
+          echo "$?" > typecheck.exit
+          exit 0
+
+      - name: Capture unit tests
+        shell: bash
+        run: |
+          set +e
+          npm run test > tests.log 2>&1
+          echo "$?" > tests.exit
+          exit 0
+
+      - name: Capture production build
+        shell: bash
+        run: |
+          set +e
+          npm run build > build.log 2>&1
+          echo "$?" > build.exit
+          exit 0
+
+      - name: Upload validation logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: validation-logs
+          path: |
+            typecheck.log
+            typecheck.exit
+            tests.log
+            tests.exit
+            build.log
+            build.exit
+          if-no-files-found: error
+
+      - name: Enforce validation
+        shell: bash
+        run: |
+          echo "--- TYPECHECK ---"
+          cat typecheck.log
+          echo "--- TESTS ---"
+          cat tests.log
+          echo "--- BUILD ---"
+          cat build.log
+          test "$(cat typecheck.exit)" = "0"
+          test "$(cat tests.exit)" = "0"
+          test "$(cat build.exit)" = "0"
