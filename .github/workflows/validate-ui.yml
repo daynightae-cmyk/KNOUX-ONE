@@ -27,10 +27,18 @@ jobs:
           node-version: 22
 
       - name: Install dependencies
-        run: npm install --no-audit --no-fund
+        run: npm install --no-audit --no-fund --loglevel=error
 
       - name: Typecheck
-        run: npm run typecheck
+        shell: bash
+        run: |
+          npm run typecheck > typecheck.log 2>&1 || {
+            echo "::group::TypeScript errors"
+            tail -n 120 typecheck.log
+            echo "::endgroup::"
+            exit 1
+          }
+          cat typecheck.log
 
       - name: Unit tests
         run: npm run test
