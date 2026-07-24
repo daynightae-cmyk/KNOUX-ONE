@@ -16,11 +16,21 @@ import { PostFormatView } from './components/views/PostFormatView';
 import { SmartCleanupView } from './components/views/SmartCleanupView';
 import { DuplicateFinderView } from './components/views/DuplicateFinderView';
 import { StorageAnalyzerView } from './components/views/StorageAnalyzerView';
+import { StartupServicesView } from './components/views/StartupServicesView';
+import { PerformanceCenterView } from './components/views/PerformanceCenterView';
 import { WindowsRepairView } from './components/views/WindowsRepairView';
 import { NetworkOptimizerView } from './components/views/NetworkOptimizerView';
 import { PrivacyTelemetryView } from './components/views/PrivacyTelemetryView';
+import { SecurityCenterView } from './components/views/SecurityCenterView';
+import { BackupRecoveryView } from './components/views/BackupRecoveryView';
 import { ApplicationsStoreView } from './components/views/ApplicationsStoreView';
+import { FileUtilitiesView } from './components/views/FileUtilitiesView';
+import { AutomationProductivityView } from './components/views/AutomationProductivityView';
 import { DeveloperSuiteView } from './components/views/DeveloperSuiteView';
+import { CodeProjectToolsView } from './components/views/CodeProjectToolsView';
+import { LogsDiagnosticsView } from './components/views/LogsDiagnosticsView';
+import { HardwareHealthView } from './components/views/HardwareHealthView';
+import { CloudSupportView } from './components/views/CloudSupportView';
 import { CapabilitiesCatalogView } from './components/views/CapabilitiesCatalogView';
 import { WebLandingView } from './components/views/WebLandingView';
 import { SupportPortalView } from './components/views/SupportPortalView';
@@ -44,18 +54,36 @@ const AppContent: React.FC = () => {
         return <DuplicateFinderView />;
       case 'storage':
         return <StorageAnalyzerView />;
+      case 'startup':
+        return <StartupServicesView />;
+      case 'performance':
+        return <PerformanceCenterView />;
       case 'repair':
-      case 'security':
         return <WindowsRepairView />;
       case 'network':
         return <NetworkOptimizerView />;
       case 'privacy':
         return <PrivacyTelemetryView />;
+      case 'security':
+        return <SecurityCenterView />;
+      case 'backup':
+        return <BackupRecoveryView />;
       case 'applications':
         return <ApplicationsStoreView />;
+      case 'file-tools':
+        return <FileUtilitiesView />;
+      case 'automation':
+        return <AutomationProductivityView />;
       case 'developer':
-      case 'project-tools':
         return <DeveloperSuiteView />;
+      case 'project-tools':
+        return <CodeProjectToolsView />;
+      case 'diagnostics':
+        return <LogsDiagnosticsView />;
+      case 'hardware':
+        return <HardwareHealthView />;
+      case 'cloud':
+        return <CloudSupportView />;
       case 'catalog':
         return <CapabilitiesCatalogView />;
       case 'web-landing':

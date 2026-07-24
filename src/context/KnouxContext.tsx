@@ -65,6 +65,7 @@ interface KnouxContextType {
   setCommandPaletteOpen: (open: boolean) => void;
   elevationRequest: ElevationRequest;
   requestElevation: (opEn: string, opAr: string, reasonEn: string, reasonAr: string, risk: RiskLevel, onConfirm: () => void) => void;
+  triggerElevation: (capId: string, reasonEn: string, onConfirm: () => void) => void;
   closeElevationModal: () => void;
   supportTickets: SupportTicket[];
   addSupportTicket: (subject: string, category: string, priority: 'low' | 'medium' | 'high') => void;
@@ -322,6 +323,17 @@ export const KnouxProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     });
   };
 
+  const triggerElevation = (capId: string, reasonEn: string, onConfirm: () => void) => {
+    requestElevation(
+      `Capability ${capId}`,
+      `الوظيفة ${capId}`,
+      reasonEn,
+      reasonEn,
+      'moderate',
+      onConfirm
+    );
+  };
+
   const closeElevationModal = () => {
     setElevationRequest(prev => ({ ...prev, isOpen: false }));
   };
@@ -383,6 +395,7 @@ export const KnouxProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         setCommandPaletteOpen,
         elevationRequest,
         requestElevation,
+        triggerElevation,
         closeElevationModal,
         supportTickets,
         addSupportTicket,

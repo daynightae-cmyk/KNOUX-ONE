@@ -14,7 +14,42 @@ export type CapabilityStatus =
   | 'requires_configuration' 
   | 'unsupported';
 
+export type ImplementationState =
+  | 'implemented'
+  | 'partial'
+  | 'planned'
+  | 'requires_configuration'
+  | 'unsupported';
+
+export type OperationStatus =
+  | 'completed'
+  | 'completed_with_warnings'
+  | 'failed'
+  | 'cancelled'
+  | 'unavailable'
+  | 'requires_admin'
+  | 'requires_configuration'
+  | 'planned'
+  | 'unsupported';
+
 export type RiskLevel = 'safe' | 'low' | 'moderate' | 'advanced' | 'high';
+
+export interface OperationResult<T = unknown> {
+  operationId: string;
+  capabilityId: string;
+  status: OperationStatus;
+  startedAt: string;
+  completedAt?: string;
+  durationMs?: number;
+  requiresRestart: boolean;
+  exitCode?: number;
+  stdout?: string;
+  stderr?: string;
+  summaryEn: string;
+  summaryAr: string;
+  warnings: string[];
+  data?: T;
+}
 
 export interface KnouxCapability {
   id: string;
@@ -28,6 +63,16 @@ export interface KnouxCapability {
   descriptionAr: string;
   psCommand?: string;
   wingetId?: string;
+  handlerId?: string;
+  implementationState?: ImplementationState;
+  availabilityReasonEn?: string;
+  availabilityReasonAr?: string;
+  supportedWindowsVersions?: string[];
+  verificationStrategy?: string;
+  readsEn?: string;
+  readsAr?: string;
+  changesEn?: string;
+  changesAr?: string;
   runtime: KnouxRuntime;
   status: CapabilityStatus;
   riskLevel: RiskLevel;

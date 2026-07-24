@@ -1,25 +1,47 @@
 @import "tailwindcss";
 
 @layer base {
-  :root {
+  :root,
+  :root.dark,
+  :root[data-theme="dark"] {
+    --knoux-bg: #0d0527;
+    --knoux-surface: #151027;
+    --knoux-surface-muted: #1d1633;
+    --knoux-border: #342752;
+    --knoux-text: #fcfaff;
+    --knoux-text-muted: #b9afc9;
+    --knoux-primary: #8226ee;
+    --knoux-primary-hover: #6d18d7;
+
     --bg-dark: #0D0527;
     --panel-dark: #151027;
     --surface-dark: #1D1633;
     --border-dark: #2D224D;
-    
-    --bg-light: #F8F6FF;
-    --panel-light: #FFFFFF;
-    --surface-light: #F3EEFF;
-    --border-light: #E2D7FE;
+  }
 
-    --primary: #8226EE;
-    --primary-hover: #701AD3;
-    --accent: #A74CE7;
+  :root.light,
+  :root[data-theme="light"] {
+    --knoux-bg: #f8f6ff;
+    --knoux-surface: #ffffff;
+    --knoux-surface-muted: #f3eeff;
+    --knoux-border: #ded3f4;
+    --knoux-text: #161025;
+    --knoux-text-muted: #665e76;
+    --knoux-primary: #8226ee;
+    --knoux-primary-hover: #6d18d7;
+
+    --bg-dark: #f8f6ff;
+    --panel-dark: #ffffff;
+    --surface-dark: #f3eeff;
+    --border-dark: #ded3f4;
   }
 
   body {
+    background-color: var(--knoux-bg);
+    color: var(--knoux-text);
     font-family: 'Inter', 'Cairo', sans-serif;
     overflow-x: hidden;
+    transition: background-color 0.2s ease, color 0.2s ease;
   }
 
   /* Custom scrollbar styling */
