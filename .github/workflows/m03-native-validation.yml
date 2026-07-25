@@ -17,7 +17,7 @@ on:
     branches: [feat/m03-real-duplicate-engine]
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   rust:
@@ -29,60 +29,8 @@ jobs:
         working-directory: src-tauri
 
     steps:
-      - name: Checkout feature head
+      - name: Checkout
         uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event_name == 'pull_request' && github.head_ref || github.ref_name }}
-
-      - name: Persist verified quarantine cleanup fix
-        if: github.event_name == 'pull_request'
-        working-directory: ${{ github.workspace }}
-        shell: pwsh
-        run: |
-          $path = 'src-tauri/src/duplicates/quarantine.rs'
-          $content = Get-Content -Raw -Encoding UTF8 $path
-          $old = '        let _ = fs::remove_file(destination);'
-          $replacement = @'
-                  let mut removed = false;
-                  for _ in 0..10 {
-                      match fs::remove_file(destination) {
-                          Ok(()) => {
-                              removed = true;
-                              break;
-                          }
-                          Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
-                              removed = true;
-                              break;
-                          }
-                          Err(_) => std::thread::sleep(std::time::Duration::from_millis(25)),
-                      }
-                  }
-                  if !removed || destination.exists() {
-                      return Err(DuplicateError::QuarantineVerifyFailed(format!(
-                          "failed_to_remove_unverified_copy:{}",
-                          destination.display()
-                      )));
-                  }
-          '@
-          if ($content.Contains($old)) {
-            $content = $content.Replace($old, $replacement.TrimEnd())
-            Set-Content -Path $path -Value $content -Encoding UTF8 -NoNewline
-          }
-          $verified = Get-Content -Raw -Encoding UTF8 $path
-          if (-not $verified.Contains('failed_to_remove_unverified_copy')) {
-            throw 'Quarantine cleanup source fix was not applied.'
-          }
-          Push-Location src-tauri
-          cargo fmt --all
-          Pop-Location
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add $path
-          $changes = git status --porcelain -- $path
-          if ($changes) {
-            git commit -m "fix(m03): remove failed quarantine copies reliably"
-            git push origin "HEAD:${{ github.head_ref }}"
-          }
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
