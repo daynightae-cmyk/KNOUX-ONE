@@ -1,0 +1,153 @@
+name: Temporary Feature Branch Fixer
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/temporary-feature-fixer.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+      - name: Fix Module 03 branch
+        shell: bash
+        run: |
+          git fetch origin feat/m03-real-duplicate-engine
+          git checkout -B feat/m03-real-duplicate-engine origin/feat/m03-real-duplicate-engine
+          python - <<'PY'
+          from pathlib import Path
+          path = Path('src-tauri/src/duplicates/quarantine.rs')
+          source = path.read_text()
+          anchor = '''fn sync_file(path: &Path) -> Result<(), DuplicateError> {
+              File::open(path)?
+                  .sync_all()
+                  .map_err(|error| DuplicateError::QuarantineCopyFailed(error.to_string()))
+          }
+          '''
+          helper = anchor + '''
+          fn remove_file_with_retry(path: &Path) -> Result<(), DuplicateError> {
+              let mut last_error = None;
+              for _ in 0..5 {
+                  match fs::remove_file(path) {
+                      Ok(()) => return Ok(()),
+                      Err(error) if error.kind() == std::io::ErrorKind::NotFound => return Ok(()),
+                      Err(error) => {
+                          last_error = Some(error);
+                          std::thread::sleep(std::time::Duration::from_millis(20));
+                      }
+                  }
+              }
+              Err(DuplicateError::QuarantineVerifyFailed(format!(
+                  "failed_to_remove_unverified_copy:{}:{}",
+                  path.display(),
+                  last_error.map(|error| error.to_string()).unwrap_or_else(|| "unknown".into())
+              )))
+          }
+          '''
+          old = '''if full_blake3(destination)? != expected_hash {
+              let _ = fs::remove_file(destination);
+              return Err(DuplicateError::QuarantineVerifyFailed(
+                  destination.display().to_string(),
+              ));
+          }'''
+          new = '''if full_blake3(destination)? != expected_hash {
+              remove_file_with_retry(destination)?;
+              return Err(DuplicateError::QuarantineVerifyFailed(
+                  destination.display().to_string(),
+              ));
+          }'''
+          if 'fn remove_file_with_retry' not in source:
+              if anchor not in source: raise SystemExit('M03 anchor missing')
+              source = source.replace(anchor, helper, 1)
+          if old in source: source = source.replace(old, new, 1)
+          elif new not in source: raise SystemExit('M03 verification block missing')
+          path.write_text(source)
+          PY
+          rm -f .github/workflows/m03-quarantine-hotfix.yml
+          cd src-tauri && cargo fmt --all && cd ..
+          git add src-tauri/src/duplicates/quarantine.rs .github/workflows/m03-quarantine-hotfix.yml
+          if ! git diff --cached --quiet; then
+            git commit -m "fix(m03): remove failed quarantine copies reliably"
+            git push origin HEAD:feat/m03-real-duplicate-engine
+          fi
+      - name: Fix and format Module 15 branch
+        shell: bash
+        run: |
+          git fetch origin feat/m15-developer-studio
+          git checkout -B feat/m15-developer-studio origin/feat/m15-developer-studio
+          python - <<'PY'
+          from pathlib import Path
+          ui = Path('src/features/developer/DeveloperStudio.tsx')
+          source = ui.read_text()
+          old = "function ToolCard({ tool, t }: { tool: ToolchainItem; t: (en: string, ar: string) => string }) {"
+          new = "function ToolCard({ tool, t }: { key?: React.Key; tool: ToolchainItem; t: (en: string, ar: string) => string }) {"
+          if old in source: source = source.replace(old, new, 1)
+          elif new not in source: raise SystemExit('M15 ToolCard signature missing')
+          ui.write_text(source)
+          q = Path('src-tauri/src/duplicates/quarantine.rs')
+          qs = q.read_text()
+          anchor = '''fn sync_file(path: &Path) -> Result<(), DuplicateError> {
+              File::open(path)?
+                  .sync_all()
+                  .map_err(|error| DuplicateError::QuarantineCopyFailed(error.to_string()))
+          }
+          '''
+          helper = anchor + '''
+          fn remove_file_with_retry(path: &Path) -> Result<(), DuplicateError> {
+              let mut last_error = None;
+              for _ in 0..5 {
+                  match fs::remove_file(path) {
+                      Ok(()) => return Ok(()),
+                      Err(error) if error.kind() == std::io::ErrorKind::NotFound => return Ok(()),
+                      Err(error) => {
+                          last_error = Some(error);
+                          std::thread::sleep(std::time::Duration::from_millis(20));
+                      }
+                  }
+              }
+              Err(DuplicateError::QuarantineVerifyFailed(format!(
+                  "failed_to_remove_unverified_copy:{}:{}",
+                  path.display(),
+                  last_error.map(|error| error.to_string()).unwrap_or_else(|| "unknown".into())
+              )))
+          }
+          '''
+          oldq = '''if full_blake3(destination)? != expected_hash {
+              let _ = fs::remove_file(destination);
+              return Err(DuplicateError::QuarantineVerifyFailed(
+                  destination.display().to_string(),
+              ));
+          }'''
+          newq = '''if full_blake3(destination)? != expected_hash {
+              remove_file_with_retry(destination)?;
+              return Err(DuplicateError::QuarantineVerifyFailed(
+                  destination.display().to_string(),
+              ));
+          }'''
+          if 'fn remove_file_with_retry' not in qs:
+              if anchor not in qs: raise SystemExit('M15 quarantine anchor missing')
+              qs = qs.replace(anchor, helper, 1)
+          if oldq in qs: qs = qs.replace(oldq, newq, 1)
+          q.write_text(qs)
+          PY
+          rm -f .github/workflows/m15-ts-hotfix.yml .github/workflows/m15-rustfmt.yml
+          cd src-tauri && cargo fmt --all && cd ..
+          git add src/features/developer/DeveloperStudio.tsx src-tauri/src .github/workflows/m15-ts-hotfix.yml .github/workflows/m15-rustfmt.yml
+          if ! git diff --cached --quiet; then
+            git commit -m "fix(m15): format native studio and resolve React key typing"
+            git push origin HEAD:feat/m15-developer-studio
+          fi
