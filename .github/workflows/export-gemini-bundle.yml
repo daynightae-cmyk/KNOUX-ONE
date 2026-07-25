@@ -1,0 +1,104 @@
+name: Export Gemini M03 M15 M16 Integration Bundle
+
+on:
+  push:
+    branches:
+      - bundle/gemini-m03-m15-m16
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout authoritative bundle branch
+        uses: actions/checkout@v4
+
+      - name: Build overlay package
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="$GITHUB_WORKSPACE"
+          BUNDLE="$ROOT/bundle-output"
+          OVERLAY="$BUNDLE/overlay"
+          rm -rf "$BUNDLE"
+          mkdir -p "$OVERLAY"
+
+          paths=(
+            ".github/workflows/m03-native-validation.yml"
+            "README.md"
+            "docs/M03_DUPLICATE_ENGINE.md"
+            "docs/M15_DEVELOPER_STUDIO.md"
+            "src-tauri/Cargo.toml"
+            "src-tauri/icons/icon.ico"
+            "src-tauri/migrations"
+            "src-tauri/src/developer"
+            "src-tauri/src/duplicates"
+            "src-tauri/src/storage"
+            "src-tauri/src/system"
+            "src-tauri/src/winget"
+            "src-tauri/src/main.rs"
+            "src-tauri/tauri.conf.json"
+            "src/components/views/CodeProjectToolsView.tsx"
+            "src/components/views/DeveloperSuiteView.tsx"
+            "src/context/KnouxContext.tsx"
+            "src/data/capabilitiesCatalog.ts"
+            "src/data/legacyCapabilitiesSeed.ts"
+            "src/features/developer"
+            "src/features/duplicates"
+            "src/features/projects/projectStore.ts"
+            "src/services/nativeClient.ts"
+            "src/services/nativeCommandRegistry.ts"
+            "src/services/operationService.ts"
+            "src/tests/antiCheating.test.ts"
+            "src/tests/catalogIntegrity.test.ts"
+            "src/tests/m03Registry.test.ts"
+            "src/tests/nativeClient.test.ts"
+            "src/types/index.ts"
+          )
+
+          cd "$ROOT"
+          for path in "${paths[@]}"; do
+            if [[ -e "$path" ]]; then
+              cp --parents -a "$path" "$OVERLAY"
+            else
+              echo "Missing expected source path: $path" >&2
+              exit 1
+            fi
+          done
+
+          cp GEMINI_BUILD_MASTER_PROMPT.md "$BUNDLE/"
+          cp INTEGRATION_CHECKLIST.md "$BUNDLE/"
+          cp DELETE_MANIFEST.txt "$BUNDLE/"
+
+          {
+            echo "Repository: daynightae-cmyk/KNOUX-ONE"
+            echo "Bundle branch: bundle/gemini-m03-m15-m16"
+            echo "Source commit: $GITHUB_SHA"
+            echo "Includes merged Module 03 implementation and Module 15 Developer Studio overlay."
+            echo "Next directed phase: Module 16 Project Engineering."
+            echo "Official night logo: https://i.postimg.cc/V6LqNG8m/Knoux-Chat-GPT-01.jpg"
+            echo "Official day logo: https://i.postimg.cc/fLTcb2NT/Knoux-Chat-GPT-20.jpg"
+          } > "$BUNDLE/SOURCE_METADATA.txt"
+
+          find "$OVERLAY" -type f -printf '%P\n' | sort > "$BUNDLE/FILE_MANIFEST.txt"
+
+          cat > "$BUNDLE/START_HERE_AR.txt" <<'EOF'
+          ارفع ملف ZIP كاملًا إلى Gemini Build داخل مشروع KNOUX ONE المفتوح.
+          اطلب منه أولًا قراءة GEMINI_BUILD_MASTER_PROMPT.md كاملًا، ثم تطبيق overlay حسب المسارات الأصلية، ثم حذف الملفات الموجودة في DELETE_MANIFEST.txt، ثم تشغيل الاختبارات، وبعد نجاح الدمج يبدأ تنفيذ Module 16 Project Engineering.
+          لا تسمح له بإنشاء مشروع جديد، أو استبدال التطبيق، أو استخدام بيانات وهمية، أو نشر Production قبل نجاح جميع الفحوصات.
+          EOF
+
+          cd "$BUNDLE"
+          zip -r -9 "$ROOT/KNOUX-ONE-Gemini-Integration-M03-M15-Next-M16.zip" .
+
+      - name: Upload Gemini integration ZIP
+        uses: actions/upload-artifact@v4
+        with:
+          name: KNOUX-ONE-Gemini-Integration-M03-M15-Next-M16
+          path: KNOUX-ONE-Gemini-Integration-M03-M15-Next-M16.zip
+          if-no-files-found: error
+          retention-days: 30
