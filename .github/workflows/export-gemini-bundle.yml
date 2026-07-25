@@ -4,6 +4,14 @@ on:
   push:
     branches:
       - bundle/gemini-m03-m15-m16
+  pull_request:
+    branches:
+      - feat/m15-developer-studio
+    paths:
+      - 'GEMINI_BUILD_MASTER_PROMPT.md'
+      - 'INTEGRATION_CHECKLIST.md'
+      - 'DELETE_MANIFEST.txt'
+      - '.github/workflows/export-gemini-bundle.yml'
   workflow_dispatch:
 
 permissions:
