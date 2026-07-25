@@ -91,6 +91,14 @@ pub(crate) fn copy_verify_delete(
                 Err(_) => std::thread::sleep(std::time::Duration::from_millis(25)),
             }
         }
+        if removed {
+            for _ in 0..80 {
+                if !destination.exists() {
+                    break;
+                }
+                std::thread::sleep(std::time::Duration::from_millis(25));
+            }
+        }
         if !removed || destination.exists() {
             return Err(DuplicateError::QuarantineVerifyFailed(format!(
                 "failed_to_remove_unverified_copy:{}",
