@@ -17,7 +17,7 @@ on:
     branches: [feat/m03-real-duplicate-engine]
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   rust:
@@ -29,67 +29,8 @@ jobs:
         working-directory: src-tauri
 
     steps:
-      - name: Checkout feature head
+      - name: Checkout
         uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event_name == 'pull_request' && github.head_ref || github.ref_name }}
-
-      - name: Persist atomic rejection tombstone cleanup
-        if: github.event_name == 'pull_request'
-        working-directory: ${{ github.workspace }}
-        shell: pwsh
-        run: |
-          $path = 'src-tauri/src/duplicates/quarantine.rs'
-          $content = Get-Content -Raw -Encoding UTF8 $path
-          $pattern = '(?s)        let mut removed = false;.*?        return Err\(DuplicateError::QuarantineVerifyFailed\(\r?\n            destination\.display\(\)\.to_string\(\),\r?\n        \)\);'
-          $replacement = @'
-                  let tombstone = destination.with_file_name(format!(
-                      ".knoux-rejected-{}.tmp",
-                      Uuid::new_v4()
-                  ));
-                  let cleanup_path = match fs::rename(destination, &tombstone) {
-                      Ok(()) => tombstone,
-                      Err(_) => destination.to_path_buf(),
-                  };
-                  for _ in 0..80 {
-                      match fs::remove_file(&cleanup_path) {
-                          Ok(()) => break,
-                          Err(error) if error.kind() == std::io::ErrorKind::NotFound => break,
-                          Err(_) => std::thread::sleep(std::time::Duration::from_millis(25)),
-                      }
-                  }
-                  if destination.exists() {
-                      return Err(DuplicateError::QuarantineVerifyFailed(format!(
-                          "failed_to_isolate_unverified_copy:{}",
-                          destination.display()
-                      )));
-                  }
-                  return Err(DuplicateError::QuarantineVerifyFailed(
-                      destination.display().to_string(),
-                  ));
-          '@
-          if (-not $content.Contains('failed_to_isolate_unverified_copy')) {
-            $updated = [regex]::Replace($content, $pattern, $replacement.TrimEnd(), 1)
-            if ($updated -eq $content) {
-              throw 'Rejected-copy cleanup block was not found.'
-            }
-            Set-Content -Path $path -Value $updated -Encoding UTF8 -NoNewline
-          }
-          $verified = Get-Content -Raw -Encoding UTF8 $path
-          if (-not $verified.Contains('failed_to_isolate_unverified_copy')) {
-            throw 'Atomic rejection cleanup was not applied.'
-          }
-          Push-Location src-tauri
-          cargo fmt --all
-          Pop-Location
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add $path
-          $changes = git status --porcelain -- $path
-          if ($changes) {
-            git commit -m "fix(m03): isolate rejected copies before cleanup"
-            git push origin "HEAD:${{ github.head_ref }}"
-          }
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
