@@ -17,7 +17,7 @@ on:
     branches: [feat/m03-real-duplicate-engine]
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   rust:
@@ -29,54 +29,8 @@ jobs:
         working-directory: src-tauri
 
     steps:
-      - name: Checkout feature head
+      - name: Checkout
         uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event_name == 'pull_request' && github.head_ref || github.ref_name }}
-
-      - name: Persist Windows delete-pending wait
-        if: github.event_name == 'pull_request'
-        working-directory: ${{ github.workspace }}
-        shell: pwsh
-        run: |
-          $path = 'src-tauri/src/duplicates/quarantine.rs'
-          $content = Get-Content -Raw -Encoding UTF8 $path
-          $old = @'
-                  if !removed || destination.exists() {
-          '@
-          $replacement = @'
-                  if removed {
-                      for _ in 0..80 {
-                          if !destination.exists() {
-                              break;
-                          }
-                          std::thread::sleep(std::time::Duration::from_millis(25));
-                      }
-                  }
-                  if !removed || destination.exists() {
-          '@
-          if (-not $content.Contains('for _ in 0..80')) {
-            if (-not $content.Contains($old.TrimEnd())) {
-              throw 'Windows delete-pending insertion point was not found.'
-            }
-            $content = $content.Replace($old.TrimEnd(), $replacement.TrimEnd())
-            Set-Content -Path $path -Value $content -Encoding UTF8 -NoNewline
-          }
-          $verified = Get-Content -Raw -Encoding UTF8 $path
-          if (-not $verified.Contains('for _ in 0..80')) {
-            throw 'Windows delete-pending wait was not applied.'
-          }
-          Push-Location src-tauri
-          cargo fmt --all
-          Pop-Location
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add $path
-          $changes = git status --porcelain -- $path
-          if ($changes) {
-            git commit -m "fix(m03): wait for Windows delete-pending cleanup"
-            git push origin "HEAD:${{ github.head_ref }}"
-          }
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
