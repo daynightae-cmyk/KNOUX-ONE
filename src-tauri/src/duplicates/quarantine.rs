@@ -77,31 +77,22 @@ pub(crate) fn copy_verify_delete(
         .map_err(|error| DuplicateError::QuarantineCopyFailed(error.to_string()))?;
     sync_file(destination)?;
     if full_blake3(destination)? != expected_hash {
-        let mut removed = false;
-        for _ in 0..10 {
-            match fs::remove_file(destination) {
-                Ok(()) => {
-                    removed = true;
-                    break;
-                }
-                Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
-                    removed = true;
-                    break;
-                }
+        let tombstone =
+            destination.with_file_name(format!(".knoux-rejected-{}.tmp", Uuid::new_v4()));
+        let cleanup_path = match fs::rename(destination, &tombstone) {
+            Ok(()) => tombstone,
+            Err(_) => destination.to_path_buf(),
+        };
+        for _ in 0..80 {
+            match fs::remove_file(&cleanup_path) {
+                Ok(()) => break,
+                Err(error) if error.kind() == std::io::ErrorKind::NotFound => break,
                 Err(_) => std::thread::sleep(std::time::Duration::from_millis(25)),
             }
         }
-        if removed {
-            for _ in 0..80 {
-                if !destination.exists() {
-                    break;
-                }
-                std::thread::sleep(std::time::Duration::from_millis(25));
-            }
-        }
-        if !removed || destination.exists() {
+        if destination.exists() {
             return Err(DuplicateError::QuarantineVerifyFailed(format!(
-                "failed_to_remove_unverified_copy:{}",
+                "failed_to_isolate_unverified_copy:{}",
                 destination.display()
             )));
         }
