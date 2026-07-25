@@ -1,96 +1,125 @@
-/**
- * KNOUX ONE — Module 03 Quarantine Vault View
- */
-import React from 'react';
-import { ShieldAlert, RotateCcw, Trash2, CheckCircle2, ShieldCheck } from 'lucide-react';
+import React, { useState } from 'react';
+import {
+  CheckCircle2,
+  FileCheck2,
+  RotateCcw,
+  ShieldAlert,
+  ShieldCheck,
+  Trash2,
+} from 'lucide-react';
 import { formatBytes } from './duplicateFormatters';
 import { useTranslation } from '../../i18n';
 
 export function DuplicateQuarantineView({ store }: { store: any }) {
   const { t } = useTranslation();
+  const [restoreModes, setRestoreModes] = useState<Record<string, 'fail' | 'rename' | 'replace' | 'choose'>>({});
   const records = store.quarantineRecords;
 
   if (records.length === 0) {
     return (
-      <div className="knoux-card text-center p-12 border border-[var(--knoux-border)] bg-[var(--knoux-card-bg)] rounded-xl">
+      <div className="knoux-card rounded-2xl border border-[var(--knoux-border)] bg-[var(--knoux-card-bg)] p-12 text-center">
         <ShieldCheck className="mx-auto h-12 w-12 text-purple-400" />
-        <h3 className="mt-3 text-base font-bold text-[var(--knoux-text)]">
-          {t('Quarantine Vault Empty', 'المحجر الآمن فارغ حالياً')}
+        <h3 className="mt-3 text-base font-black text-[var(--knoux-text)]">
+          {t('Quarantine vault is empty', 'المحجر الآمن فارغ')}
         </h3>
-        <p className="mt-1 text-xs text-[var(--knoux-subtext)]">
-          {t('Files moved to quarantine from scan results will appear here for safe 1-click restoration or final purge.', 'الملفات المحولة للمحجر ستظهر هنا للرصد أو الاستعادة بضغطة زر واحدة.')}
+        <p className="mx-auto mt-2 max-w-xl text-xs leading-6 text-[var(--knoux-subtext)]">
+          {t(
+            'Only files confirmed by the native engine appear here. Web preview never creates sample quarantine records.',
+            'لا تظهر هنا إلا الملفات التي أكد المحرك المحلي نقلها فعليًا، ولا تنشئ معاينة الويب سجلات تجريبية.',
+          )}
         </p>
       </div>
     );
   }
 
+  const restore = async (quarantineId: string, originalPath: string) => {
+    const mode = restoreModes[quarantineId] ?? 'rename';
+    let destination: string | null = null;
+    if (mode === 'choose') {
+      destination = window.prompt(
+        t('Enter a complete restore destination path.', 'أدخل مسار الاستعادة الكامل.'),
+        originalPath,
+      );
+      if (!destination) return;
+    }
+    await store.restoreQuarantinedItem(quarantineId, mode, destination);
+  };
+
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between knoux-card p-4 rounded-xl border border-[var(--knoux-border)] bg-[var(--knoux-card-bg)]">
+      <section className="knoux-glass-panel flex flex-col gap-3 p-5 md:flex-row md:items-center md:justify-between">
         <div>
-          <h3 className="text-base font-bold text-[var(--knoux-text)] flex items-center gap-2">
+          <h2 className="flex items-center gap-2 text-base font-black text-[var(--knoux-text)]">
             <ShieldAlert className="h-5 w-5 text-purple-400" />
-            {t('KNOUX Safe Quarantine Vault', 'المحجر الآمن KNOUX Vault')}
-          </h3>
-          <p className="text-xs text-[var(--knoux-subtext)]">
-            {t('All items stored in isolated quarantine folder before final permanent deletion.', 'جميع العناصر محفوظة في مجلد معزول للحماية قبل الحذف النهائي.')}
+            {t('Checksum-verified quarantine vault', 'محجر موثق بالبصمة الرقمية')}
+          </h2>
+          <p className="mt-1 text-xs leading-6 text-[var(--knoux-subtext)]">
+            {t(
+              'Restore, verify, or permanently purge files only after the Rust engine confirms the action.',
+              'استعد الملفات أو تحقق منها أو احذفها نهائيًا فقط بعد تأكيد محرك Rust للعملية.',
+            )}
           </p>
         </div>
+        <span className="knoux-chip knoux-chip--accent">{records.length} {t('records', 'سجل')}</span>
+      </section>
 
-        <span className="px-3 py-1 text-xs font-mono font-bold rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30">
-          {records.length} {t('Items Vaulted', 'عنصر في المحجر')}
-        </span>
-      </div>
-
-      <div className="knoux-card border border-[var(--knoux-border)] bg-[var(--knoux-card-bg)] rounded-xl overflow-hidden divide-y divide-[var(--knoux-border)]">
-        {records.map((q: any) => (
-          <div key={q.quarantineId} className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
-            <div>
-              <div className="font-bold text-[var(--knoux-text)] font-mono">{q.fileName}</div>
-              <div className="text-[11px] text-[var(--knoux-subtext)] font-mono mt-0.5">{q.originalPath}</div>
-              <div className="text-[10px] text-purple-400 mt-1">
-                {t('Quarantined at:', 'تاريخ النقل للمحجر:')} {new Date(q.quarantinedAt).toLocaleString()}
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3">
-              <span className="font-mono font-bold text-[var(--knoux-text)]">{formatBytes(q.sizeBytes)}</span>
-
-              {q.status === 'quarantined' && (
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => store.restoreQuarantinedItem(q.quarantineId)}
-                    className="knoux-btn-secondary py-1 px-3 text-xs flex items-center gap-1 text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/10"
-                  >
-                    <RotateCcw className="h-3.5 w-3.5" />
-                    {t('Restore', 'استعادة')}
-                  </button>
-                  <button
-                    onClick={() => store.purgeQuarantinedItem(q.quarantineId)}
-                    className="knoux-btn-secondary py-1 px-3 text-xs flex items-center gap-1 text-rose-400 border-rose-500/30 hover:bg-rose-500/10"
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
-                    {t('Purge', 'حذف نهائي')}
-                  </button>
+      <div className="space-y-3">
+        {records.map((record: any) => {
+          const mode = restoreModes[record.quarantineId] ?? 'rename';
+          return (
+            <article key={record.quarantineId} className="knoux-card rounded-2xl border border-[var(--knoux-border)] bg-[var(--knoux-card-bg)] p-5">
+              <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h3 className="truncate font-mono text-sm font-black text-[var(--knoux-text)]" dir="ltr">{record.fileName}</h3>
+                    <span className={`knoux-chip ${record.verificationState === 'verified' ? 'knoux-chip--success' : 'knoux-chip--warning'}`}>
+                      {record.verificationState}
+                    </span>
+                    <span className="knoux-chip">{record.status}</span>
+                  </div>
+                  <p className="mt-2 truncate font-mono text-xs text-[var(--knoux-subtext)]" dir="ltr" title={record.originalPath}>{record.originalPath}</p>
+                  <p className="mt-1 truncate font-mono text-[11px] text-purple-300/80" dir="ltr" title={record.quarantinePath}>{record.quarantinePath}</p>
+                  <div className="mt-3 flex flex-wrap gap-4 text-xs text-[var(--knoux-subtext)]">
+                    <span>{formatBytes(record.sizeBytes)}</span>
+                    <span>{new Date(record.quarantinedAt).toLocaleString()}</span>
+                    <span className="font-mono" dir="ltr">BLAKE3 {String(record.hash).slice(0, 16)}…</span>
+                  </div>
                 </div>
-              )}
 
-              {q.status === 'restored' && (
-                <span className="text-emerald-400 font-bold flex items-center gap-1">
-                  <CheckCircle2 className="h-4 w-4" />
-                  {t('Restored to Original Path', 'تمت الاستعادة بنجاح')}
-                </span>
-              )}
+                {record.status === 'quarantined' && (
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                    <select
+                      value={mode}
+                      onChange={event => setRestoreModes(previous => ({ ...previous, [record.quarantineId]: event.target.value as typeof mode }))}
+                      className="knoux-select min-w-[190px] text-xs"
+                    >
+                      <option value="rename">{t('Rename on conflict', 'إعادة التسمية عند التعارض')}</option>
+                      <option value="fail">{t('Stop on conflict', 'التوقف عند التعارض')}</option>
+                      <option value="replace">{t('Replace with rollback backup', 'الاستبدال مع نسخة رجوع')}</option>
+                      <option value="choose">{t('Choose another path', 'اختيار مسار آخر')}</option>
+                    </select>
+                    <button type="button" onClick={() => store.verifyQuarantinedItem(record.quarantineId)} className="knoux-btn-secondary inline-flex items-center gap-2 text-xs">
+                      <FileCheck2 className="h-4 w-4" />{t('Verify', 'تحقق')}
+                    </button>
+                    <button type="button" onClick={() => restore(record.quarantineId, record.originalPath)} className="knoux-btn-secondary inline-flex items-center gap-2 text-xs text-emerald-300">
+                      <RotateCcw className="h-4 w-4" />{t('Restore', 'استعادة')}
+                    </button>
+                    <button type="button" onClick={() => store.purgeQuarantinedItem(record.quarantineId)} className="knoux-btn-secondary inline-flex items-center gap-2 border-rose-500/30 text-xs text-rose-300">
+                      <Trash2 className="h-4 w-4" />{t('Purge', 'حذف نهائي')}
+                    </button>
+                  </div>
+                )}
 
-              {q.status === 'purged' && (
-                <span className="text-rose-400 font-bold flex items-center gap-1">
-                  <Trash2 className="h-4 w-4" />
-                  {t('Permanently Deleted', 'تم الحذف النهائي')}
-                </span>
-              )}
-            </div>
-          </div>
-        ))}
+                {record.status === 'restored' && (
+                  <span className="inline-flex items-center gap-2 text-sm font-black text-emerald-400"><CheckCircle2 className="h-5 w-5" />{t('Restored and verified', 'تمت الاستعادة والتحقق')}</span>
+                )}
+                {record.status === 'purged' && (
+                  <span className="inline-flex items-center gap-2 text-sm font-black text-rose-400"><Trash2 className="h-5 w-5" />{t('Permanently purged', 'تم الحذف النهائي')}</span>
+                )}
+              </div>
+            </article>
+          );
+        })}
       </div>
     </div>
   );

@@ -1,80 +1,116 @@
-/**
- * KNOUX ONE — Module 03 Keeper Auto-Rules Configuration Panel
- */
 import React from 'react';
-import { Sliders, CheckCircle2, ShieldAlert, Sparkles, FolderTree } from 'lucide-react';
+import { CheckCircle2, FolderTree, ShieldAlert, Sliders } from 'lucide-react';
 import { useTranslation } from '../../i18n';
 
 export function DuplicateKeeperRules({ store }: { store: any }) {
   const { t } = useTranslation();
   const rules = store.keeperRules;
-
-  const updateRule = (key: string, value: any) => {
-    store.setKeeperRules((prev: any) => ({ ...prev, [key]: value }));
-  };
+  const update = (key: string, value: unknown) =>
+    store.setKeeperRules((previous: any) => ({ ...previous, [key]: value }));
 
   return (
-    <div className="max-w-3xl space-y-6">
-      <div className="knoux-card p-6 border border-[var(--knoux-border)] bg-[var(--knoux-card-bg)] rounded-xl space-y-6">
-        <div>
-          <h3 className="text-base font-bold text-[var(--knoux-text)] flex items-center gap-2">
-            <Sliders className="h-5 w-5 text-blue-400" />
-            {t('Intelligent Keeper Selection Rules', 'قواعد الاختيار الذكي للنسخة الأصلية')}
-          </h3>
-          <p className="mt-1 text-xs text-[var(--knoux-subtext)]">
+    <div className="max-w-4xl space-y-5">
+      <section className="knoux-glass-panel p-6">
+        <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+          <div>
+            <h2 className="flex items-center gap-2 text-lg font-black text-[var(--knoux-text)]">
+              <Sliders className="h-5 w-5 text-blue-300" />
+              {t('User-controlled keeper plan', 'خطة احتفاظ يتحكم بها المستخدم')}
+            </h2>
+            <p className="mt-2 max-w-2xl text-xs leading-6 text-[var(--knoux-subtext)]">
+              {t(
+                'Rules generate explainable recommendations only. No file is deleted, and groups without one keeper are blocked.',
+                'تنشئ القواعد توصيات قابلة للتفسير فقط، ولا يُحذف أي ملف، كما تُمنع أي مجموعة لا تحتوي على نسخة واحدة للاحتفاظ بها.',
+              )}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={store.reapplyKeeperRules}
+            disabled={store.duplicateGroups.length === 0 || !store.runtime.available}
+            className="knoux-btn-primary inline-flex items-center gap-2 text-xs disabled:opacity-50"
+          >
+            <CheckCircle2 className="h-4 w-4" />
+            {t('Preview rules on results', 'معاينة القواعد على النتائج')}
+          </button>
+        </div>
+
+        <div className="mt-6 grid gap-5 md:grid-cols-2">
+          <Field label={t('Date priority', 'أولوية التاريخ')}>
+            <select value={rules.preferDate} onChange={event => update('preferDate', event.target.value)} className="knoux-select w-full text-xs">
+              <option value="oldest">{t('Keep oldest creation date', 'الاحتفاظ بأقدم تاريخ إنشاء')}</option>
+              <option value="newest">{t('Keep newest modification', 'الاحتفاظ بأحدث تعديل')}</option>
+            </select>
+          </Field>
+
+          <Field label={t('Path priority', 'أولوية المسار')}>
+            <select value={rules.preferPath} onChange={event => update('preferPath', event.target.value)} className="knoux-select w-full text-xs">
+              <option value="shortest">{t('Keep shortest path', 'الاحتفاظ بأقصر مسار')}</option>
+              <option value="longest">{t('Keep deepest path', 'الاحتفاظ بأعمق مسار')}</option>
+              <option value="preferred_dir">{t('Prefer a protected folder', 'تفضيل مجلد محدد')}</option>
+            </select>
+          </Field>
+
+          <Field label={t('Preferred directory', 'المجلد المفضل')}>
+            <div className="relative">
+              <FolderTree className="absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--knoux-subtext)]" />
+              <input
+                value={rules.preferredDirectory ?? ''}
+                onChange={event => update('preferredDirectory', event.target.value)}
+                placeholder="C:\Users\Name\Documents"
+                className="knoux-input w-full ps-9 font-mono text-xs"
+                dir="ltr"
+              />
+            </div>
+          </Field>
+
+          <Field label={t('Image quality priority', 'أولوية جودة الصور')}>
+            <select value={rules.preferResolution} onChange={event => update('preferResolution', event.target.value)} className="knoux-select w-full text-xs">
+              <option value="highest">{t('Keep highest resolution', 'الاحتفاظ بأعلى دقة')}</option>
+              <option value="lowest">{t('Keep lowest resolution', 'الاحتفاظ بأقل دقة')}</option>
+            </select>
+          </Field>
+        </div>
+
+        <label className="mt-6 flex items-start gap-3 rounded-2xl border border-[var(--knoux-border)] bg-[var(--knoux-bg-soft)] p-4">
+          <input
+            type="checkbox"
+            checked={rules.autoSelectNonKeepers}
+            onChange={event => update('autoSelectNonKeepers', event.target.checked)}
+            className="mt-1"
+          />
+          <span>
+            <strong className="text-sm text-[var(--knoux-text)]">{t('Preselect verified non-keepers', 'تحديد النسخ الزائدة الموثقة مسبقًا')}</strong>
+            <span className="mt-1 block text-xs leading-6 text-[var(--knoux-subtext)]">
+              {t(
+                'This never selects similar-image groups, candidates, protected paths, hard-link aliases, or the chosen keeper.',
+                'لا يحدد هذا الخيار مجموعات الصور المتشابهة أو المرشحين أو المسارات المحمية أو الروابط الصلبة أو النسخة المختارة للاحتفاظ.',
+              )}
+            </span>
+          </span>
+        </label>
+      </section>
+
+      <section className="rounded-2xl border border-amber-500/20 bg-amber-500/10 p-5">
+        <div className="flex items-start gap-3">
+          <ShieldAlert className="mt-0.5 h-5 w-5 text-amber-300" />
+          <p className="text-xs leading-6 text-amber-100/85">
             {t(
-              'Automate which file in a duplicate group is kept as the canonical master, marking redundant copies for safe quarantine.',
-              'تحديد آلي للملف الأصلي المعتمد في كل مجموعة مكررة مع حماية النسخ الهامة.'
+              'Quarantine is blocked until every actionable group has exactly one keeper and every selected file is revalidated.',
+              'يُمنع النقل إلى المحجر حتى تحتوي كل مجموعة قابلة للتنفيذ على نسخة واحدة للاحتفاظ، وتتم إعادة التحقق من كل ملف محدد.',
             )}
           </p>
         </div>
-
-        <div className="space-y-4 border-t border-[var(--knoux-border)] pt-5">
-          {/* Rule 1: Creation / Modification Date Preference */}
-          <div>
-            <label className="text-xs font-bold text-[var(--knoux-text)] block mb-1">
-              {t('1. Timestamp Preference Rule', '1. تفضيل تاريخ إنشاء أو تعديل الملف')}
-            </label>
-            <select
-              value={rules.preferDate}
-              onChange={e => updateRule('preferDate', e.target.value)}
-              className="knoux-select text-xs w-full"
-            >
-              <option value="oldest">{t('Keep Oldest Creation Date (Original First Creation)', 'الاحتفاظ بالتاريخ الأقدم (أول ملف تم إنشاؤه)')}</option>
-              <option value="newest">{t('Keep Newest Modification Date (Most Recent Update)', 'الاحتفاظ بالتاريخ الأحدث (آخر ملف تم تعديله)')}</option>
-            </select>
-          </div>
-
-          {/* Rule 2: Folder Path Depth Preference */}
-          <div>
-            <label className="text-xs font-bold text-[var(--knoux-text)] block mb-1">
-              {t('2. Directory Path Hierarchy Rule', '2. تفضيل عمق ومكان المجلد')}
-            </label>
-            <select
-              value={rules.preferPath}
-              onChange={e => updateRule('preferPath', e.target.value)}
-              className="knoux-select text-xs w-full"
-            >
-              <option value="shortest">{t('Keep Shortest Path Depth (e.g. C:\\Docs before C:\\Docs\\Temp\\Backup)', 'الاحتفاظ بأقصر مسار رئيسي للمجلدات')}</option>
-              <option value="longest">{t('Keep Deepest Subfolder Path', 'الاحتفاظ بأعمق مسار فرعي للمجلدات')}</option>
-            </select>
-          </div>
-
-          {/* Rule 3: Auto Select Non-Keepers */}
-          <div className="flex items-center gap-3 border-t border-[var(--knoux-border)] pt-4">
-            <input
-              type="checkbox"
-              id="autoSelect"
-              checked={rules.autoSelectNonKeepers}
-              onChange={e => updateRule('autoSelectNonKeepers', e.target.checked)}
-              className="rounded border-[var(--knoux-border)] bg-[var(--knoux-bg-soft)] text-blue-500"
-            />
-            <label htmlFor="autoSelect" className="text-xs text-[var(--knoux-text)] cursor-pointer">
-              {t('Automatically check all non-keeper copies for quarantine', 'تحديد جميع النسخ غير الأصلية تلقائياً لإرسالها للمحجر')}
-            </label>
-          </div>
-        </div>
-      </div>
+      </section>
     </div>
+  );
+}
+
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <label className="block">
+      <span className="mb-2 block text-xs font-black text-[var(--knoux-text)]">{label}</span>
+      {children}
+    </label>
   );
 }

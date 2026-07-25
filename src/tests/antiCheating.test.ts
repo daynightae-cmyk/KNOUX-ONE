@@ -1,71 +1,62 @@
-import { describe, it, expect } from 'vitest';
-import fs from 'fs';
-import path from 'path';
+import { describe, expect, it } from 'vitest';
+import fs from 'node:fs';
+import path from 'node:path';
 
-describe('Anti-Cheating Verification', () => {
-  const readAllFiles = (dir: string, fileList: string[] = []): string[] => {
-    const files = fs.readdirSync(dir);
-    for (const file of files) {
-      const stat = fs.statSync(path.join(dir, file));
-      if (stat.isDirectory() && !file.includes('node_modules') && !file.includes('dist') && !file.includes('tests')) {
-        readAllFiles(path.join(dir, file), fileList);
-      } else if (stat.isFile() && (file.endsWith('.ts') || file.endsWith('.tsx') || file.endsWith('.rs') || file.endsWith('.json'))) {
-        fileList.push(path.join(dir, file));
+function productionFiles(root: string): string[] {
+  const result: string[] = [];
+  const visit = (directory: string) => {
+    for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
+      const absolute = path.join(directory, entry.name);
+      if (entry.isDirectory()) {
+        if (!['node_modules', 'dist', 'target', 'tests', '.git'].includes(entry.name)) visit(absolute);
+      } else if (/\.(ts|tsx|rs|json)$/.test(entry.name)) {
+        result.push(absolute);
       }
     }
-    return fileList;
   };
+  visit(root);
+  return result;
+}
 
-  const allFiles = [...readAllFiles(path.resolve('./src')), ...readAllFiles(path.resolve('./src-tauri')), ...readAllFiles(path.resolve('./public'))];
+const files = [
+  ...productionFiles(path.resolve('src')),
+  ...productionFiles(path.resolve('src-tauri')),
+];
+const source = files.map(file => `\n// FILE: ${file}\n${fs.readFileSync(file, 'utf8')}`).join('\n');
 
-  it('should not contain fake mock variables in production code', () => {
-    let mockDataImports = 0;
-    let healthScoreMock = 0;
-    let zeroVulnsMock = 0;
-    let wingetVersionMock = 0;
-    let staticChartMock = 0;
-    let setTimeoutMock = 0;
-    let desktopElevatedMock = 0;
-    let nightShaMock = 0;
-    let dayShaMock = 0;
-    let fixedRustTimestamp = 0;
-    let staticWindows11Pro = 0;
-    let staticTpmTrue = 0;
-    let staticSecureBootTrue = 0;
-
-    for (const file of allFiles) {
-      const content = fs.readFileSync(file, 'utf8');
-      
-      if (file.includes('antiCheating.test.ts')) continue;
-      if (file.includes('mockSystemData.ts')) continue;
-      
-      if (content.includes('import {') && content.includes('mockSystemData')) mockDataImports++;
-      if (content.includes('healthScore: 92')) healthScoreMock++;
-      if (content.includes('0 Vulnerabilities')) zeroVulnsMock++;
-      if (content.includes('Winget v1.8')) wingetVersionMock++;
-      if (content.includes('[20, 25, 18, 30, 45, 28, 22, 35')) staticChartMock++;
-      if (content.includes('setTimeout') && (file.includes('Context') || file.includes('View'))) setTimeoutMock++;
-      if (content.includes('setRuntimeMode("desktop_elevated")')) desktopElevatedMock++;
-      if (content.includes('night_sha_verified')) nightShaMock++;
-      if (content.includes('day_sha_verified')) dayShaMock++;
-      if (content.includes('2026-07-24T12:00:00Z')) fixedRustTimestamp++;
-      if (content.includes('"Windows 11 Pro".into()')) staticWindows11Pro++;
-      if (content.includes('tpm_available: true')) staticTpmTrue++;
-      if (content.includes('secure_boot_enabled: true')) staticSecureBootTrue++;
+describe('Phase 04A anti-cheating gate', () => {
+  it('contains no production duplicate or developer sample facts', () => {
+    for (const forbidden of [
+      'mockGroups',
+      'SAMPLE_DUPLICATES',
+      'SAMPLE_TOOLCHAIN',
+      'SAMPLE_PORTS',
+      'SAMPLE_REPOS',
+      'SAMPLE_BUILD_CACHES',
+      'C:\\Users\\User',
+      'C:\\ProgramData\\KNOUX\\Quarantine',
+    ]) {
+      expect(source.includes(forbidden), forbidden).toBe(false);
     }
+  });
 
-    expect(mockDataImports, 'Production should not import mockSystemData').toBe(0);
-    expect(healthScoreMock, 'Should not hardcode healthScore: 92').toBe(0);
-    expect(zeroVulnsMock, 'Should not hardcode 0 Vulnerabilities').toBe(0);
-    expect(wingetVersionMock, 'Should not hardcode Winget v1.8').toBe(0);
-    expect(staticChartMock, 'Should not use static chart arrays').toBe(0);
-    expect(setTimeoutMock, 'Should not use setTimeout for operations').toBe(0);
-    expect(desktopElevatedMock, 'Should not use setRuntimeMode for elevation').toBe(0);
-    expect(nightShaMock, 'Should not use night_sha_verified').toBe(0);
-    expect(dayShaMock, 'Should not use day_sha_verified').toBe(0);
-    expect(fixedRustTimestamp, 'Should not use fixed Rust timestamps').toBe(0);
-    expect(staticWindows11Pro, 'Should not return static Windows 11 Pro in Rust').toBe(0);
-    expect(staticTpmTrue, 'Should not return static TPM true in Rust').toBe(0);
-    expect(staticSecureBootTrue, 'Should not return static Secure Boot true in Rust').toBe(0);
+  it('contains no Module 03 empty-success native stubs', () => {
+    const duplicateRust = fs.readFileSync(path.resolve('src-tauri/src/duplicates/mod.rs'), 'utf8');
+    expect(duplicateRust).not.toMatch(/m03_scan_exact[\s\S]{0,500}Ok\(vec!\[\]\)/);
+    expect(duplicateRust).not.toMatch(/m03_quarantine_manage[\s\S]{0,500}Ok\(true\)/);
+    expect(source).not.toContain('Testing stream...');
+  });
+
+  it('does not construct native commands by replacing dots', () => {
+    const nativeClient = fs.readFileSync(path.resolve('src/services/nativeClient.ts'), 'utf8');
+    expect(nativeClient).not.toMatch(/handlerId\.replace/);
+    expect(nativeClient).not.toMatch(/replace\(\/\\\.\/g/);
+  });
+
+  it('does not simulate duplicate operations with timers or React-only quarantine', () => {
+    const store = fs.readFileSync(path.resolve('src/features/duplicates/duplicateStore.ts'), 'utf8');
+    expect(store).not.toContain('setTimeout');
+    expect(store).not.toContain('fake quarantine');
+    expect(store).not.toContain('quarantinePath: `');
   });
 });

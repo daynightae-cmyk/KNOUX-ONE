@@ -1,23 +1,27 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { NativeClient } from '../services/nativeClient';
+import { resolveNativeCommand } from '../services/nativeCommandRegistry';
 
-describe('NativeClient Execution & Fallback Bridge', () => {
-  it('detects Tauri availability correctly in node test runner (should be false)', () => {
-    expect(NativeClient.isTauriAvailable()).toBe(false);
+describe('typed native bridge', () => {
+  it('uses a static allowlist for Module 03', () => {
+    expect(resolveNativeCommand('m03.scan.exact')).toBe('m03_scan_exact');
+    expect(resolveNativeCommand('m03.quarantine.manage')).toBe('m03_quarantine_manage');
+    expect(resolveNativeCommand('m03.s01')).toBeNull();
+    expect(resolveNativeCommand('unknown.handler')).toBeNull();
   });
 
-  it('handles web fallback execution for m01_s01 without throwing', async () => {
-    const result = await NativeClient.executeModule01Capability('m01_s01', 'm01.system.discover');
-    expect(result).toBeDefined();
-    expect(result.capabilityId).toBe('m01_s01');
-    expect(result.handlerId).toBe('m01.system.discover');
+  it('returns unavailable in web preview instead of simulating desktop success', async () => {
+    delete (globalThis as typeof globalThis & { window?: unknown }).window;
+    const result = await NativeClient.executeCapability('m03_s01', 'm03.scan.exact', {
+      request: { paths: ['C:\\Data'] },
+    });
     expect(result.status).toBe('unavailable');
-    expect(result.summaryEn).toContain('Desktop runtime unavailable');
+    expect(result.errorCode).toBe('desktop_runtime_unavailable');
   });
 
-  it('rejects execution gracefully when invalid handler is requested', async () => {
-    const result = await NativeClient.executeModule01Capability('m01_s01', 'invalid.handler.id');
-    expect(result.status).toBe('unavailable');
-    expect(result.summaryEn).toContain('Desktop runtime unavailable');
+  it('rejects unknown handlers before invocation', async () => {
+    const result = await NativeClient.executeCapability('m03_s01', 'm03.s01');
+    expect(result.status).toBe('unsupported');
+    expect(result.errorCode).toBe('unsupported_handler');
   });
 });

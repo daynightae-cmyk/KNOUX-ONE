@@ -2,46 +2,38 @@
     all(not(debug_assertions), target_os = "windows"),
     windows_subsystem = "windows"
 )]
+#![allow(clippy::unnecessary_sort_by)]
 
 mod contracts;
+mod duplicates;
+mod storage;
 mod system;
 mod winget;
-mod windows_repair;
-mod duplicates;
-mod developer;
-mod projects;
 
 fn main() {
     tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![
             system::m01_system_discover,
-            system::m01_winget_diagnose,
-            system::m01_software_install_queue,
-            system::m01_software_catalog,
-            system::m01_software_import_list,
-            system::m01_software_export_inventory,
-            system::m01_profile_manage,
-            system::m01_queue_manage,
-            system::m01_restore_point_create,
             winget::m01_winget_verify,
             winget::m01_winget_install,
-            windows_repair::m07_sfc_scannow,
-            windows_repair::m07_dism_checkhealth,
-            windows_repair::m07_dism_scanhealth,
-            windows_repair::m07_dism_restorehealth,
-            windows_repair::m07_wua_reset,
-            windows_repair::m07_icon_repair,
-            windows_repair::m07_wmi_repair,
-            windows_repair::m07_msi_repair,
-            windows_repair::m07_vss_repair,
-            windows_repair::m07_store_repair,
             duplicates::m03_scan_exact,
+            duplicates::m03_scan_fast,
+            duplicates::m03_scan_images,
+            duplicates::m03_scan_videos,
+            duplicates::m03_scan_audio,
+            duplicates::m03_scan_documents,
+            duplicates::m03_scan_archives,
+            duplicates::m03_scan_folders,
+            duplicates::m03_keeper_plan,
             duplicates::m03_quarantine_manage,
-            developer::m15_environment_discover,
-            developer::m15_process_control,
-            projects::m16_repository_manage,
-            projects::m16_build_cleanup
+            duplicates::m03_pick_folder,
+            duplicates::m03_job_pause,
+            duplicates::m03_job_resume,
+            duplicates::m03_job_cancel,
+            duplicates::m03_job_list,
+            duplicates::m03_scan_history,
+            duplicates::m03_scan_result
         ])
         .run(tauri::generate_context!())
-        .expect("error while running tauri application");
+        .expect("error while running KNOUX ONE");
 }
