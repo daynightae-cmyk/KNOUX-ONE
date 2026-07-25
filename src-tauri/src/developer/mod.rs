@@ -372,7 +372,13 @@ fn resolve_executable(_name: &str) -> Option<String> {
     None
 }
 
-fn probe_tool(id: &str, name: &str, category: &str, executable: &str, args: &[&str]) -> ToolchainItem {
+fn probe_tool(
+    id: &str,
+    name: &str,
+    category: &str,
+    executable: &str,
+    args: &[&str],
+) -> ToolchainItem {
     let path = resolve_executable(executable);
     let version = path
         .as_deref()
@@ -419,24 +425,108 @@ pub fn m15_environment_discover(
         let specifications = [
             ("git", "Git", "vcs", "git.exe", vec!["--version"]),
             ("node", "Node.js", "runtime", "node.exe", vec!["--version"]),
-            ("npm", "npm", "package_manager", "npm.cmd", vec!["--version"]),
-            ("pnpm", "pnpm", "package_manager", "pnpm.cmd", vec!["--version"]),
-            ("yarn", "Yarn", "package_manager", "yarn.cmd", vec!["--version"]),
+            (
+                "npm",
+                "npm",
+                "package_manager",
+                "npm.cmd",
+                vec!["--version"],
+            ),
+            (
+                "pnpm",
+                "pnpm",
+                "package_manager",
+                "pnpm.cmd",
+                vec!["--version"],
+            ),
+            (
+                "yarn",
+                "Yarn",
+                "package_manager",
+                "yarn.cmd",
+                vec!["--version"],
+            ),
             ("bun", "Bun", "runtime", "bun.exe", vec!["--version"]),
             ("deno", "Deno", "runtime", "deno.exe", vec!["--version"]),
-            ("python", "Python", "runtime", "python.exe", vec!["--version"]),
-            ("py", "Python Launcher", "runtime", "py.exe", vec!["--version"]),
-            ("pip", "pip", "package_manager", "pip.exe", vec!["--version"]),
-            ("rustc", "Rust Compiler", "compiler", "rustc.exe", vec!["--version"]),
-            ("cargo", "Cargo", "package_manager", "cargo.exe", vec!["--version"]),
-            ("rustup", "Rustup", "runtime_manager", "rustup.exe", vec!["--version"]),
+            (
+                "python",
+                "Python",
+                "runtime",
+                "python.exe",
+                vec!["--version"],
+            ),
+            (
+                "py",
+                "Python Launcher",
+                "runtime",
+                "py.exe",
+                vec!["--version"],
+            ),
+            (
+                "pip",
+                "pip",
+                "package_manager",
+                "pip.exe",
+                vec!["--version"],
+            ),
+            (
+                "rustc",
+                "Rust Compiler",
+                "compiler",
+                "rustc.exe",
+                vec!["--version"],
+            ),
+            (
+                "cargo",
+                "Cargo",
+                "package_manager",
+                "cargo.exe",
+                vec!["--version"],
+            ),
+            (
+                "rustup",
+                "Rustup",
+                "runtime_manager",
+                "rustup.exe",
+                vec!["--version"],
+            ),
             ("go", "Go", "compiler", "go.exe", vec!["version"]),
-            ("dotnet", ".NET SDK", "runtime", "dotnet.exe", vec!["--version"]),
+            (
+                "dotnet",
+                ".NET SDK",
+                "runtime",
+                "dotnet.exe",
+                vec!["--version"],
+            ),
             ("java", "Java", "runtime", "java.exe", vec!["-version"]),
-            ("javac", "Java Compiler", "compiler", "javac.exe", vec!["-version"]),
-            ("docker", "Docker", "container", "docker.exe", vec!["--version"]),
-            ("podman", "Podman", "container", "podman.exe", vec!["--version"]),
-            ("code", "Visual Studio Code", "editor", "code.cmd", vec!["--version"]),
+            (
+                "javac",
+                "Java Compiler",
+                "compiler",
+                "javac.exe",
+                vec!["-version"],
+            ),
+            (
+                "docker",
+                "Docker",
+                "container",
+                "docker.exe",
+                vec!["--version"],
+            ),
+            (
+                "podman",
+                "Podman",
+                "container",
+                "podman.exe",
+                vec!["--version"],
+            ),
+            (
+                "code",
+                "Visual Studio Code",
+                "editor",
+                "code.cmd",
+                vec!["--version"],
+            ),
         ];
         let tools = specifications
             .iter()
@@ -458,7 +548,10 @@ pub fn m15_environment_discover(
             "m15.environment.discover",
             started_at,
             timer,
-            format!("Discovered {} developer tools from the Windows host.", data.tools.len()),
+            format!(
+                "Discovered {} developer tools from the Windows host.",
+                data.tools.len()
+            ),
             format!("تم اكتشاف {} أداة تطوير من جهاز ويندوز.", data.tools.len()),
             data,
             Vec::new(),
@@ -518,9 +611,7 @@ pub fn m15_path_audit(op_id: String) -> Result<OperationResult<PathAudit>, Strin
                 let expanded = std::env::vars().fold(path.clone(), |value, (key, replacement)| {
                     value.replace(&format!("%{key}%"), &replacement)
                 });
-                let normalized = expanded
-                    .trim_end_matches(['\\', '/'])
-                    .to_ascii_lowercase();
+                let normalized = expanded.trim_end_matches(['\\', '/']).to_ascii_lowercase();
                 entries.push(PathEntry {
                     id: Uuid::new_v4().to_string(),
                     path: path.clone(),
@@ -540,7 +631,10 @@ pub fn m15_path_audit(op_id: String) -> Result<OperationResult<PathAudit>, Strin
         };
         let mut warnings = Vec::new();
         if data.duplicate_count > 0 {
-            warnings.push(format!("{} duplicate PATH entries require review.", data.duplicate_count));
+            warnings.push(format!(
+                "{} duplicate PATH entries require review.",
+                data.duplicate_count
+            ));
         }
         if data.missing_count > 0 {
             warnings.push(format!("{} PATH entries do not exist.", data.missing_count));
@@ -560,9 +654,7 @@ pub fn m15_path_audit(op_id: String) -> Result<OperationResult<PathAudit>, Strin
 }
 
 #[tauri::command]
-pub fn m15_runtime_inspect(
-    op_id: String,
-) -> Result<OperationResult<RuntimeInspection>, String> {
+pub fn m15_runtime_inspect(op_id: String) -> Result<OperationResult<RuntimeInspection>, String> {
     let started_at = Utc::now().to_rfc3339();
     let timer = Instant::now();
     let managers = [
@@ -718,8 +810,8 @@ pub async fn m15_repositories_scan(
                     }
                     let branch = git_in(&canonical, &["branch", "--show-current"])
                         .unwrap_or_else(|| "detached".into());
-                    let porcelain = git_in(&canonical, &["status", "--porcelain=v1"])
-                        .unwrap_or_default();
+                    let porcelain =
+                        git_in(&canonical, &["status", "--porcelain=v1"]).unwrap_or_default();
                     let counts = git_in(
                         &canonical,
                         &["rev-list", "--left-right", "--count", "HEAD...@{upstream}"],
@@ -729,11 +821,16 @@ pub async fn m15_repositories_scan(
                         .split_whitespace()
                         .filter_map(|value| value.parse::<i64>().ok())
                         .collect::<Vec<_>>();
-                    let remote = git_in(&canonical, &["remote", "get-url", "origin"])
-                        .map(redact_remote);
+                    let remote =
+                        git_in(&canonical, &["remote", "get-url", "origin"]).map(redact_remote);
                     let last_commit = git_in(
                         &canonical,
-                        &["log", "-1", "--pretty=format:%h %ad %s", "--date=iso-strict"],
+                        &[
+                            "log",
+                            "-1",
+                            "--pretty=format:%h %ad %s",
+                            "--date=iso-strict",
+                        ],
                     );
                     repositories.push(RepositoryInfo {
                         path: canonical.to_string_lossy().to_string(),
@@ -970,7 +1067,12 @@ pub async fn m15_projects_audit(
                     continue;
                 }
                 let lock_candidates = match ecosystem {
-                    "node" => vec!["package-lock.json", "pnpm-lock.yaml", "yarn.lock", "bun.lockb"],
+                    "node" => vec![
+                        "package-lock.json",
+                        "pnpm-lock.yaml",
+                        "yarn.lock",
+                        "bun.lockb",
+                    ],
                     "rust" => vec!["Cargo.lock"],
                     "python" => vec!["poetry.lock", "Pipfile.lock", "uv.lock"],
                     "go" => vec!["go.sum"],
@@ -988,7 +1090,9 @@ pub async fn m15_projects_audit(
                     findings.push("No recognized dependency lockfile was found.".into());
                 }
                 if ecosystem == "node" && directory.join("node_modules").exists() {
-                    findings.push("node_modules is present; cache size can be inspected separately.".into());
+                    findings.push(
+                        "node_modules is present; cache size can be inspected separately.".into(),
+                    );
                 }
                 projects.push(ProjectHealthItem {
                     path: directory.to_string_lossy().to_string(),
@@ -1019,7 +1123,10 @@ pub async fn m15_projects_audit(
         "m15.projects.audit",
         started_at,
         timer,
-        format!("Audited {} local developer projects.", result.projects.len()),
+        format!(
+            "Audited {} local developer projects.",
+            result.projects.len()
+        ),
         format!("تم تدقيق {} مشروع تطوير محلي.", result.projects.len()),
         result.clone(),
         result.warnings,
@@ -1043,15 +1150,43 @@ fn directory_size(path: &Path) -> u64 {
 fn known_cache_paths(project_roots: &[String]) -> Vec<(String, String, String)> {
     let mut paths = Vec::new();
     if let Ok(local) = std::env::var("LOCALAPPDATA") {
-        paths.push(("npm-cache".into(), "npm cache".into(), format!("{local}\\npm-cache")));
-        paths.push(("pnpm-store".into(), "pnpm store".into(), format!("{local}\\pnpm\\store")));
-        paths.push(("nuget-cache".into(), "NuGet cache".into(), format!("{local}\\NuGet\\v3-cache")));
-        paths.push(("pip-cache".into(), "pip cache".into(), format!("{local}\\pip\\Cache")));
+        paths.push((
+            "npm-cache".into(),
+            "npm cache".into(),
+            format!("{local}\\npm-cache"),
+        ));
+        paths.push((
+            "pnpm-store".into(),
+            "pnpm store".into(),
+            format!("{local}\\pnpm\\store"),
+        ));
+        paths.push((
+            "nuget-cache".into(),
+            "NuGet cache".into(),
+            format!("{local}\\NuGet\\v3-cache"),
+        ));
+        paths.push((
+            "pip-cache".into(),
+            "pip cache".into(),
+            format!("{local}\\pip\\Cache"),
+        ));
     }
     if let Ok(home) = std::env::var("USERPROFILE") {
-        paths.push(("cargo-registry".into(), "Cargo registry cache".into(), format!("{home}\\.cargo\\registry\\cache")));
-        paths.push(("gradle-cache".into(), "Gradle cache".into(), format!("{home}\\.gradle\\caches")));
-        paths.push(("yarn-cache".into(), "Yarn cache".into(), format!("{home}\\AppData\\Local\\Yarn\\Cache")));
+        paths.push((
+            "cargo-registry".into(),
+            "Cargo registry cache".into(),
+            format!("{home}\\.cargo\\registry\\cache"),
+        ));
+        paths.push((
+            "gradle-cache".into(),
+            "Gradle cache".into(),
+            format!("{home}\\.gradle\\caches"),
+        ));
+        paths.push((
+            "yarn-cache".into(),
+            "Yarn cache".into(),
+            format!("{home}\\AppData\\Local\\Yarn\\Cache"),
+        ));
     }
     for root in project_roots {
         for (suffix, name, category) in [
@@ -1073,7 +1208,10 @@ fn known_cache_paths(project_roots: &[String]) -> Vec<(String, String, String)> 
 }
 
 fn is_known_safe_cache(path: &Path) -> bool {
-    let normalized = path.to_string_lossy().replace('/', "\\").to_ascii_lowercase();
+    let normalized = path
+        .to_string_lossy()
+        .replace('/', "\\")
+        .to_ascii_lowercase();
     [
         "\\npm-cache",
         "\\pnpm\\store",
@@ -1128,12 +1266,16 @@ pub async fn m15_caches_manage(
                 warnings: Vec::new(),
             }
         }
-        CacheManageRequest::Clean { paths, confirmation } => {
+        CacheManageRequest::Clean {
+            paths,
+            confirmation,
+        } => {
             let mut reclaimed_bytes = 0;
             let mut cleaned_paths = Vec::new();
             let mut warnings = Vec::new();
             if confirmation != "CLEAN" {
-                warnings.push("Typed confirmation CLEAN is required; no paths were changed.".into());
+                warnings
+                    .push("Typed confirmation CLEAN is required; no paths were changed.".into());
                 return CacheManageResult {
                     entries: Vec::new(),
                     reclaimed_bytes,
@@ -1156,7 +1298,10 @@ pub async fn m15_caches_manage(
                         reclaimed_bytes = reclaimed_bytes.saturating_add(size);
                         cleaned_paths.push(path);
                     }
-                    Err(error) => warnings.push(format!("cache_clean_failed:{}:{error}", candidate.display())),
+                    Err(error) => warnings.push(format!(
+                        "cache_clean_failed:{}:{error}",
+                        candidate.display()
+                    )),
                 }
             }
             CacheManageResult {
@@ -1175,8 +1320,14 @@ pub async fn m15_caches_manage(
         "m15.caches.manage",
         started_at,
         timer,
-        format!("Developer cache operation completed; reclaimed {} bytes.", result.reclaimed_bytes),
-        format!("اكتملت عملية كاش المطور وتم استرداد {} بايت.", result.reclaimed_bytes),
+        format!(
+            "Developer cache operation completed; reclaimed {} bytes.",
+            result.reclaimed_bytes
+        ),
+        format!(
+            "اكتملت عملية كاش المطور وتم استرداد {} بايت.",
+            result.reclaimed_bytes
+        ),
         result.clone(),
         result.warnings,
     ))
@@ -1192,7 +1343,8 @@ fn execute_http(request: &HttpLabRequest) -> Result<HttpLabResponse, String> {
     if !(lower_url.starts_with("http://") || lower_url.starts_with("https://")) {
         return Err("Only HTTP and HTTPS URLs are allowed.".into());
     }
-    let headers_json = serde_json::to_string(&request.headers).map_err(|error| error.to_string())?;
+    let headers_json =
+        serde_json::to_string(&request.headers).map_err(|error| error.to_string())?;
     let script = r#"
 $ErrorActionPreference='Stop'
 [Console]::OutputEncoding=[Text.Encoding]::UTF8
@@ -1212,7 +1364,10 @@ $headerMap=@{}; $r.Headers.Keys | ForEach-Object { $headerMap[$_]=[string]$r.Hea
         .env("KNOUX_HTTP_URL", &request.url)
         .env("KNOUX_HTTP_METHOD", method)
         .env("KNOUX_HTTP_HEADERS", headers_json)
-        .env("KNOUX_HTTP_TIMEOUT", request.timeout_seconds.clamp(1, 120).to_string());
+        .env(
+            "KNOUX_HTTP_TIMEOUT",
+            request.timeout_seconds.clamp(1, 120).to_string(),
+        );
     if let Some(body) = &request.body {
         command.env("KNOUX_HTTP_BODY", body);
     }
