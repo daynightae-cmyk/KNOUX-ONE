@@ -1,5 +1,6 @@
 name: Format M15 Rust Source
 
+# Final one-time formatting pass before validation.
 on:
   push:
     branches: [feat/m15-developer-studio]
