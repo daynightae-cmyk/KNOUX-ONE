@@ -1,0 +1,42 @@
+name: Apply M15 TypeScript Hotfix
+
+on:
+  push:
+    branches: [feat/m15-developer-studio]
+    paths:
+      - '.github/workflows/m15-ts-hotfix.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/m15-developer-studio
+      - name: Patch React key prop compatibility
+        shell: python
+        run: |
+          from pathlib import Path
+          path = Path('src/features/developer/DeveloperStudio.tsx')
+          source = path.read_text()
+          old = "function ToolCard({ tool, t }: { tool: ToolchainItem; t: (en: string, ar: string) => string }) {"
+          new = "function ToolCard({ tool, t }: { key?: React.Key; tool: ToolchainItem; t: (en: string, ar: string) => string }) {"
+          if old in source:
+              path.write_text(source.replace(old, new, 1))
+          elif new not in source:
+              raise SystemExit('ToolCard signature not found')
+      - name: Commit hotfix
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/features/developer/DeveloperStudio.tsx
+          if git diff --cached --quiet; then
+            echo "Hotfix already applied."
+          else
+            git commit -m "fix(m15): accept React key in tool cards"
+            git push origin HEAD:feat/m15-developer-studio
+          fi
