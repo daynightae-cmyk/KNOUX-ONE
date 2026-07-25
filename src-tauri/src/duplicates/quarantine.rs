@@ -77,7 +77,26 @@ pub(crate) fn copy_verify_delete(
         .map_err(|error| DuplicateError::QuarantineCopyFailed(error.to_string()))?;
     sync_file(destination)?;
     if full_blake3(destination)? != expected_hash {
-        let _ = fs::remove_file(destination);
+        let mut removed = false;
+        for _ in 0..10 {
+            match fs::remove_file(destination) {
+                Ok(()) => {
+                    removed = true;
+                    break;
+                }
+                Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
+                    removed = true;
+                    break;
+                }
+                Err(_) => std::thread::sleep(std::time::Duration::from_millis(25)),
+            }
+        }
+        if !removed || destination.exists() {
+            return Err(DuplicateError::QuarantineVerifyFailed(format!(
+                "failed_to_remove_unverified_copy:{}",
+                destination.display()
+            )));
+        }
         return Err(DuplicateError::QuarantineVerifyFailed(
             destination.display().to_string(),
         ));
