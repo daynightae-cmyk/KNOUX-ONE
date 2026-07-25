@@ -1,5 +1,6 @@
 name: Temporary Feature Branch Fixer
 
+# Triggered after the workflow existed on the default branch.
 on:
   push:
     branches: [main]
@@ -79,7 +80,7 @@ jobs:
           PY
           rm -f .github/workflows/m03-quarantine-hotfix.yml
           cd src-tauri && cargo fmt --all && cd ..
-          git add src-tauri/src/duplicates/quarantine.rs .github/workflows/m03-quarantine-hotfix.yml
+          git add -A src-tauri/src/duplicates/quarantine.rs .github/workflows/m03-quarantine-hotfix.yml
           if ! git diff --cached --quiet; then
             git commit -m "fix(m03): remove failed quarantine copies reliably"
             git push origin HEAD:feat/m03-real-duplicate-engine
@@ -146,7 +147,7 @@ jobs:
           PY
           rm -f .github/workflows/m15-ts-hotfix.yml .github/workflows/m15-rustfmt.yml
           cd src-tauri && cargo fmt --all && cd ..
-          git add src/features/developer/DeveloperStudio.tsx src-tauri/src .github/workflows/m15-ts-hotfix.yml .github/workflows/m15-rustfmt.yml
+          git add -A src/features/developer/DeveloperStudio.tsx src-tauri/src .github/workflows/m15-ts-hotfix.yml .github/workflows/m15-rustfmt.yml
           if ! git diff --cached --quiet; then
             git commit -m "fix(m15): format native studio and resolve React key typing"
             git push origin HEAD:feat/m15-developer-studio
