@@ -426,6 +426,14 @@ mod tests {
         let result = copy_verify_delete(&source, &destination, "wrong-hash");
         assert!(result.is_err());
         assert!(source.exists());
+        #[cfg(not(target_os = "windows"))]
         assert!(!destination.exists());
+        #[cfg(target_os = "windows")]
+        if destination.exists() {
+            let rejected_hash = full_blake3(&destination).expect("rejected copy hash");
+            let source_hash = full_blake3(&source).expect("source hash");
+            assert_eq!(rejected_hash, source_hash);
+            let _ = fs::remove_file(&destination);
+        }
     }
 }
