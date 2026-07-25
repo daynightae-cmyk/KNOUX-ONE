@@ -23,6 +23,16 @@ export const NATIVE_COMMANDS = {
   'm03.scan.history': 'm03_scan_history',
   'm03.scan.result': 'm03_scan_result',
   'm03.folder.pick': 'm03_pick_folder',
+  'm15.environment.discover': 'm15_environment_discover',
+  'm15.path.audit': 'm15_path_audit',
+  'm15.runtime.inspect': 'm15_runtime_inspect',
+  'm15.git.audit': 'm15_git_audit',
+  'm15.repositories.scan': 'm15_repositories_scan',
+  'm15.ports.manage': 'm15_ports_manage',
+  'm15.projects.audit': 'm15_projects_audit',
+  'm15.caches.manage': 'm15_caches_manage',
+  'm15.http.execute': 'm15_http_execute',
+  'm15.report.export': 'm15_report_export',
 } as const;
 
 export type NativeHandlerId = keyof typeof NATIVE_COMMANDS;
