@@ -2,7 +2,7 @@
     all(not(debug_assertions), target_os = "windows"),
     windows_subsystem = "windows"
 )]
-#![allow(clippy::unnecessary_sort_by)]
+#![allow(clippy::unnecessary_sort_by, clippy::too_many_arguments)]
 
 mod contracts;
 mod developer;
