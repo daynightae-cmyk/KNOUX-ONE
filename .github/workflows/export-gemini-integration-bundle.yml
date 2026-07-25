@@ -1,0 +1,360 @@
+name: Export Gemini Integration Bundle
+
+on:
+  push:
+    branches: [feat/m15-developer-studio]
+    paths:
+      - '.github/workflows/export-gemini-integration-bundle.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout complete Developer Studio branch
+        uses: actions/checkout@v4
+        with:
+          ref: feat/m15-developer-studio
+
+      - name: Assemble path-preserving integration package
+        shell: bash
+        run: |
+          set -euo pipefail
+          BUNDLE="$RUNNER_TEMP/KNOUX-M15-M16-Gemini-Bundle"
+          mkdir -p "$BUNDLE/project-overlay"
+
+          files=(
+            "README.md"
+            "docs/M15_DEVELOPER_STUDIO.md"
+            "src-tauri/src/developer/mod.rs"
+            "src-tauri/src/main.rs"
+            "src/components/views/DeveloperSuiteView.tsx"
+            "src/data/capabilitiesCatalog.ts"
+            "src/features/developer/DeveloperStudio.tsx"
+            "src/features/developer/developerContracts.ts"
+            "src/features/developer/developerStore.ts"
+            "src/services/nativeCommandRegistry.ts"
+            "src/tests/catalogIntegrity.test.ts"
+            "src/tests/m03Registry.test.ts"
+          )
+
+          for file in "${files[@]}"; do
+            mkdir -p "$BUNDLE/project-overlay/$(dirname "$file")"
+            cp "$file" "$BUNDLE/project-overlay/$file"
+          done
+
+          cat > "$BUNDLE/FILES_MANIFEST.md" <<'MANIFEST'
+          # KNOUX ONE Integration Bundle Manifest
+
+          Source repository: `daynightae-cmyk/KNOUX-ONE`
+          Source branch: `feat/m15-developer-studio`
+          Source scope: Module 15 — KNOUX Developer Studio
+
+          The `project-overlay/` directory preserves the exact repository-relative paths.
+
+          Included files:
+
+          - `README.md`
+          - `docs/M15_DEVELOPER_STUDIO.md`
+          - `src-tauri/src/developer/mod.rs`
+          - `src-tauri/src/main.rs`
+          - `src/components/views/DeveloperSuiteView.tsx`
+          - `src/data/capabilitiesCatalog.ts`
+          - `src/features/developer/DeveloperStudio.tsx`
+          - `src/features/developer/developerContracts.ts`
+          - `src/features/developer/developerStore.ts`
+          - `src/services/nativeCommandRegistry.ts`
+          - `src/tests/catalogIntegrity.test.ts`
+          - `src/tests/m03Registry.test.ts`
+
+          Important: these files are an integration overlay, not a request to replace the whole open project.
+          MANIFEST
+
+          cat > "$BUNDLE/GEMINI_MASTER_PROMPT.md" <<'PROMPT'
+          # KNOUX ONE — MANDATORY IN-PLACE INTEGRATION + MODULE 16 PROJECT ENGINEERING BUILD
+
+          You are the principal engineer working inside the KNOUX ONE project that is already open in Gemini Build.
+
+          Product:
+          - KNOUX ONE — Windows Intelligence & Developer Suite
+          - Owner: Eng. Sadek Elgazar — Knoux, Abu Dhabi
+          - Website: https://knoux.store
+          - Official tagline: Build • Protect • Optimize
+          - Brand phrase: Safety is not a luxury, it’s a life.
+          - Architecture: Tauri 2 + Rust + React 19 + TypeScript
+          - Product rule: no fake host facts, no simulated success, no sample device data presented as real data.
+
+          The attached ZIP contains a `project-overlay/` directory with complete Module 15 Developer Studio files using their exact repository-relative paths.
+
+          ## NON-NEGOTIABLE EXECUTION MODE
+
+          Work directly inside the currently open KNOUX ONE project.
+          Do not create a second app, demo, template, proof of concept, or isolated replacement project.
+          Do not erase existing working modules.
+          Do not replace the current repository wholesale with the ZIP.
+          Do not stop at analysis or produce only a report.
+          Inspect, merge, implement, test, and leave the open project in a buildable state.
+
+          ## PHASE A — INSPECT BEFORE MERGING
+
+          1. Inspect the current repository structure, especially:
+             - `package.json`
+             - `src/`
+             - `src-tauri/`
+             - capability catalog and types
+             - native client and command registry
+             - routing/view selection
+             - tests and CI configuration
+          2. Confirm whether the project already contains newer edits than the overlay.
+          3. Create an internal backup point or Git branch before changing files.
+          4. Treat current valid user work as authoritative where it is newer and compatible.
+          5. Treat the overlay as the authoritative implementation source for Module 15 behavior, contracts, native commands, UI, tests, and documentation.
+
+          ## PHASE B — MERGE THE COMPLETE MODULE 15 OVERLAY
+
+          Merge every file from `project-overlay/` into the matching path in the open project.
+
+          Use semantic three-way integration:
+          - New files: add them at the exact path.
+          - Existing files: merge the Module 15 additions into the current file; do not blindly discard unrelated newer code.
+          - Resolve imports, types, command registrations, catalog states, and tests.
+          - Preserve the existing design system, theme tokens, RTL/LTR behavior, routing, and shared components.
+
+          Module 15 must expose these ten real services:
+
+          1. Workstation Toolchain Discovery
+          2. PATH Diagnostics Laboratory
+          3. Runtime & Version Manager Inspector
+          4. Secure Git Configuration Audit
+          5. Repository Intelligence Scanner
+          6. Ports & Process Control
+          7. Multi-Ecosystem Project Health
+          8. Developer Cache Control
+          9. Local HTTP & API Laboratory
+          10. Developer Evidence Report
+
+          Verify the following integration points:
+
+          - `src-tauri/src/developer/mod.rs` exists and is compiled.
+          - `mod developer;` is registered in `src-tauri/src/main.rs`.
+          - All ten `developer::m15_*` commands are present in `tauri::generate_handler!`.
+          - All ten `m15.*` handler IDs are present in the static TypeScript native command allowlist.
+          - Module 15 services are marked implemented only when an explicit native handler exists.
+          - Browser preview returns an honest desktop-runtime-unavailable state and never invents toolchains, repositories, ports, projects, or cache sizes.
+          - `DeveloperSuiteView` opens the dedicated `DeveloperStudio`, not the generic service-card workspace.
+          - Dark mode, light mode, Arabic RTL, English LTR, keyboard navigation, responsive layouts, and loading/error/empty states remain functional.
+
+          Module 15 safety boundaries:
+
+          - Never collect or expose Git passwords, personal access tokens, private keys, or credential payloads.
+          - Redact credentials from repository remote URLs.
+          - Block protected Windows processes.
+          - Process termination requires exact confirmation: `STOP <PID>`.
+          - Cache cleanup is limited to explicitly recognized safe cache patterns and requires `CLEAN`.
+          - HTTP Lab accepts HTTP/HTTPS only, caps timeout, and bounds response previews.
+          - Do not expose a generic arbitrary-shell command to the renderer.
+
+          ## PHASE C — BUILD THE NEXT SECTION COMPLETELY
+
+          After Module 15 is merged and stable, implement and visually specialize:
+
+          # Module 16 — KNOUX Project Engineering Control Center
+          # الوحدة 16 — مركز هندسة المشاريع من KNOUX
+
+          This must be a dedicated professional workspace, not ten generic cards and not a visual-only mockup.
+
+          Create exactly ten coherent services:
+
+          ### 16.1 Project Workspace Discovery
+          Discover real local software projects from user-selected roots. Detect Node.js, React, Vite, Next.js, Tauri, Rust, Python, Go, Java, .NET, Electron, Flutter, and Android project evidence from manifests and directory structure. Do not fabricate projects.
+
+          ### 16.2 Architecture & Dependency Map
+          Parse supported manifests and source imports to produce a bounded architecture inventory: packages, workspaces, internal modules, entry points, dependency direction, circular-dependency findings, and orphan candidates. Clearly label partial or unsupported parsers.
+
+          ### 16.3 Configuration & Secret-Hygiene Audit
+          Inspect configuration file names, schemas, ignored status, and accidental secret-risk patterns without printing secret values. Detect `.env` exposure risks, committed credential-like files, missing `.gitignore` rules, unsafe debug flags, and production configuration drift. Redact all sensitive values.
+
+          ### 16.4 Dependency Health & Supply-Chain Review
+          Read real lockfiles and package-manager evidence. Report outdated, duplicated, deprecated, missing-lockfile, integrity, license, and advisory findings where supported. Never claim a vulnerability scan succeeded unless a real tool returned evidence.
+
+          ### 16.5 Build & Test Orchestrator
+          Detect only allowlisted project commands from manifests and known toolchains. Provide preview, explicit selection, streamed output, cancellation, exit codes, duration, and persisted history for builds, typechecks, linting, unit tests, and packaging. Never execute arbitrary free-form shell text from the renderer.
+
+          ### 16.6 Code Quality Diagnostics
+          Integrate real project-native diagnostics such as TypeScript typecheck, ESLint, Clippy, Rustfmt, Ruff, Pytest, Go test/vet, Gradle, Maven, or dotnet checks only when detected and allowlisted. Normalize results into files, rules, severity, messages, and source evidence.
+
+          ### 16.7 Environment Parity Inspector
+          Compare required runtimes, package managers, environment variable names, config templates, lockfiles, and toolchain versions against the current machine. Never store or reveal secret values. Report missing variables by name only.
+
+          ### 16.8 Git Workflow & Release Readiness
+          Inspect repository cleanliness, branch, upstream divergence, tags, changelog, version files, untracked build artifacts, pending migrations, release notes, and signing configuration. This service is read-only unless a separate explicit confirmed action is designed.
+
+          ### 16.9 Build Artifact & Package Center
+          Discover real generated artifacts from allowlisted project output locations, report size/hash/time, distinguish stale artifacts, and support safe export/copy after confirmation. Never delete arbitrary project files. Cleanup must be previewed, scoped, and confirmed.
+
+          ### 16.10 Project Engineering Evidence Report
+          Export bilingual JSON and Markdown reports containing selected project evidence, findings, executed checks, exit codes, durations, tool versions, limitations, and redacted paths where required. Store reports under protected Tauri application data.
+
+          ## MODULE 16 NATIVE ARCHITECTURE
+
+          Create a dedicated Rust module, preferably:
+
+          - `src-tauri/src/projects/mod.rs`
+
+          Create typed Rust request/response contracts and ten explicit commands with fixed allowlisted IDs, using a consistent naming family such as:
+
+          - `m16.workspace.discover`
+          - `m16.architecture.map`
+          - `m16.configuration.audit`
+          - `m16.dependencies.audit`
+          - `m16.build.run`
+          - `m16.quality.run`
+          - `m16.environment.compare`
+          - `m16.release.audit`
+          - `m16.artifacts.manage`
+          - `m16.report.export`
+
+          Register only commands that genuinely exist and compile. Do not dynamically construct native command names.
+
+          Implement a dedicated frontend feature area, preferably:
+
+          - `src/features/projects/ProjectEngineeringStudio.tsx`
+          - `src/features/projects/projectEngineeringStore.ts`
+          - `src/features/projects/projectEngineeringContracts.ts`
+
+          Connect the existing Module 16 view to the dedicated studio.
+
+          ## MODULE 16 VISUAL EXPERIENCE
+
+          Use the established KNOUX premium design system:
+
+          - deep navy/black night surfaces
+          - royal purple and electric blue intelligence accents
+          - restrained gold details only where useful
+          - glass panels with controlled depth
+          - clear evidence/status hierarchy
+          - compact professional developer typography
+          - no giant empty hero taking over the workspace
+          - no excessive glow, random gradients, or disconnected card styles
+
+          Required Module 16 tabs:
+
+          1. Command Center
+          2. Projects
+          3. Architecture
+          4. Configuration
+          5. Dependencies
+          6. Build & Test
+          7. Quality
+          8. Environment
+          9. Release
+          10. Artifacts
+          11. Reports
+
+          The Command Center must show only real loaded evidence:
+
+          - selected project
+          - ecosystem and framework
+          - repository state
+          - detected toolchains
+          - latest real checks
+          - issue totals by severity
+          - build/test outcomes
+          - artifact totals
+          - readiness score derived transparently from actual checks, or display unavailable until evidence exists
+
+          ## HONEST IMPLEMENTATION STATES
+
+          For every Module 16 service use one of:
+
+          - `implemented`: real handler, typed contract, UI connection, evidence path, and tests exist.
+          - `partial`: a real bounded subset exists and limitations are shown clearly.
+          - `planned`: no executable handler is exposed.
+
+          Never mark all ten services implemented merely because UI panels exist.
+          Never return fixed success.
+          Never use `setTimeout`, random values, hardcoded workstation specifications, fake repositories, fake ports, fake projects, fake vulnerabilities, fake build results, or fake activity history.
+
+          ## SAFETY AND DESTRUCTIVE ACTIONS
+
+          - Read-only inspection is the default.
+          - No arbitrary shell endpoint.
+          - Commands originate from an explicit allowlist derived from verified project manifests and supported ecosystems.
+          - Show command preview before execution.
+          - Support cancellation where technically possible.
+          - Never include secrets in command logs or reports.
+          - Artifact cleanup requires exact typed confirmation and must be restricted to detected build-output/cache paths.
+          - Preserve source code and repository history.
+
+          ## TESTS AND VALIDATION
+
+          Add or update tests that prove:
+
+          1. The catalog still contains exactly 19 modules and 190 services.
+          2. Every executable M15 and M16 handler resolves through the static native allowlist.
+          3. Planned services have no executable handler.
+          4. Tauri `main.rs` registers every executable M15/M16 command.
+          5. Browser mode never fabricates desktop evidence.
+          6. Secret-redaction functions remove credentials and token-like values.
+          7. Arbitrary shell commands cannot enter the native execution layer.
+          8. Protected processes and unrecognized cleanup paths remain blocked.
+          9. Build/test execution preserves command, exit code, timestamps, duration, and cancellation state.
+          10. Arabic/English labels and Module 16 routing are intact.
+
+          Run and repair until all applicable commands pass:
+
+          ```bash
+          npm install
+          npm run typecheck
+          npm run test
+          npm run build
+
+          cd src-tauri
+          cargo fmt --check
+          cargo check --all-targets --all-features
+          cargo clippy --all-targets --all-features -- -D warnings
+          cargo test --all-features
+          ```
+
+          Do not suppress valid warnings broadly to force green checks. Fix causes or document narrowly justified exceptions.
+
+          ## COMPLETION REPORT
+
+          At the end provide a precise report containing:
+
+          - files added
+          - files modified
+          - Module 15 merge conflicts and resolutions
+          - Module 16 service-by-service implementation state
+          - native commands registered
+          - safety controls added
+          - tests added and exact results
+          - remaining limitations
+          - confirmation that no fake host/project data is displayed
+
+          Begin immediately by inspecting the open project and the ZIP overlay. Do not ask for confirmation unless a genuinely destructive user-data operation is required.
+          PROMPT
+
+          cat > "$BUNDLE/README-FIRST-AR.md" <<'ARABIC'
+          # ابدأ من هنا
+
+          1. ارفع ملف ZIP كاملًا إلى Gemini Build داخل محادثة المشروع المفتوح.
+          2. اطلب منه قراءة `GEMINI_MASTER_PROMPT.md` وتنفيذه حرفيًا.
+          3. لا تطلب منه إنشاء مشروع جديد.
+          4. مجلد `project-overlay/` يحتوي الملفات بمساراتها الأصلية للدمج داخل المشروع الحالي.
+          5. المهمة تشمل دمج قسم المطورين Module 15 ثم بناء وتخصيص Module 16 — مركز هندسة المشاريع.
+          ARABIC
+
+          cd "$RUNNER_TEMP"
+          zip -r KNOUX-M15-M16-Gemini-Bundle.zip KNOUX-M15-M16-Gemini-Bundle
+          cp KNOUX-M15-M16-Gemini-Bundle.zip "$GITHUB_WORKSPACE/"
+
+      - name: Upload Gemini bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: KNOUX-M15-M16-Gemini-Bundle
+          path: KNOUX-M15-M16-Gemini-Bundle.zip
+          if-no-files-found: error
+          retention-days: 30
