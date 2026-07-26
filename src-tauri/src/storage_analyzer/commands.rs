@@ -179,10 +179,7 @@ async fn scan_internal(
             )
         },
         if result.cancelled {
-            format!(
-                "تم إلغاء فحص التخزين بعد قياس {} ملف.",
-                result.total_files
-            )
+            format!("تم إلغاء فحص التخزين بعد قياس {} ملف.", result.total_files)
         } else {
             format!(
                 "تم قياس {} ملف و{} مجلد من المسار المحدد.",
@@ -219,11 +216,7 @@ macro_rules! path_scan_command {
 
 path_scan_command!(m04_largest_files, "m04_s02", "m04.files.largest");
 path_scan_command!(m04_largest_folders, "m04_s03", "m04.folders.largest");
-path_scan_command!(
-    m04_type_distribution,
-    "m04_s04",
-    "m04.types.distribution"
-);
+path_scan_command!(m04_type_distribution, "m04_s04", "m04.types.distribution");
 path_scan_command!(m04_old_files, "m04_s05", "m04.files.old");
 
 fn preset_path(variable: &str, suffix: &str) -> Result<String, String> {
@@ -236,7 +229,10 @@ fn preset_path(variable: &str, suffix: &str) -> Result<String, String> {
         root.join(suffix)
     };
     if !path.is_dir() {
-        return Err(format!("storage_preset_directory_unavailable:{}", path.display()));
+        return Err(format!(
+            "storage_preset_directory_unavailable:{}",
+            path.display()
+        ));
     }
     Ok(path.to_string_lossy().to_string())
 }
@@ -319,7 +315,10 @@ pub fn m04_external_drives(
         "m04.drives.external",
         started_at,
         timer,
-        format!("Measured {} logical drives from Windows.", inventory.drives.len()),
+        format!(
+            "Measured {} logical drives from Windows.",
+            inventory.drives.len()
+        ),
         format!("تم قياس {} قرص منطقي من ويندوز.", inventory.drives.len()),
         inventory.clone(),
         inventory.warnings.clone(),
@@ -383,7 +382,9 @@ fn sanitize_report_name(value: Option<String>, scan_id: &str) -> String {
     };
     let cleaned = value
         .chars()
-        .filter(|character| character.is_ascii_alphanumeric() || matches!(character, '-' | '_' | '.'))
+        .filter(|character| {
+            character.is_ascii_alphanumeric() || matches!(character, '-' | '_' | '.')
+        })
         .collect::<String>();
     if cleaned.is_empty() {
         fallback
@@ -429,8 +430,7 @@ pub fn m04_report_export(
     let path = directory.join(file_name);
     let payload = serde_json::to_vec_pretty(&snapshot)
         .map_err(|error| format!("storage_report_serialize_failed:{error}"))?;
-    fs::write(&path, &payload)
-        .map_err(|error| format!("storage_report_write_failed:{error}"))?;
+    fs::write(&path, &payload).map_err(|error| format!("storage_report_write_failed:{error}"))?;
     let result = StorageReportExportResult {
         scan_id: snapshot.scan_id.clone(),
         format: "json".into(),
