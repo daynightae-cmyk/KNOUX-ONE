@@ -5,17 +5,16 @@ import { NATIVE_COMMANDS } from '../services/nativeCommandRegistry';
 
 const main = fs.readFileSync(path.resolve('src-tauri/src/main.rs'), 'utf8');
 
-describe('Module 03 command registry', () => {
-  it('registers every Module 03 catalog command in Tauri', () => {
+describe('native command registry', () => {
+  it('registers every Module 03 and Module 15 command in Tauri', () => {
     for (const [handlerId, command] of Object.entries(NATIVE_COMMANDS)) {
-      if (!handlerId.startsWith('m03.')) continue;
-      expect(main, handlerId).toContain(`duplicates::${command}`);
+      if (handlerId.startsWith('m03.')) expect(main, handlerId).toContain(`duplicates::${command}`);
+      if (handlerId.startsWith('m15.')) expect(main, handlerId).toContain(`developer::${command}`);
     }
   });
 
-  it('does not register removed Module 07 and Module 15/16 stubs', () => {
+  it('does not register removed Module 07 and Module 16 stubs', () => {
     expect(main).not.toContain('windows_repair::');
-    expect(main).not.toContain('developer::');
     expect(main).not.toContain('projects::');
   });
 });

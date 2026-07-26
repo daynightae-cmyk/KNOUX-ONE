@@ -35,13 +35,32 @@ Module 03 uses real local BLAKE3 verification, changed-file checks, hard-link aw
 
 See [`docs/M03_DUPLICATE_ENGINE.md`](docs/M03_DUPLICATE_ENGINE.md) for safety invariants and exact limitations.
 
+### Module 15 — KNOUX Developer Studio
+
+| Service | State |
+|---|---|
+| Workstation toolchain discovery | Implemented |
+| PATH diagnostics laboratory | Implemented |
+| Runtime and version-manager inspection | Implemented |
+| Secure Git configuration audit | Implemented |
+| Repository intelligence scanner | Implemented |
+| Ports and process control | Implemented |
+| Multi-ecosystem project health | Implemented |
+| Developer cache control | Implemented |
+| Local HTTP and API laboratory | Implemented |
+| Developer evidence report | Implemented |
+
+Developer Studio reads real Windows toolchains, PATH scopes, Git settings, repositories, listening endpoints, project manifests, and recognized caches through explicit allowlisted commands. Process termination requires `STOP <PID>`, cache cleanup requires `CLEAN`, protected processes and arbitrary cleanup paths are blocked, and browser preview remains non-executable.
+
+See [`docs/M15_DEVELOPER_STUDIO.md`](docs/M15_DEVELOPER_STUDIO.md) for the service matrix, safety controls, and operational boundaries.
+
 ### Modules 02, 04–14, and 17–19
 
 Planned. They remain visible as product roadmap workspaces but expose no executable native handlers.
 
-### Modules 15 and 16
+### Module 16 — Project Engineering
 
-Planned during Phase 04A. Developer Studio and Project Engineering will be implemented in separate independently verified phases. Sample toolchains, ports, repositories, and build caches are not displayed as host facts.
+Planned as a separate independently verified phase. It exposes no executable native handlers.
 
 ## Safety boundaries
 
@@ -52,7 +71,10 @@ Planned during Phase 04A. Developer Studio and Project Engineering will be imple
 5. Every actionable duplicate group requires one verified keeper.
 6. Cross-volume quarantine copies, flushes, verifies BLAKE3, and only then removes the source.
 7. Permanent purge requires typed confirmation and does not claim guaranteed SSD secure erasure.
-8. SQLite data is stored under the Tauri application-data directory, not browser localStorage.
+8. Developer Studio does not collect Git tokens, passwords, or credential payloads.
+9. Process termination blocks protected processes and requires exact typed confirmation.
+10. Developer cache cleanup is restricted to recognized allowlisted cache paths.
+11. SQLite data is stored under the Tauri application-data directory, not browser localStorage.
 
 ## Development requirements
 

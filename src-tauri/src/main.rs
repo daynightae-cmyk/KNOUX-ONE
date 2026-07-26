@@ -2,9 +2,10 @@
     all(not(debug_assertions), target_os = "windows"),
     windows_subsystem = "windows"
 )]
-#![allow(clippy::unnecessary_sort_by)]
+#![allow(clippy::unnecessary_sort_by, clippy::too_many_arguments)]
 
 mod contracts;
+mod developer;
 mod duplicates;
 mod storage;
 mod system;
@@ -32,7 +33,17 @@ fn main() {
             duplicates::m03_job_cancel,
             duplicates::m03_job_list,
             duplicates::m03_scan_history,
-            duplicates::m03_scan_result
+            duplicates::m03_scan_result,
+            developer::m15_environment_discover,
+            developer::m15_path_audit,
+            developer::m15_runtime_inspect,
+            developer::m15_git_audit,
+            developer::m15_repositories_scan,
+            developer::m15_ports_manage,
+            developer::m15_projects_audit,
+            developer::m15_caches_manage,
+            developer::m15_http_execute,
+            developer::m15_report_export
         ])
         .run(tauri::generate_context!())
         .expect("error while running KNOUX ONE");

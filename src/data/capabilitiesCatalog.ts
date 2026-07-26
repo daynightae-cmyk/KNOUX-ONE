@@ -1,9 +1,7 @@
 /**
  * KNOUX ONE — Authoritative capability catalog.
- *
- * The original generated catalog is retained only as a bilingual content seed in
- * `legacyCapabilitiesSeed.ts`. This module is the sole production export and
- * applies verified implementation states and explicit allowlisted handler IDs.
+ * The legacy catalog is a bilingual content seed only. This module owns all
+ * executable states and explicit native handler bindings.
  */
 import type { KnouxCapability, KnouxModule } from '../types';
 import { MODULES_CATALOG as LEGACY_SEED } from './legacyCapabilitiesSeed';
@@ -41,27 +39,18 @@ function renameService(moduleId: string, serviceNumber: number, nameEn: string, 
   patchService(moduleId, serviceNumber, { nameEn, nameAr, descriptionEn, descriptionAr });
 }
 
-// Module 01: only verified commands remain executable.
 patchService('m01', 1, {
-  handlerId: 'm01.system.discover',
-  implementationState: 'partial',
-  status: 'available',
+  handlerId: 'm01.system.discover', implementationState: 'partial', status: 'available',
   availabilityReasonEn: 'Real Windows CIM discovery is connected; some hardware fields remain best-effort.',
   availabilityReasonAr: 'اكتشاف ويندوز الحقيقي عبر CIM متصل، وبعض حقول المكونات تظل حسب توفر النظام.',
 });
 patchService('m01', 2, {
-  handlerId: 'm01.winget.verify',
-  implementationState: 'implemented',
-  status: 'available',
+  handlerId: 'm01.winget.verify', implementationState: 'implemented', status: 'available',
   availabilityReasonEn: 'The real Winget executable path and version are verified through an explicit native command.',
   availabilityReasonAr: 'يتم التحقق من مسار Winget الحقيقي وإصداره عبر أمر محلي صريح.',
 });
 patchService('m01', 5, {
-  handlerId: 'm01.winget.install',
-  implementationState: 'partial',
-  status: 'available',
-  runtime: 'desktop_elevated',
-  requiresAdmin: true,
+  handlerId: 'm01.winget.install', implementationState: 'partial', status: 'available', runtime: 'desktop_elevated', requiresAdmin: true,
   availabilityReasonEn: 'Allowlisted Winget installation and post-install verification are connected; full resumable queue work remains planned.',
   availabilityReasonAr: 'تثبيت Winget للحزم المسموحة والتحقق بعد التثبيت متصلان، بينما يظل الطابور القابل للاستئناف مخططًا.',
 });
@@ -78,9 +67,7 @@ const module03Names: Array<[number, string, string, string, string]> = [
   [9, 'Keeper Rule Planning', 'تخطيط قواعد الاحتفاظ', 'Generate explainable keeper plans and block groups without one verified keeper.', 'إنشاء خطط موضحة لاختيار النسخة المحتفظ بها ومنع أي مجموعة بلا نسخة موثقة.'],
   [10, 'Verified Quarantine & Restore', 'المحجر الموثق والاستعادة', 'Move, verify, persist, restore, and purge files through checksum-verified transactions.', 'نقل الملفات والتحقق منها وحفظها واستعادتها أو حذفها عبر معاملات موثقة بالبصمة.'],
 ];
-for (const [number, nameEn, nameAr, descriptionEn, descriptionAr] of module03Names) {
-  renameService('m03', number, nameEn, nameAr, descriptionEn, descriptionAr);
-}
+for (const [number, nameEn, nameAr, descriptionEn, descriptionAr] of module03Names) renameService('m03', number, nameEn, nameAr, descriptionEn, descriptionAr);
 
 const m03States: Array<[number, string, KnouxCapability['implementationState'], KnouxCapability['status'], string, string]> = [
   [1, 'm03.scan.exact', 'implemented', 'available', 'Real exact scan, full verification, file-change checks, and hard-link handling are connected.', 'تم ربط الفحص التام والتحقق الكامل وفحص تغير الملفات ومعالجة الروابط الصلبة.'],
@@ -95,27 +82,54 @@ const m03States: Array<[number, string, KnouxCapability['implementationState'], 
   [10, 'm03.quarantine.manage', 'implemented', 'available', 'Checksum-verified quarantine, list, verify, restore, conflict handling, and typed-confirmation purge are connected.', 'تم ربط المحجر والقائمة والتحقق والاستعادة ومعالجة التعارض والحذف النهائي بتأكيد مكتوب.'],
 ];
 for (const [number, handlerId, implementationState, status, availabilityReasonEn, availabilityReasonAr] of m03States) {
-  patchService('m03', number, {
-    handlerId,
-    implementationState,
-    status,
-    availabilityReasonEn,
-    availabilityReasonAr,
-    supportsQuarantine: number === 1 || number === 4 || number === 5 || number === 6 || number === 7 || number === 10,
+  patchService('m03', number, { handlerId, implementationState, status, availabilityReasonEn, availabilityReasonAr, supportsQuarantine: [1, 4, 5, 6, 7, 10].includes(number) });
+}
+
+const module15 = catalog.find(item => item.id === 'm15');
+if (module15) {
+  module15.nameEn = 'KNOUX Developer Studio';
+  module15.nameAr = 'استوديو المطورين KNOUX';
+  module15.descriptionEn = 'A local-first Windows workspace for toolchains, runtimes, Git, repositories, ports, project health, caches, HTTP testing, and evidence reports.';
+  module15.descriptionAr = 'مساحة عمل محلية لويندوز لإدارة أدوات التطوير وبيئات التشغيل وGit والمستودعات والمنافذ وصحة المشروعات والكاش واختبار HTTP والتقارير.';
+}
+
+const module15Names: Array<[number, string, string, string, string]> = [
+  [1, 'Workstation Toolchain Discovery', 'اكتشاف أدوات محطة التطوير', 'Resolve real executable paths and versions for major compilers, runtimes, package managers, containers, and editors.', 'اكتشاف المسارات التنفيذية والإصدارات الحقيقية للمترجمات وبيئات التشغيل ومديري الحزم والحاويات والمحررات.'],
+  [2, 'PATH Diagnostics Laboratory', 'مختبر تشخيص PATH', 'Audit user and machine PATH entries, variable expansion, missing folders, and normalized duplicates without editing the registry.', 'تدقيق PATH للمستخدم والنظام وتوسيع المتغيرات واكتشاف المسارات المفقودة والمكررة دون تعديل السجل.'],
+  [3, 'Runtime & Version Manager Inspector', 'فاحص مديري الإصدارات', 'Detect NVM, FNM, Volta, pyenv-win, Rustup, and developer home variables.', 'اكتشاف NVM وFNM وVolta وpyenv-win وRustup ومتغيرات مجلدات التطوير.'],
+  [4, 'Secure Git Configuration Audit', 'تدقيق إعدادات Git الآمن', 'Inspect selected global Git configuration without collecting passwords, tokens, or credential payloads.', 'فحص إعدادات Git العامة المحددة دون جمع كلمات المرور أو الرموز أو بيانات الاعتماد.'],
+  [5, 'Repository Intelligence Scanner', 'ماسح ذكاء المستودعات', 'Discover Git repositories and report branch, dirty state, upstream divergence, redacted remote, and latest commit.', 'اكتشاف مستودعات Git وعرض الفرع والتغييرات والانحراف والرابط المنقح وآخر التزام.'],
+  [6, 'Ports & Process Control', 'التحكم في المنافذ والعمليات', 'Inspect TCP/UDP listeners and terminate user-approved non-protected processes with exact confirmation.', 'فحص منافذ TCP وUDP وإنهاء العمليات غير المحمية بعد تأكيد المستخدم الدقيق.'],
+  [7, 'Multi-Ecosystem Project Health', 'صحة المشروعات متعددة البيئات', 'Discover Node, Rust, Python, Go, Java, and .NET projects and validate manifests and lockfiles.', 'اكتشاف مشروعات Node وRust وPython وGo وJava و.NET والتحقق من ملفات المشروع والقفل.'],
+  [8, 'Developer Cache Control', 'إدارة كاش المطور', 'Measure and clean allowlisted package-manager and build caches with typed confirmation.', 'قياس وتنظيف كاش مديري الحزم والبناء المسموح به بعد تأكيد كتابي.'],
+  [9, 'Local HTTP & API Laboratory', 'مختبر HTTP وواجهات API', 'Execute explicit HTTP/HTTPS requests with timeout, headers, body, response timing, and bounded previews.', 'تنفيذ طلبات HTTP وHTTPS مع المهلة والترويسات والمحتوى وقياس الاستجابة ومعاينة محدودة.'],
+  [10, 'Developer Evidence Report', 'تقرير أدلة بيئة التطوير', 'Export the loaded developer evidence as JSON or Markdown inside protected application data.', 'تصدير أدلة بيئة التطوير المحملة بصيغة JSON أو Markdown داخل بيانات التطبيق المحمية.'],
+];
+const m15Handlers = ['m15.environment.discover', 'm15.path.audit', 'm15.runtime.inspect', 'm15.git.audit', 'm15.repositories.scan', 'm15.ports.manage', 'm15.projects.audit', 'm15.caches.manage', 'm15.http.execute', 'm15.report.export'];
+for (const [number, nameEn, nameAr, descriptionEn, descriptionAr] of module15Names) {
+  renameService('m15', number, nameEn, nameAr, descriptionEn, descriptionAr);
+  patchService('m15', number, {
+    handlerId: m15Handlers[number - 1],
+    status: 'available',
+    implementationState: 'implemented',
+    availabilityReasonEn: 'Connected to an explicit allowlisted native Windows handler with honest web fallback.',
+    availabilityReasonAr: 'متصلة بأمر ويندوز محلي صريح ومسموح مع حالة صادقة في نسخة الويب.',
+    requiresAdmin: false,
+    supportsPreview: true,
+    supportsDryRun: number !== 9,
+    supportsCancel: false,
+    supportsUndo: false,
   });
 }
 
-// Modules 15 and 16 remain explicitly planned in this phase. They expose no native handlers.
-for (const moduleId of ['m15', 'm16']) {
-  const module = catalog.find(item => item.id === moduleId);
-  module?.services.forEach(service => {
-    service.handlerId = undefined;
-    service.status = 'planned';
-    service.implementationState = 'planned';
-    service.availabilityReasonEn = `Module ${moduleId.slice(1)} is reserved for its dedicated independently verified phase.`;
-    service.availabilityReasonAr = `القسم ${Number(moduleId.slice(1))} محجوز لمرحلته المستقلة الخاضعة للتحقق.`;
-  });
-}
+const module16 = catalog.find(item => item.id === 'm16');
+module16?.services.forEach(service => {
+  service.handlerId = undefined;
+  service.status = 'planned';
+  service.implementationState = 'planned';
+  service.availabilityReasonEn = 'Module 16 is reserved for its dedicated independently verified phase.';
+  service.availabilityReasonAr = 'القسم 16 محجوز لمرحلته المستقلة الخاضعة للتحقق.';
+});
 
 export const MODULES_CATALOG: KnouxModule[] = catalog;
 export const ALL_CAPABILITIES: KnouxCapability[] = MODULES_CATALOG.flatMap(module => module.services);
