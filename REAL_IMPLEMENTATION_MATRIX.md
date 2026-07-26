@@ -8,13 +8,13 @@ This file records verified implementation states. A service is not marked `imple
 |---|---:|
 | Modules | 19 |
 | Services | 190 |
-| Implemented services | 20 |
-| Partial services | 10 |
-| Planned services | 160 |
-| Catalog services with handler IDs | 30 |
-| Explicit native handler mappings | 41 |
+| Implemented services | 26 |
+| Partial services | 14 |
+| Planned services | 150 |
+| Catalog services with handler IDs | 40 |
+| Explicit native handler mappings | 52 |
 
-The 41 native mappings include operational helper commands such as cancellation, history, folder selection, job control, and result retrieval that are not separate catalog services.
+The 52 native mappings include operational helper commands such as cancellation, history, folder selection, job control, result retrieval, and scan execution that are not separate catalog services.
 
 ## Module matrix
 
@@ -23,7 +23,7 @@ The 41 native mappings include operational helper commands such as cancellation,
 | M01 | تجهيز الجهاز بعد تثبيت Windows | 1 | 2 | 7 | Windows discovery and allowlisted Winget commands |
 | M02 | تنظيف الملفات غير الضرورية | 3 | 4 | 3 | Real allowlisted filesystem scan, verified deletion, cancellation, progress, and AppData history |
 | M03 | البحث عن الملفات المكررة | 6 | 4 | 0 | BLAKE3 verification, keeper planning, quarantine, restore, SQLite evidence |
-| M04 | معرفة ما يستهلك مساحة الجهاز | 0 | 0 | 10 | Planned; no native handlers |
+| M04 | معرفة ما يستهلك مساحة الجهاز | 6 | 4 | 0 | Real read-only path scanning, largest items, type totals, Windows drive capacity, cancellation, threshold check, and JSON evidence export |
 | M05 | التحكم في برامج بدء التشغيل | 0 | 0 | 10 | Planned; no native handlers |
 | M06 | تسريع الجهاز وتحسين الأداء | 0 | 0 | 10 | Planned; no native handlers |
 | M07 | إصلاح مشاكل Windows | 0 | 0 | 10 | Planned; no native handlers |
@@ -54,6 +54,21 @@ The 41 native mappings include operational helper commands such as cancellation,
 | M02-S08 Recycle Bin review | Planned | — | — | Selective restore and purge not implemented |
 | M02-S09 Old installers in Downloads | Partial | `m02.scan.old_downloads` | `m02_scan_old_downloads` | Read-only installer/archive review older than 30 days |
 | M02-S10 Automatic cleanup schedules | Planned | — | — | Task Scheduler integration not implemented |
+
+## Module 04 service evidence
+
+| Service | State | Handler | Rust command | Data source / behavior |
+|---|---|---|---|---|
+| M04-S01 Storage map | Implemented | `m04.storage.scan` | `m04_storage_scan` | User-selected canonical directory, recursive read-only scan |
+| M04-S02 Largest files | Implemented | `m04.files.largest` | `m04_largest_files` | Bounded ranking from measured file metadata |
+| M04-S03 Largest folders | Implemented | `m04.folders.largest` | `m04_largest_folders` | Recursive ancestor totals derived from reached files |
+| M04-S04 File types | Implemented | `m04.types.distribution` | `m04_type_distribution` | Real extension/category byte and file totals |
+| M04-S05 Old files | Partial | `m04.files.old` | `m04_old_files` | Uses modification time; last-access time is not promised |
+| M04-S06 Downloads folder | Implemented | `m04.downloads.analyze` | `m04_downloads_analyze` | `%USERPROFILE%\Downloads` |
+| M04-S07 Program data folders | Implemented | `m04.appdata.analyze` | `m04_appdata_analyze` | `%LOCALAPPDATA%`, read-only |
+| M04-S08 Connected drives | Partial | `m04.drives.external` | `m04_external_drives` | Windows logical drives and capacity through Win32 APIs |
+| M04-S09 Low-space check | Partial | `m04.space.check` | `m04_space_check` | One-time free-space threshold comparison; no background monitor |
+| M04-S10 Export storage report | Partial | `m04.report.export` | `m04_report_export` | JSON export from a native measured scan snapshot; no PDF |
 
 ## Non-negotiable rules
 
