@@ -1,7 +1,9 @@
 name: Fix Module 05 Formatting
 
 on:
-  pull_request:
+  push:
+    branches:
+      - 'feat/m05-startup-services-complete'
     paths:
       - '.github/workflows/fix-m05-format.yml'
 
@@ -14,7 +16,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.pull_request.head.ref }}
+          ref: feat/m05-startup-services-complete
           fetch-depth: 0
       - uses: dtolnay/rust-toolchain@stable
         with:
@@ -37,7 +39,7 @@ jobs:
 '@
           $text = $text.Replace($old, $new)
           $text = $text.Replace('.eq_ignore_ascii_case(&startup.to_string_lossy())', '.eq_ignore_ascii_case(startup.to_string_lossy().as_ref())')
-          $text = $text.Replace('format!("\\KNOUX ONE\\Delayed\\{}", item.id)', 'format!("KNOUX_ONE_Delayed_{}", item.id)')
+          $text = $text.Replace('format!("\KNOUX ONE\Delayed\{}", item.id)', 'format!("KNOUX_ONE_Delayed_{}", item.id)')
           Set-Content -NoNewline -Encoding UTF8 $rust $text
 
           $ui = 'src/features/startup/StartupServicesWorkspace.tsx'
@@ -54,5 +56,6 @@ jobs:
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add src-tauri/src/startup_services/mod.rs src/features/startup/StartupServicesWorkspace.tsx
+          if (git diff --cached --quiet) { exit 0 }
           git commit -m 'fix(m05): apply rustfmt and persistence safety fixes'
-          git push origin HEAD:${{ github.event.pull_request.head.ref }}
+          git push origin HEAD:feat/m05-startup-services-complete
