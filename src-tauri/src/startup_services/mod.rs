@@ -3,7 +3,7 @@ use chrono::Utc;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use std::{
-    collections::{HashMap, HashSet},
+    collections::HashSet,
     fs,
     path::{Path, PathBuf},
     process::Command,
@@ -153,7 +153,10 @@ pub struct ProfileResult {
 #[serde(rename_all = "camelCase", tag = "action")]
 pub enum StartupChangeRequest {
     #[serde(rename = "disable")]
-    Disable { item_id: String, confirmation: String },
+    Disable {
+        item_id: String,
+        confirmation: String,
+    },
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -168,7 +171,10 @@ pub enum DelayRequest {
         confirmation: String,
     },
     #[serde(rename = "remove")]
-    Remove { change_id: String, confirmation: String },
+    Remove {
+        change_id: String,
+        confirmation: String,
+    },
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -182,9 +188,15 @@ pub enum ProfileRequest {
         enabled_item_ids: Vec<String>,
     },
     #[serde(rename = "apply")]
-    Apply { profile_id: String, confirmation: String },
+    Apply {
+        profile_id: String,
+        confirmation: String,
+    },
     #[serde(rename = "delete")]
-    Delete { profile_id: String, confirmation: String },
+    Delete {
+        profile_id: String,
+        confirmation: String,
+    },
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -193,7 +205,10 @@ pub enum RestoreRequest {
     #[serde(rename = "list")]
     List,
     #[serde(rename = "restore")]
-    Restore { change_id: String, confirmation: String },
+    Restore {
+        change_id: String,
+        confirmation: String,
+    },
 }
 
 #[derive(Debug, Deserialize)]
@@ -307,7 +322,7 @@ fn stable_id(parts: &[&str]) -> String {
 }
 
 fn ps_quote(value: &str) -> String {
-    format!("'{}'", value.replace(''', "''"))
+    format!("'{}'", value.replace('\'', "''"))
 }
 
 fn run_powershell(script: &str) -> Result<String, String> {
@@ -336,7 +351,8 @@ fn run_powershell(script: &str) -> Result<String, String> {
 
 fn run_powershell_json<T: DeserializeOwned>(script: &str) -> Result<T, String> {
     let stdout = run_powershell(script)?;
-    serde_json::from_str(&stdout).map_err(|error| format!("powershell_json_invalid:{error}:{stdout}"))
+    serde_json::from_str(&stdout)
+        .map_err(|error| format!("powershell_json_invalid:{error}:{stdout}"))
 }
 
 fn app_root(app: &AppHandle) -> Result<PathBuf, String> {
@@ -353,18 +369,19 @@ fn load_json<T: DeserializeOwned + Default>(path: &Path) -> Result<T, String> {
     if !path.exists() {
         return Ok(T::default());
     }
-    let bytes = fs::read(path).map_err(|error| format!("read_failed:{}:{error}", path.display()))?;
-    serde_json::from_slice(&bytes).map_err(|error| format!("json_invalid:{}:{error}", path.display()))
+    let bytes =
+        fs::read(path).map_err(|error| format!("read_failed:{}:{error}", path.display()))?;
+    serde_json::from_slice(&bytes)
+        .map_err(|error| format!("json_invalid:{}:{error}", path.display()))
 }
 
 fn save_json<T: Serialize>(path: &Path, value: &T) -> Result<(), String> {
     if let Some(parent) = path.parent() {
         fs::create_dir_all(parent).map_err(|error| format!("directory_create_failed:{error}"))?;
     }
-    let temporary = path.with_extension("tmp");
-    let bytes = serde_json::to_vec_pretty(value).map_err(|error| format!("json_encode_failed:{error}"))?;
-    fs::write(&temporary, bytes).map_err(|error| format!("write_failed:{}:{error}", temporary.display()))?;
-    fs::rename(&temporary, path).map_err(|error| format!("replace_failed:{}:{error}", path.display()))
+    let bytes =
+        serde_json::to_vec_pretty(value).map_err(|error| format!("json_encode_failed:{error}"))?;
+    fs::write(path, bytes).map_err(|error| format!("write_failed:{}:{error}", path.display()))
 }
 
 fn changes_path(app: &AppHandle) -> Result<PathBuf, String> {
@@ -627,7 +644,10 @@ fn read_tasks() -> Result<Vec<ScheduledTaskItem>, String> {
         .into_iter()
         .map(|item| {
             let author = item.author.unwrap_or_default();
-            let protected = item.task_path.to_ascii_lowercase().starts_with("\\microsoft\\")
+            let protected = item
+                .task_path
+                .to_ascii_lowercase()
+                .starts_with("\\microsoft\\")
                 || author.to_ascii_lowercase().contains("microsoft");
             ScheduledTaskItem {
                 id: stable_id(&[&item.task_path, &item.task_name]),
@@ -646,8 +666,19 @@ fn read_tasks() -> Result<Vec<ScheduledTaskItem>, String> {
 
 fn read_services() -> Result<Vec<WindowsServiceItem>, String> {
     let critical: HashSet<&str> = [
-        "RpcSs", "WinDefend", "EventLog", "PlugPlay", "Power", "SamSs", "LanmanWorkstation",
-        "Dhcp", "Dnscache", "W32Time", "BITS", "TrustedInstaller", "CryptSvc",
+        "RpcSs",
+        "WinDefend",
+        "EventLog",
+        "PlugPlay",
+        "Power",
+        "SamSs",
+        "LanmanWorkstation",
+        "Dhcp",
+        "Dnscache",
+        "W32Time",
+        "BITS",
+        "TrustedInstaller",
+        "CryptSvc",
     ]
     .into_iter()
     .collect();
@@ -686,7 +717,12 @@ fn read_boot_history(limit: usize) -> Result<Vec<BootMetric>, String> {
 fn all_startup_items() -> Result<Vec<StartupItem>, String> {
     let mut items = read_registry_items()?;
     items.extend(read_folder_items()?);
-    items.sort_by(|left, right| right.impact_score.cmp(&left.impact_score).then_with(|| left.name.cmp(&right.name)));
+    items.sort_by(|left, right| {
+        right
+            .impact_score
+            .cmp(&left.impact_score)
+            .then_with(|| left.name.cmp(&right.name))
+    });
     Ok(items)
 }
 
@@ -697,7 +733,11 @@ fn find_item(item_id: &str) -> Result<StartupItem, String> {
         .ok_or_else(|| "startup_item_not_found".into())
 }
 
-fn disable_item(app: &AppHandle, item: &StartupItem, delayed_task_name: Option<String>) -> Result<ChangeRecord, String> {
+fn disable_item(
+    app: &AppHandle,
+    item: &StartupItem,
+    delayed_task_name: Option<String>,
+) -> Result<ChangeRecord, String> {
     if !item.mutable || item.protected || item.scope != "user" {
         return Err("startup_item_is_protected_or_requires_administrator".into());
     }
@@ -717,13 +757,20 @@ fn disable_item(app: &AppHandle, item: &StartupItem, delayed_task_name: Option<S
         let source_parent = source.parent().ok_or("startup_source_parent_missing")?;
         if !source_parent
             .to_string_lossy()
-            .eq_ignore_ascii_case(&startup.to_string_lossy())
+            .eq_ignore_ascii_case(startup.to_string_lossy().as_ref())
         {
             return Err("startup_folder_outside_user_scope".into());
         }
         let backup_dir = app_root(app)?.join("disabled-startup");
         fs::create_dir_all(&backup_dir).map_err(|error| format!("backup_create_failed:{error}"))?;
-        let target = backup_dir.join(format!("{}_{}", change_id, source.file_name().ok_or("startup_filename_missing")?.to_string_lossy()));
+        let target = backup_dir.join(format!(
+            "{}_{}",
+            change_id,
+            source
+                .file_name()
+                .ok_or("startup_filename_missing")?
+                .to_string_lossy()
+        ));
         fs::rename(&source, &target).map_err(|error| format!("startup_move_failed:{error}"))?;
         backup_path = Some(target.to_string_lossy().to_string());
     } else {
@@ -733,10 +780,17 @@ fn disable_item(app: &AppHandle, item: &StartupItem, delayed_task_name: Option<S
         id: change_id,
         item_id: item.id.clone(),
         item_name: item.name.clone(),
-        kind: if delayed_task_name.is_some() { "delayed".into() } else { "disabled".into() },
+        kind: if delayed_task_name.is_some() {
+            "delayed".into()
+        } else {
+            "disabled".into()
+        },
         source_kind: item.source_kind.clone(),
         source_path: item.source_path.clone(),
-        value_name: item.source_kind.starts_with("registry_").then(|| item.name.clone()),
+        value_name: item
+            .source_kind
+            .starts_with("registry_")
+            .then(|| item.name.clone()),
         original_command: item.command.clone(),
         backup_path,
         delayed_task_name,
@@ -750,12 +804,19 @@ fn disable_item(app: &AppHandle, item: &StartupItem, delayed_task_name: Option<S
     Ok(change)
 }
 
-fn restore_change_internal(app: &AppHandle, change: &ChangeRecord, mark_restored: bool) -> Result<ChangeRecord, String> {
+fn restore_change_internal(
+    app: &AppHandle,
+    change: &ChangeRecord,
+    mark_restored: bool,
+) -> Result<ChangeRecord, String> {
     if change.restored_at.is_some() {
         return Ok(change.clone());
     }
     if change.source_kind.starts_with("registry_") {
-        let value_name = change.value_name.as_deref().ok_or("registry_value_name_missing")?;
+        let value_name = change
+            .value_name
+            .as_deref()
+            .ok_or("registry_value_name_missing")?;
         let script = format!(
             "$ErrorActionPreference='Stop'; if(-not(Test-Path -LiteralPath {})){{New-Item -Path {} -Force | Out-Null}}; New-ItemProperty -LiteralPath {} -Name {} -Value {} -PropertyType String -Force | Out-Null",
             ps_quote(&change.source_path), ps_quote(&change.source_path), ps_quote(&change.source_path),
@@ -798,10 +859,26 @@ pub fn m05_registry_entries(op_id: String) -> Result<OperationResult<Vec<Startup
     let started_at = Utc::now().to_rfc3339();
     let timer = Instant::now();
     match read_registry_items() {
-        Ok(items) => Ok(success(op_id, "m05_s01", "m05.registry.inspect", started_at, timer, items,
+        Ok(items) => Ok(success(
+            op_id,
+            "m05_s01",
+            "m05.registry.inspect",
+            started_at,
+            timer,
+            items,
             "Registry startup entries were read from Windows.".into(),
-            "تمت قراءة مدخلات بدء التشغيل من سجل ويندوز.".into(), Vec::new())),
-        Err(error) => Ok(failure(op_id, "m05_s01", "m05.registry.inspect", started_at, timer, "registry_read_failed", error)),
+            "تمت قراءة مدخلات بدء التشغيل من سجل ويندوز.".into(),
+            Vec::new(),
+        )),
+        Err(error) => Ok(failure(
+            op_id,
+            "m05_s01",
+            "m05.registry.inspect",
+            started_at,
+            timer,
+            "registry_read_failed",
+            error,
+        )),
     }
 }
 
@@ -810,34 +887,86 @@ pub fn m05_startup_folders(op_id: String) -> Result<OperationResult<Vec<StartupI
     let started_at = Utc::now().to_rfc3339();
     let timer = Instant::now();
     match read_folder_items() {
-        Ok(items) => Ok(success(op_id, "m05_s02", "m05.folders.inspect", started_at, timer, items,
+        Ok(items) => Ok(success(
+            op_id,
+            "m05_s02",
+            "m05.folders.inspect",
+            started_at,
+            timer,
+            items,
             "Windows Startup folders were inspected.".into(),
-            "تم فحص مجلدات بدء التشغيل في ويندوز.".into(), Vec::new())),
-        Err(error) => Ok(failure(op_id, "m05_s02", "m05.folders.inspect", started_at, timer, "startup_folder_read_failed", error)),
+            "تم فحص مجلدات بدء التشغيل في ويندوز.".into(),
+            Vec::new(),
+        )),
+        Err(error) => Ok(failure(
+            op_id,
+            "m05_s02",
+            "m05.folders.inspect",
+            started_at,
+            timer,
+            "startup_folder_read_failed",
+            error,
+        )),
     }
 }
 
 #[tauri::command]
-pub fn m05_scheduled_tasks(op_id: String) -> Result<OperationResult<Vec<ScheduledTaskItem>>, String> {
+pub fn m05_scheduled_tasks(
+    op_id: String,
+) -> Result<OperationResult<Vec<ScheduledTaskItem>>, String> {
     let started_at = Utc::now().to_rfc3339();
     let timer = Instant::now();
     match read_tasks() {
-        Ok(items) => Ok(success(op_id, "m05_s03", "m05.tasks.inspect", started_at, timer, items,
+        Ok(items) => Ok(success(
+            op_id,
+            "m05_s03",
+            "m05.tasks.inspect",
+            started_at,
+            timer,
+            items,
             "Boot and logon scheduled tasks were inspected.".into(),
-            "تم فحص المهام المجدولة عند الإقلاع وتسجيل الدخول.".into(), Vec::new())),
-        Err(error) => Ok(failure(op_id, "m05_s03", "m05.tasks.inspect", started_at, timer, "scheduled_task_read_failed", error)),
+            "تم فحص المهام المجدولة عند الإقلاع وتسجيل الدخول.".into(),
+            Vec::new(),
+        )),
+        Err(error) => Ok(failure(
+            op_id,
+            "m05_s03",
+            "m05.tasks.inspect",
+            started_at,
+            timer,
+            "scheduled_task_read_failed",
+            error,
+        )),
     }
 }
 
 #[tauri::command]
-pub fn m05_windows_services(op_id: String) -> Result<OperationResult<Vec<WindowsServiceItem>>, String> {
+pub fn m05_windows_services(
+    op_id: String,
+) -> Result<OperationResult<Vec<WindowsServiceItem>>, String> {
     let started_at = Utc::now().to_rfc3339();
     let timer = Instant::now();
     match read_services() {
-        Ok(items) => Ok(success(op_id, "m05_s04", "m05.services.inspect", started_at, timer, items,
+        Ok(items) => Ok(success(
+            op_id,
+            "m05_s04",
+            "m05.services.inspect",
+            started_at,
+            timer,
+            items,
             "Windows services and executable signatures were inspected read-only.".into(),
-            "تم فحص خدمات ويندوز وتوقيعات ملفاتها للقراءة فقط.".into(), Vec::new())),
-        Err(error) => Ok(failure(op_id, "m05_s04", "m05.services.inspect", started_at, timer, "services_read_failed", error)),
+            "تم فحص خدمات ويندوز وتوقيعات ملفاتها للقراءة فقط.".into(),
+            Vec::new(),
+        )),
+        Err(error) => Ok(failure(
+            op_id,
+            "m05_s04",
+            "m05.services.inspect",
+            started_at,
+            timer,
+            "services_read_failed",
+            error,
+        )),
     }
 }
 
@@ -847,11 +976,25 @@ pub fn m05_impact_assess(op_id: String) -> Result<OperationResult<ImpactSummary>
     let timer = Instant::now();
     let items = match all_startup_items() {
         Ok(items) => items,
-        Err(error) => return Ok(failure(op_id, "m05_s05", "m05.impact.assess", started_at, timer, "impact_inventory_failed", error)),
+        Err(error) => {
+            return Ok(failure(
+                op_id,
+                "m05_s05",
+                "m05.impact.assess",
+                started_at,
+                timer,
+                "impact_inventory_failed",
+                error,
+            ))
+        }
     };
     let boot_history = read_boot_history(20).unwrap_or_default();
-    let values: Vec<u64> = boot_history.iter().filter_map(|item| item.boot_duration_ms).collect();
-    let average_boot_ms = (!values.is_empty()).then(|| values.iter().sum::<u64>() / values.len() as u64);
+    let values: Vec<u64> = boot_history
+        .iter()
+        .filter_map(|item| item.boot_duration_ms)
+        .collect();
+    let average_boot_ms =
+        (!values.is_empty()).then(|| values.iter().sum::<u64>() / values.len() as u64);
     let high_attention_count = items.iter().filter(|item| item.impact_score >= 60).count();
     Ok(success(op_id, "m05_s05", "m05.impact.assess", started_at, timer,
         ImpactSummary {
@@ -870,7 +1013,17 @@ pub fn m05_recommendations(op_id: String) -> Result<OperationResult<Recommendati
     let timer = Instant::now();
     let items = match all_startup_items() {
         Ok(items) => items,
-        Err(error) => return Ok(failure(op_id, "m05_s06", "m05.recommendations.generate", started_at, timer, "recommendation_inventory_failed", error)),
+        Err(error) => {
+            return Ok(failure(
+                op_id,
+                "m05_s06",
+                "m05.recommendations.generate",
+                started_at,
+                timer,
+                "recommendation_inventory_failed",
+                error,
+            ))
+        }
     };
     let protected_count = items.iter().filter(|item| item.protected).count();
     let mutable_count = items.iter().filter(|item| item.mutable).count();
@@ -887,128 +1040,424 @@ pub fn m05_recommendations(op_id: String) -> Result<OperationResult<Recommendati
             automatic_change_allowed: false,
         })
         .collect();
-    Ok(success(op_id, "m05_s06", "m05.recommendations.generate", started_at, timer,
-        RecommendationReport { recommendations, protected_count, mutable_count, measured_at: Utc::now().to_rfc3339() },
+    Ok(success(
+        op_id,
+        "m05_s06",
+        "m05.recommendations.generate",
+        started_at,
+        timer,
+        RecommendationReport {
+            recommendations,
+            protected_count,
+            mutable_count,
+            measured_at: Utc::now().to_rfc3339(),
+        },
         "Safe review recommendations were generated without changing Windows.".into(),
-        "تم إنشاء توصيات مراجعة آمنة دون تغيير ويندوز.".into(), Vec::new()))
+        "تم إنشاء توصيات مراجعة آمنة دون تغيير ويندوز.".into(),
+        Vec::new(),
+    ))
 }
 
 #[tauri::command]
-pub fn m05_startup_change(app: AppHandle, op_id: String, request: StartupChangeRequest) -> Result<OperationResult<MutationResult>, String> {
+pub fn m05_startup_change(
+    app: AppHandle,
+    op_id: String,
+    request: StartupChangeRequest,
+) -> Result<OperationResult<MutationResult>, String> {
     let started_at = Utc::now().to_rfc3339();
     let timer = Instant::now();
     let outcome = match request {
-        StartupChangeRequest::Disable { item_id, confirmation } => {
+        StartupChangeRequest::Disable {
+            item_id,
+            confirmation,
+        } => {
             let item = match find_item(&item_id) {
                 Ok(item) => item,
-                Err(error) => return Ok(failure(op_id, "m05_s09", "m05.startup.change", started_at, timer, "item_not_found", error)),
+                Err(error) => {
+                    return Ok(failure(
+                        op_id,
+                        "m05_s09",
+                        "m05.startup.change",
+                        started_at,
+                        timer,
+                        "item_not_found",
+                        error,
+                    ))
+                }
             };
             if confirmation != format!("DISABLE {}", item.name) {
-                return Ok(failure(op_id, "m05_s09", "m05.startup.change", started_at, timer, "confirmation_mismatch", format!("Type DISABLE {} to continue.", item.name)));
+                return Ok(failure(
+                    op_id,
+                    "m05_s09",
+                    "m05.startup.change",
+                    started_at,
+                    timer,
+                    "confirmation_mismatch",
+                    format!("Type DISABLE {} to continue.", item.name),
+                ));
             }
             match disable_item(&app, &item, None) {
-                Ok(change) => MutationResult { item: Some(item), change: Some(change), active_changes: active_changes(&app).unwrap_or_default(), message: "Startup entry disabled with a restoration record.".into() },
-                Err(error) => return Ok(failure(op_id, "m05_s09", "m05.startup.change", started_at, timer, "disable_failed", error)),
+                Ok(change) => MutationResult {
+                    item: Some(item),
+                    change: Some(change),
+                    active_changes: active_changes(&app).unwrap_or_default(),
+                    message: "Startup entry disabled with a restoration record.".into(),
+                },
+                Err(error) => {
+                    return Ok(failure(
+                        op_id,
+                        "m05_s09",
+                        "m05.startup.change",
+                        started_at,
+                        timer,
+                        "disable_failed",
+                        error,
+                    ))
+                }
             }
         }
     };
-    Ok(success(op_id, "m05_s09", "m05.startup.change", started_at, timer, outcome,
+    Ok(success(
+        op_id,
+        "m05_s09",
+        "m05.startup.change",
+        started_at,
+        timer,
+        outcome,
         "The startup change was applied and recorded for restoration.".into(),
-        "تم تطبيق تغيير بدء التشغيل وحفظ سجل للاستعادة.".into(), Vec::new()))
+        "تم تطبيق تغيير بدء التشغيل وحفظ سجل للاستعادة.".into(),
+        Vec::new(),
+    ))
 }
 
 #[tauri::command]
-pub fn m05_delay_manage(app: AppHandle, op_id: String, request: DelayRequest) -> Result<OperationResult<MutationResult>, String> {
+pub fn m05_delay_manage(
+    app: AppHandle,
+    op_id: String,
+    request: DelayRequest,
+) -> Result<OperationResult<MutationResult>, String> {
     let started_at = Utc::now().to_rfc3339();
     let timer = Instant::now();
     let result = match request {
-        DelayRequest::List => MutationResult { item: None, change: None, active_changes: active_changes(&app).unwrap_or_default().into_iter().filter(|item| item.kind == "delayed").collect(), message: "Delayed startup records loaded.".into() },
-        DelayRequest::Create { item_id, delay_seconds, confirmation } => {
+        DelayRequest::List => MutationResult {
+            item: None,
+            change: None,
+            active_changes: active_changes(&app)
+                .unwrap_or_default()
+                .into_iter()
+                .filter(|item| item.kind == "delayed")
+                .collect(),
+            message: "Delayed startup records loaded.".into(),
+        },
+        DelayRequest::Create {
+            item_id,
+            delay_seconds,
+            confirmation,
+        } => {
             if !matches!(delay_seconds, 30 | 60 | 90) {
-                return Ok(failure(op_id, "m05_s07", "m05.delay.manage", started_at, timer, "invalid_delay", "Delay must be 30, 60, or 90 seconds.".into()));
+                return Ok(failure(
+                    op_id,
+                    "m05_s07",
+                    "m05.delay.manage",
+                    started_at,
+                    timer,
+                    "invalid_delay",
+                    "Delay must be 30, 60, or 90 seconds.".into(),
+                ));
             }
             let item = match find_item(&item_id) {
                 Ok(item) => item,
-                Err(error) => return Ok(failure(op_id, "m05_s07", "m05.delay.manage", started_at, timer, "item_not_found", error)),
+                Err(error) => {
+                    return Ok(failure(
+                        op_id,
+                        "m05_s07",
+                        "m05.delay.manage",
+                        started_at,
+                        timer,
+                        "item_not_found",
+                        error,
+                    ))
+                }
             };
             if confirmation != format!("DELAY {}", item.name) {
-                return Ok(failure(op_id, "m05_s07", "m05.delay.manage", started_at, timer, "confirmation_mismatch", format!("Type DELAY {} to continue.", item.name)));
+                return Ok(failure(
+                    op_id,
+                    "m05_s07",
+                    "m05.delay.manage",
+                    started_at,
+                    timer,
+                    "confirmation_mismatch",
+                    format!("Type DELAY {} to continue.", item.name),
+                ));
             }
             if !item.mutable || item.protected {
-                return Ok(failure(op_id, "m05_s07", "m05.delay.manage", started_at, timer, "item_protected", "Only recognized non-Microsoft user startup items can be delayed.".into()));
+                return Ok(failure(
+                    op_id,
+                    "m05_s07",
+                    "m05.delay.manage",
+                    started_at,
+                    timer,
+                    "item_protected",
+                    "Only recognized non-Microsoft user startup items can be delayed.".into(),
+                ));
             }
             let task_name = format!("\\KNOUX ONE\\Delayed\\{}", item.id);
             let delay = format!("0000:{delay_seconds:02}");
             let output = Command::new("schtasks.exe")
-                .args(["/Create", "/SC", "ONLOGON", "/DELAY", &delay, "/TN", &task_name, "/TR", &item.command, "/F"])
+                .args([
+                    "/Create",
+                    "/SC",
+                    "ONLOGON",
+                    "/DELAY",
+                    &delay,
+                    "/TN",
+                    &task_name,
+                    "/TR",
+                    &item.command,
+                    "/F",
+                ])
                 .output()
                 .map_err(|error| format!("schtasks_launch_failed:{error}"))?;
             if !output.status.success() {
                 let message = String::from_utf8_lossy(&output.stderr).trim().to_string();
-                return Ok(failure(op_id, "m05_s07", "m05.delay.manage", started_at, timer, "task_create_failed", message));
+                return Ok(failure(
+                    op_id,
+                    "m05_s07",
+                    "m05.delay.manage",
+                    started_at,
+                    timer,
+                    "task_create_failed",
+                    message,
+                ));
             }
             match disable_item(&app, &item, Some(task_name.clone())) {
-                Ok(change) => MutationResult { item: Some(item), change: Some(change), active_changes: active_changes(&app).unwrap_or_default(), message: format!("Program will start {delay_seconds} seconds after sign-in.") },
+                Ok(change) => MutationResult {
+                    item: Some(item),
+                    change: Some(change),
+                    active_changes: active_changes(&app).unwrap_or_default(),
+                    message: format!("Program will start {delay_seconds} seconds after sign-in."),
+                },
                 Err(error) => {
-                    let _ = Command::new("schtasks.exe").args(["/Delete", "/TN", &task_name, "/F"]).output();
-                    return Ok(failure(op_id, "m05_s07", "m05.delay.manage", started_at, timer, "original_disable_failed", error));
+                    let _ = Command::new("schtasks.exe")
+                        .args(["/Delete", "/TN", &task_name, "/F"])
+                        .output();
+                    return Ok(failure(
+                        op_id,
+                        "m05_s07",
+                        "m05.delay.manage",
+                        started_at,
+                        timer,
+                        "original_disable_failed",
+                        error,
+                    ));
                 }
             }
         }
-        DelayRequest::Remove { change_id, confirmation } => {
+        DelayRequest::Remove {
+            change_id,
+            confirmation,
+        } => {
             if confirmation != "RESTORE" {
-                return Ok(failure(op_id, "m05_s07", "m05.delay.manage", started_at, timer, "confirmation_mismatch", "Type RESTORE to remove delayed startup and restore the original entry.".into()));
+                return Ok(failure(
+                    op_id,
+                    "m05_s07",
+                    "m05.delay.manage",
+                    started_at,
+                    timer,
+                    "confirmation_mismatch",
+                    "Type RESTORE to remove delayed startup and restore the original entry.".into(),
+                ));
             }
-            let change = active_changes(&app).unwrap_or_default().into_iter().find(|item| item.id == change_id && item.kind == "delayed");
-            let Some(change) = change else { return Ok(failure(op_id, "m05_s07", "m05.delay.manage", started_at, timer, "change_not_found", "Delayed startup record was not found.".into())); };
+            let change = active_changes(&app)
+                .unwrap_or_default()
+                .into_iter()
+                .find(|item| item.id == change_id && item.kind == "delayed");
+            let Some(change) = change else {
+                return Ok(failure(
+                    op_id,
+                    "m05_s07",
+                    "m05.delay.manage",
+                    started_at,
+                    timer,
+                    "change_not_found",
+                    "Delayed startup record was not found.".into(),
+                ));
+            };
             match restore_change_internal(&app, &change, true) {
-                Ok(restored) => MutationResult { item: None, change: Some(restored), active_changes: active_changes(&app).unwrap_or_default(), message: "Original startup entry restored and delayed task removed.".into() },
-                Err(error) => return Ok(failure(op_id, "m05_s07", "m05.delay.manage", started_at, timer, "restore_failed", error)),
+                Ok(restored) => MutationResult {
+                    item: None,
+                    change: Some(restored),
+                    active_changes: active_changes(&app).unwrap_or_default(),
+                    message: "Original startup entry restored and delayed task removed.".into(),
+                },
+                Err(error) => {
+                    return Ok(failure(
+                        op_id,
+                        "m05_s07",
+                        "m05.delay.manage",
+                        started_at,
+                        timer,
+                        "restore_failed",
+                        error,
+                    ))
+                }
             }
         }
     };
-    Ok(success(op_id, "m05_s07", "m05.delay.manage", started_at, timer, result,
+    Ok(success(
+        op_id,
+        "m05_s07",
+        "m05.delay.manage",
+        started_at,
+        timer,
+        result,
         "Delayed startup settings were processed safely.".into(),
-        "تمت معالجة إعدادات التشغيل المؤجل بأمان.".into(), Vec::new()))
+        "تمت معالجة إعدادات التشغيل المؤجل بأمان.".into(),
+        Vec::new(),
+    ))
 }
 
 #[tauri::command]
-pub fn m05_profiles_manage(app: AppHandle, op_id: String, request: ProfileRequest) -> Result<OperationResult<ProfileResult>, String> {
+pub fn m05_profiles_manage(
+    app: AppHandle,
+    op_id: String,
+    request: ProfileRequest,
+) -> Result<OperationResult<ProfileResult>, String> {
     let started_at = Utc::now().to_rfc3339();
     let timer = Instant::now();
     let mut profiles = match profile_store(&app) {
         Ok(items) => items,
-        Err(error) => return Ok(failure(op_id, "m05_s08", "m05.profiles.manage", started_at, timer, "profile_store_failed", error)),
+        Err(error) => {
+            return Ok(failure(
+                op_id,
+                "m05_s08",
+                "m05.profiles.manage",
+                started_at,
+                timer,
+                "profile_store_failed",
+                error,
+            ))
+        }
     };
     let mut applied_profile_id = None;
     let message = match request {
         ProfileRequest::List => "Startup profiles loaded.".into(),
-        ProfileRequest::Create { name, enabled_item_ids } => {
+        ProfileRequest::Create {
+            name,
+            enabled_item_ids,
+        } => {
             let name = name.trim();
-            if name.len() < 2 || name.len() > 64 { return Ok(failure(op_id, "m05_s08", "m05.profiles.manage", started_at, timer, "invalid_profile_name", "Profile name must contain 2 to 64 characters.".into())); }
-            let known: HashSet<String> = all_startup_items().unwrap_or_default().into_iter().map(|item| item.id).collect();
-            let filtered: Vec<String> = enabled_item_ids.into_iter().filter(|id| known.contains(id)).collect();
-            profiles.push(StartupProfile { id: Uuid::new_v4().to_string(), name: name.into(), enabled_item_ids: filtered, created_at: Utc::now().to_rfc3339(), applied_at: None });
+            if name.len() < 2 || name.len() > 64 {
+                return Ok(failure(
+                    op_id,
+                    "m05_s08",
+                    "m05.profiles.manage",
+                    started_at,
+                    timer,
+                    "invalid_profile_name",
+                    "Profile name must contain 2 to 64 characters.".into(),
+                ));
+            }
+            let known: HashSet<String> = all_startup_items()
+                .unwrap_or_default()
+                .into_iter()
+                .map(|item| item.id)
+                .collect();
+            let filtered: Vec<String> = enabled_item_ids
+                .into_iter()
+                .filter(|id| known.contains(id))
+                .collect();
+            profiles.push(StartupProfile {
+                id: Uuid::new_v4().to_string(),
+                name: name.into(),
+                enabled_item_ids: filtered,
+                created_at: Utc::now().to_rfc3339(),
+                applied_at: None,
+            });
             save_profiles(&app, &profiles)?;
             "Startup profile created from verified current items.".into()
         }
-        ProfileRequest::Delete { profile_id, confirmation } => {
-            if confirmation != "DELETE PROFILE" { return Ok(failure(op_id, "m05_s08", "m05.profiles.manage", started_at, timer, "confirmation_mismatch", "Type DELETE PROFILE to continue.".into())); }
+        ProfileRequest::Delete {
+            profile_id,
+            confirmation,
+        } => {
+            if confirmation != "DELETE PROFILE" {
+                return Ok(failure(
+                    op_id,
+                    "m05_s08",
+                    "m05.profiles.manage",
+                    started_at,
+                    timer,
+                    "confirmation_mismatch",
+                    "Type DELETE PROFILE to continue.".into(),
+                ));
+            }
             let before = profiles.len();
             profiles.retain(|item| item.id != profile_id);
-            if profiles.len() == before { return Ok(failure(op_id, "m05_s08", "m05.profiles.manage", started_at, timer, "profile_not_found", "Startup profile was not found.".into())); }
+            if profiles.len() == before {
+                return Ok(failure(
+                    op_id,
+                    "m05_s08",
+                    "m05.profiles.manage",
+                    started_at,
+                    timer,
+                    "profile_not_found",
+                    "Startup profile was not found.".into(),
+                ));
+            }
             save_profiles(&app, &profiles)?;
             "Startup profile deleted.".into()
         }
-        ProfileRequest::Apply { profile_id, confirmation } => {
-            if confirmation != "APPLY PROFILE" { return Ok(failure(op_id, "m05_s08", "m05.profiles.manage", started_at, timer, "confirmation_mismatch", "Type APPLY PROFILE to continue.".into())); }
-            let Some(profile_index) = profiles.iter().position(|item| item.id == profile_id) else { return Ok(failure(op_id, "m05_s08", "m05.profiles.manage", started_at, timer, "profile_not_found", "Startup profile was not found.".into())); };
-            let enabled: HashSet<String> = profiles[profile_index].enabled_item_ids.iter().cloned().collect();
-            for item in all_startup_items().unwrap_or_default().into_iter().filter(|item| item.mutable && !enabled.contains(&item.id)) {
-                if active_changes(&app).unwrap_or_default().iter().any(|change| change.item_id == item.id) { continue; }
+        ProfileRequest::Apply {
+            profile_id,
+            confirmation,
+        } => {
+            if confirmation != "APPLY PROFILE" {
+                return Ok(failure(
+                    op_id,
+                    "m05_s08",
+                    "m05.profiles.manage",
+                    started_at,
+                    timer,
+                    "confirmation_mismatch",
+                    "Type APPLY PROFILE to continue.".into(),
+                ));
+            }
+            let Some(profile_index) = profiles.iter().position(|item| item.id == profile_id) else {
+                return Ok(failure(
+                    op_id,
+                    "m05_s08",
+                    "m05.profiles.manage",
+                    started_at,
+                    timer,
+                    "profile_not_found",
+                    "Startup profile was not found.".into(),
+                ));
+            };
+            let enabled: HashSet<String> = profiles[profile_index]
+                .enabled_item_ids
+                .iter()
+                .cloned()
+                .collect();
+            for item in all_startup_items()
+                .unwrap_or_default()
+                .into_iter()
+                .filter(|item| item.mutable && !enabled.contains(&item.id))
+            {
+                if active_changes(&app)
+                    .unwrap_or_default()
+                    .iter()
+                    .any(|change| change.item_id == item.id)
+                {
+                    continue;
+                }
                 disable_item(&app, &item, None)?;
             }
-            for change in active_changes(&app).unwrap_or_default().into_iter().filter(|change| enabled.contains(&change.item_id)) {
+            for change in active_changes(&app)
+                .unwrap_or_default()
+                .into_iter()
+                .filter(|change| enabled.contains(&change.item_id))
+            {
                 restore_change_internal(&app, &change, true)?;
             }
             profiles[profile_index].applied_at = Some(Utc::now().to_rfc3339());
@@ -1017,40 +1466,131 @@ pub fn m05_profiles_manage(app: AppHandle, op_id: String, request: ProfileReques
             "Startup profile applied to mutable user entries. Protected and machine entries were untouched.".into()
         }
     };
-    Ok(success(op_id, "m05_s08", "m05.profiles.manage", started_at, timer,
-        ProfileResult { profiles, active_changes: active_changes(&app).unwrap_or_default(), applied_profile_id, message },
-        "Startup profiles were processed.".into(), "تمت معالجة بروفايلات بدء التشغيل.".into(), Vec::new()))
+    Ok(success(
+        op_id,
+        "m05_s08",
+        "m05.profiles.manage",
+        started_at,
+        timer,
+        ProfileResult {
+            profiles,
+            active_changes: active_changes(&app).unwrap_or_default(),
+            applied_profile_id,
+            message,
+        },
+        "Startup profiles were processed.".into(),
+        "تمت معالجة بروفايلات بدء التشغيل.".into(),
+        Vec::new(),
+    ))
 }
 
 #[tauri::command]
-pub fn m05_restore_manage(app: AppHandle, op_id: String, request: RestoreRequest) -> Result<OperationResult<MutationResult>, String> {
+pub fn m05_restore_manage(
+    app: AppHandle,
+    op_id: String,
+    request: RestoreRequest,
+) -> Result<OperationResult<MutationResult>, String> {
     let started_at = Utc::now().to_rfc3339();
     let timer = Instant::now();
     let result = match request {
-        RestoreRequest::List => MutationResult { item: None, change: None, active_changes: active_changes(&app).unwrap_or_default(), message: "Restorable startup changes loaded.".into() },
-        RestoreRequest::Restore { change_id, confirmation } => {
-            if confirmation != "RESTORE" { return Ok(failure(op_id, "m05_s09", "m05.restore.manage", started_at, timer, "confirmation_mismatch", "Type RESTORE to continue.".into())); }
-            let change = active_changes(&app).unwrap_or_default().into_iter().find(|item| item.id == change_id);
-            let Some(change) = change else { return Ok(failure(op_id, "m05_s09", "m05.restore.manage", started_at, timer, "change_not_found", "Restoration record was not found.".into())); };
+        RestoreRequest::List => MutationResult {
+            item: None,
+            change: None,
+            active_changes: active_changes(&app).unwrap_or_default(),
+            message: "Restorable startup changes loaded.".into(),
+        },
+        RestoreRequest::Restore {
+            change_id,
+            confirmation,
+        } => {
+            if confirmation != "RESTORE" {
+                return Ok(failure(
+                    op_id,
+                    "m05_s09",
+                    "m05.restore.manage",
+                    started_at,
+                    timer,
+                    "confirmation_mismatch",
+                    "Type RESTORE to continue.".into(),
+                ));
+            }
+            let change = active_changes(&app)
+                .unwrap_or_default()
+                .into_iter()
+                .find(|item| item.id == change_id);
+            let Some(change) = change else {
+                return Ok(failure(
+                    op_id,
+                    "m05_s09",
+                    "m05.restore.manage",
+                    started_at,
+                    timer,
+                    "change_not_found",
+                    "Restoration record was not found.".into(),
+                ));
+            };
             match restore_change_internal(&app, &change, true) {
-                Ok(restored) => MutationResult { item: None, change: Some(restored), active_changes: active_changes(&app).unwrap_or_default(), message: "Startup item restored to its previous state.".into() },
-                Err(error) => return Ok(failure(op_id, "m05_s09", "m05.restore.manage", started_at, timer, "restore_failed", error)),
+                Ok(restored) => MutationResult {
+                    item: None,
+                    change: Some(restored),
+                    active_changes: active_changes(&app).unwrap_or_default(),
+                    message: "Startup item restored to its previous state.".into(),
+                },
+                Err(error) => {
+                    return Ok(failure(
+                        op_id,
+                        "m05_s09",
+                        "m05.restore.manage",
+                        started_at,
+                        timer,
+                        "restore_failed",
+                        error,
+                    ))
+                }
             }
         }
     };
-    Ok(success(op_id, "m05_s09", "m05.restore.manage", started_at, timer, result,
-        "Restoration records were processed.".into(), "تمت معالجة سجلات الاستعادة.".into(), Vec::new()))
+    Ok(success(
+        op_id,
+        "m05_s09",
+        "m05.restore.manage",
+        started_at,
+        timer,
+        result,
+        "Restoration records were processed.".into(),
+        "تمت معالجة سجلات الاستعادة.".into(),
+        Vec::new(),
+    ))
 }
 
 #[tauri::command]
-pub fn m05_boot_history(op_id: String, limit: Option<usize>) -> Result<OperationResult<Vec<BootMetric>>, String> {
+pub fn m05_boot_history(
+    op_id: String,
+    limit: Option<usize>,
+) -> Result<OperationResult<Vec<BootMetric>>, String> {
     let started_at = Utc::now().to_rfc3339();
     let timer = Instant::now();
     match read_boot_history(limit.unwrap_or(30)) {
-        Ok(items) => Ok(success(op_id, "m05_s10", "m05.boot.history", started_at, timer, items,
+        Ok(items) => Ok(success(
+            op_id,
+            "m05_s10",
+            "m05.boot.history",
+            started_at,
+            timer,
+            items,
             "Measured Windows boot-performance history was loaded from Event 100.".into(),
-            "تم تحميل سجل أداء إقلاع ويندوز المقاس من الحدث 100.".into(), Vec::new())),
-        Err(error) => Ok(failure(op_id, "m05_s10", "m05.boot.history", started_at, timer, "boot_history_failed", error)),
+            "تم تحميل سجل أداء إقلاع ويندوز المقاس من الحدث 100.".into(),
+            Vec::new(),
+        )),
+        Err(error) => Ok(failure(
+            op_id,
+            "m05_s10",
+            "m05.boot.history",
+            started_at,
+            timer,
+            "boot_history_failed",
+            error,
+        )),
     }
 }
 
@@ -1066,9 +1606,21 @@ mod tests {
 
     #[test]
     fn microsoft_system_entries_are_protected() {
-        assert!(is_microsoft("CN=Microsoft Corporation", "C:\\Program Files\\App.exe", "App"));
-        assert!(is_microsoft("", "C:\\Windows\\System32\\SecurityHealthSystray.exe", "Security"));
-        assert!(!is_microsoft("CN=Vendor", "C:\\Program Files\\Vendor\\App.exe", "Vendor App"));
+        assert!(is_microsoft(
+            "CN=Microsoft Corporation",
+            "C:\\Program Files\\App.exe",
+            "App"
+        ));
+        assert!(is_microsoft(
+            "",
+            "C:\\Windows\\System32\\SecurityHealthSystray.exe",
+            "Security"
+        ));
+        assert!(!is_microsoft(
+            "CN=Vendor",
+            "C:\\Program Files\\Vendor\\App.exe",
+            "Vendor App"
+        ));
     }
 
     #[test]

@@ -92,7 +92,7 @@ export const StartupServicesWorkspace: React.FC = () => {
   };
 
   const loadAll = async () => {
-    if (!runtime.available || busy) return;
+    if (!runtime.available) return;
     setBusy(true);
     setError('');
     const results = await Promise.all([
