@@ -68,14 +68,9 @@ pub fn inventory() -> StorageDriveInventory {
         let mut available = 0_u64;
         let mut total = 0_u64;
         let mut free = 0_u64;
-        let succeeded = unsafe {
-            GetDiskFreeSpaceExW(
-                wide.as_ptr(),
-                &mut available,
-                &mut total,
-                &mut free,
-            )
-        } != 0;
+        let succeeded =
+            unsafe { GetDiskFreeSpaceExW(wide.as_ptr(), &mut available, &mut total, &mut free) }
+                != 0;
 
         if succeeded {
             let used = total.saturating_sub(free);
