@@ -6,20 +6,34 @@ use std::{iter::once, ptr};
 
 #[cfg(target_os = "windows")]
 use windows_sys::Win32::Storage::FileSystem::{
-    GetDiskFreeSpaceExW, GetDriveTypeW, GetLogicalDriveStringsW, DRIVE_CDROM, DRIVE_FIXED,
-    DRIVE_NO_ROOT_DIR, DRIVE_RAMDISK, DRIVE_REMOTE, DRIVE_REMOVABLE, DRIVE_UNKNOWN,
+    GetDiskFreeSpaceExW, GetDriveTypeW, GetLogicalDriveStringsW,
 };
+
+#[cfg(target_os = "windows")]
+const DRIVE_TYPE_UNKNOWN: u32 = 0;
+#[cfg(target_os = "windows")]
+const DRIVE_TYPE_NO_ROOT_DIR: u32 = 1;
+#[cfg(target_os = "windows")]
+const DRIVE_TYPE_REMOVABLE: u32 = 2;
+#[cfg(target_os = "windows")]
+const DRIVE_TYPE_FIXED: u32 = 3;
+#[cfg(target_os = "windows")]
+const DRIVE_TYPE_REMOTE: u32 = 4;
+#[cfg(target_os = "windows")]
+const DRIVE_TYPE_CDROM: u32 = 5;
+#[cfg(target_os = "windows")]
+const DRIVE_TYPE_RAMDISK: u32 = 6;
 
 #[cfg(target_os = "windows")]
 fn drive_type_name(value: u32) -> &'static str {
     match value {
-        DRIVE_REMOVABLE => "removable",
-        DRIVE_FIXED => "fixed",
-        DRIVE_REMOTE => "remote",
-        DRIVE_CDROM => "optical",
-        DRIVE_RAMDISK => "ram_disk",
-        DRIVE_NO_ROOT_DIR => "missing_root",
-        DRIVE_UNKNOWN => "unknown",
+        DRIVE_TYPE_REMOVABLE => "removable",
+        DRIVE_TYPE_FIXED => "fixed",
+        DRIVE_TYPE_REMOTE => "remote",
+        DRIVE_TYPE_CDROM => "optical",
+        DRIVE_TYPE_RAMDISK => "ram_disk",
+        DRIVE_TYPE_NO_ROOT_DIR => "missing_root",
+        DRIVE_TYPE_UNKNOWN => "unknown",
         _ => "unknown",
     }
 }
@@ -87,8 +101,8 @@ pub fn inventory() -> StorageDriveInventory {
                 available_bytes: available,
                 used_bytes: used,
                 free_percent,
-                is_external: drive_type == DRIVE_REMOVABLE,
-                is_remote: drive_type == DRIVE_REMOTE,
+                is_external: drive_type == DRIVE_TYPE_REMOVABLE,
+                is_remote: drive_type == DRIVE_TYPE_REMOTE,
             });
         } else {
             warnings.push(format!("drive_capacity_unavailable:{root_path}"));
