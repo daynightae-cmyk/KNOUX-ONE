@@ -19,13 +19,17 @@ const MAX_TRACKED_DIRECTORIES: usize = 100_000;
 
 fn file_category(extension: &str) -> &'static str {
     match extension {
-        "jpg" | "jpeg" | "png" | "gif" | "bmp" | "tif" | "tiff" | "webp" | "svg" | "heic" => "images",
+        "jpg" | "jpeg" | "png" | "gif" | "bmp" | "tif" | "tiff" | "webp" | "svg" | "heic" => {
+            "images"
+        }
         "mp4" | "mkv" | "avi" | "mov" | "wmv" | "webm" | "m4v" | "flv" => "videos",
         "mp3" | "wav" | "flac" | "aac" | "m4a" | "ogg" | "wma" => "audio",
-        "pdf" | "doc" | "docx" | "xls" | "xlsx" | "ppt" | "pptx" | "txt" | "rtf" | "odt" | "csv" => "documents",
+        "pdf" | "doc" | "docx" | "xls" | "xlsx" | "ppt" | "pptx" | "txt" | "rtf" | "odt"
+        | "csv" => "documents",
         "zip" | "7z" | "rar" | "tar" | "gz" | "bz2" | "xz" | "iso" => "archives",
         "exe" | "msi" | "msix" | "dll" | "sys" | "appx" | "appxbundle" => "applications",
-        "js" | "jsx" | "ts" | "tsx" | "rs" | "py" | "go" | "java" | "cs" | "cpp" | "c" | "h" | "html" | "css" | "json" | "toml" | "yaml" | "yml" | "xml" | "sql" => "source_code",
+        "js" | "jsx" | "ts" | "tsx" | "rs" | "py" | "go" | "java" | "cs" | "cpp" | "c" | "h"
+        | "html" | "css" | "json" | "toml" | "yaml" | "yml" | "xml" | "sql" => "source_code",
         "tmp" | "log" | "etl" | "dmp" | "cache" => "temporary_and_logs",
         "" => "no_extension",
         _ => "other",
@@ -82,7 +86,10 @@ pub fn scan_path(
         return Err("storage_root_required".into());
     }
     if !requested_root.is_dir() {
-        return Err(format!("storage_root_not_directory:{}", requested_root.display()));
+        return Err(format!(
+            "storage_root_not_directory:{}",
+            requested_root.display()
+        ));
     }
 
     let root = dunce::canonicalize(&requested_root)
@@ -144,7 +151,10 @@ pub fn scan_path(
             Err(error) => {
                 inaccessible_items = inaccessible_items.saturating_add(1);
                 if warnings.len() < 100 {
-                    warnings.push(format!("storage_metadata_error:{}:{error}", entry.path().display()));
+                    warnings.push(format!(
+                        "storage_metadata_error:{}:{error}",
+                        entry.path().display()
+                    ));
                 }
                 continue;
             }
@@ -239,12 +249,14 @@ pub fn scan_path(
 
     let mut type_distribution = type_totals
         .into_iter()
-        .map(|((category, extension), (size_bytes, file_count))| StorageTypeItem {
-            category,
-            extension,
-            size_bytes,
-            file_count,
-        })
+        .map(
+            |((category, extension), (size_bytes, file_count))| StorageTypeItem {
+                category,
+                extension,
+                size_bytes,
+                file_count,
+            },
+        )
         .collect::<Vec<_>>();
     type_distribution.sort_by(|left, right| right.size_bytes.cmp(&left.size_bytes));
 
