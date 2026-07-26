@@ -9,6 +9,7 @@ mod contracts;
 mod developer;
 mod duplicates;
 mod storage;
+mod storage_analyzer;
 mod system;
 mod winget;
 
@@ -46,6 +47,17 @@ fn main() {
             duplicates::m03_job_list,
             duplicates::m03_scan_history,
             duplicates::m03_scan_result,
+            storage_analyzer::commands::m04_storage_scan,
+            storage_analyzer::commands::m04_largest_files,
+            storage_analyzer::commands::m04_largest_folders,
+            storage_analyzer::commands::m04_type_distribution,
+            storage_analyzer::commands::m04_old_files,
+            storage_analyzer::commands::m04_downloads_analyze,
+            storage_analyzer::commands::m04_appdata_analyze,
+            storage_analyzer::commands::m04_external_drives,
+            storage_analyzer::commands::m04_space_check,
+            storage_analyzer::commands::m04_report_export,
+            storage_analyzer::commands::m04_scan_cancel,
             developer::m15_environment_discover,
             developer::m15_path_audit,
             developer::m15_runtime_inspect,
