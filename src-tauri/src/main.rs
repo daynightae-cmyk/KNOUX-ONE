@@ -9,6 +9,7 @@ mod completion14;
 mod contracts;
 mod developer;
 mod duplicates;
+mod startup_services;
 mod storage;
 mod storage_analyzer;
 mod system;
@@ -89,6 +90,17 @@ fn main() {
             completion14::m04::m04_space_check_complete,
             completion14::m04::m04_report_export_complete,
             completion14::m04::m04_scan_cancel_complete,
+            startup_services::m05_registry_entries,
+            startup_services::m05_startup_folders,
+            startup_services::m05_scheduled_tasks,
+            startup_services::m05_windows_services,
+            startup_services::m05_impact_assess,
+            startup_services::m05_recommendations,
+            startup_services::m05_startup_change,
+            startup_services::m05_delay_manage,
+            startup_services::m05_profiles_manage,
+            startup_services::m05_restore_manage,
+            startup_services::m05_boot_history,
             developer::m15_environment_discover,
             developer::m15_path_audit,
             developer::m15_runtime_inspect,
