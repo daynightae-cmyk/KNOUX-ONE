@@ -1,24 +1,4 @@
-/**
- * KNOUX ONE — Module 05: Startup & Services View
- */
-
 import React from 'react';
-import { MODULES_CATALOG } from '../../data/capabilitiesCatalog';
-import { UniversalServiceWorkspace } from '../common/UniversalServiceWorkspace';
+import { StartupServicesWorkspace } from '../../features/startup/StartupServicesWorkspace';
 
-export const StartupServicesView: React.FC = () => {
-  const moduleData = MODULES_CATALOG.find(m => m.id === 'm05');
-
-  if (!moduleData) return null;
-
-  return (
-    <UniversalServiceWorkspace
-      moduleNumber={5}
-      moduleNameEn={moduleData.nameEn}
-      moduleNameAr={moduleData.nameAr}
-      descriptionEn={moduleData.descriptionEn}
-      descriptionAr={moduleData.descriptionAr}
-      capabilities={moduleData.services}
-    />
-  );
-};
+export const StartupServicesView: React.FC = () => <StartupServicesWorkspace />;
