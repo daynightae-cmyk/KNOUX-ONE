@@ -104,10 +104,9 @@ fn load_history(app: &AppHandle) -> Result<Vec<CleanupHistoryEntry>, String> {
     if !path.exists() {
         return Ok(Vec::new());
     }
-    let content = fs::read_to_string(path)
-        .map_err(|error| format!("cleanup_history_read_failed:{error}"))?;
-    serde_json::from_str(&content)
-        .map_err(|error| format!("cleanup_history_parse_failed:{error}"))
+    let content =
+        fs::read_to_string(path).map_err(|error| format!("cleanup_history_read_failed:{error}"))?;
+    serde_json::from_str(&content).map_err(|error| format!("cleanup_history_parse_failed:{error}"))
 }
 
 fn append_history(app: &AppHandle, entry: CleanupHistoryEntry) -> Result<(), String> {
@@ -223,14 +222,23 @@ async fn scan_internal(
         started_at,
         timer,
         if scan.cancelled {
-            format!("Cleanup scan was cancelled after inspecting {} files.", scan.total_files)
+            format!(
+                "Cleanup scan was cancelled after inspecting {} files.",
+                scan.total_files
+            )
         } else {
-            format!("Inspected {} real files across selected cleanup locations.", scan.total_files)
+            format!(
+                "Inspected {} real files across selected cleanup locations.",
+                scan.total_files
+            )
         },
         if scan.cancelled {
             format!("تم إلغاء الفحص بعد معاينة {} ملف حقيقي.", scan.total_files)
         } else {
-            format!("تم فحص {} ملف حقيقي في مواقع التنظيف المحددة.", scan.total_files)
+            format!(
+                "تم فحص {} ملف حقيقي في مواقع التنظيف المحددة.",
+                scan.total_files
+            )
         },
         scan.clone(),
         scan.warnings.clone(),
@@ -276,13 +284,48 @@ macro_rules! category_scan_command {
     };
 }
 
-category_scan_command!(m02_scan_user_temp, "user_temp", "m02_s01", "m02.scan.user_temp");
-category_scan_command!(m02_scan_windows_temp, "windows_temp", "m02_s02", "m02.scan.windows_temp");
-category_scan_command!(m02_scan_browser_cache, "browser_cache", "m02_s03", "m02.scan.browser_cache");
-category_scan_command!(m02_scan_thumbnail_cache, "thumbnail_cache", "m02_s04", "m02.scan.thumbnail_cache");
-category_scan_command!(m02_scan_crash_dumps, "crash_dumps", "m02_s05", "m02.scan.crash_dumps");
-category_scan_command!(m02_scan_application_logs, "application_logs", "m02_s07", "m02.scan.application_logs");
-category_scan_command!(m02_scan_old_downloads, "old_downloads", "m02_s09", "m02.scan.old_downloads");
+category_scan_command!(
+    m02_scan_user_temp,
+    "user_temp",
+    "m02_s01",
+    "m02.scan.user_temp"
+);
+category_scan_command!(
+    m02_scan_windows_temp,
+    "windows_temp",
+    "m02_s02",
+    "m02.scan.windows_temp"
+);
+category_scan_command!(
+    m02_scan_browser_cache,
+    "browser_cache",
+    "m02_s03",
+    "m02.scan.browser_cache"
+);
+category_scan_command!(
+    m02_scan_thumbnail_cache,
+    "thumbnail_cache",
+    "m02_s04",
+    "m02.scan.thumbnail_cache"
+);
+category_scan_command!(
+    m02_scan_crash_dumps,
+    "crash_dumps",
+    "m02_s05",
+    "m02.scan.crash_dumps"
+);
+category_scan_command!(
+    m02_scan_application_logs,
+    "application_logs",
+    "m02_s07",
+    "m02.scan.application_logs"
+);
+category_scan_command!(
+    m02_scan_old_downloads,
+    "old_downloads",
+    "m02_s09",
+    "m02.scan.old_downloads"
+);
 
 #[tauri::command]
 pub async fn m02_cleanup_execute(
