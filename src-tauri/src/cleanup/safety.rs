@@ -38,16 +38,27 @@ pub fn matches_filter(path: &Path, filter: TargetFilter) -> bool {
         TargetFilter::AnyFile => true,
         TargetFilter::ThumbnailDatabase => {
             extension == "db"
-                && (file_name.starts_with("thumbcache_")
-                    || file_name.starts_with("iconcache_"))
+                && (file_name.starts_with("thumbcache_") || file_name.starts_with("iconcache_"))
         }
         TargetFilter::CrashDump => {
-            matches!(extension.as_str(), "dmp" | "hdmp" | "mdmp" | "wer" | "xml" | "txt")
+            matches!(
+                extension.as_str(),
+                "dmp" | "hdmp" | "mdmp" | "wer" | "xml" | "txt"
+            )
         }
         TargetFilter::OldLog => matches!(extension.as_str(), "log" | "etl" | "tmp"),
         TargetFilter::OldInstaller => matches!(
             extension.as_str(),
-            "exe" | "msi" | "msix" | "msixbundle" | "appx" | "appxbundle" | "zip" | "7z" | "rar" | "iso"
+            "exe"
+                | "msi"
+                | "msix"
+                | "msixbundle"
+                | "appx"
+                | "appxbundle"
+                | "zip"
+                | "7z"
+                | "rar"
+                | "iso"
         ),
     }
 }
