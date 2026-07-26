@@ -114,7 +114,7 @@ pub fn execute_cleanup(
                 }),
             }
 
-            if (deleted_files + failed_files.len() as u64) % 64 == 0 {
+            if (deleted_files + failed_files.len() as u64).is_multiple_of(64) {
                 let _ = app.emit(
                     "m02://progress",
                     CleanupProgress {
