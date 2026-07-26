@@ -157,7 +157,12 @@ pub fn scan_targets(
         "m02://progress",
         CleanupProgress {
             operation_id: operation_id.into(),
-            phase: if was_cancelled { "cancelled" } else { "scan_complete" }.into(),
+            phase: if was_cancelled {
+                "cancelled"
+            } else {
+                "scan_complete"
+            }
+            .into(),
             category: None,
             files_processed: total_files,
             bytes_processed: total_bytes,
