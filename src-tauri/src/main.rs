@@ -5,6 +5,7 @@
 #![allow(clippy::unnecessary_sort_by, clippy::too_many_arguments)]
 
 mod cleanup;
+mod completion14;
 mod contracts;
 mod developer;
 mod duplicates;
@@ -15,10 +16,18 @@ mod winget;
 
 fn main() {
     tauri::Builder::default()
+        .setup(|app| {
+            completion14::start_persisted_monitor(app.handle());
+            Ok(())
+        })
         .invoke_handler(tauri::generate_handler![
             system::m01_system_discover,
             winget::m01_winget_verify,
             winget::m01_winget_install,
+            completion14::m01_system_discover_complete,
+            completion14::m01_winget_install_queued,
+            completion14::m01_winget_queue_list,
+            completion14::m01_winget_queue_resume,
             cleanup::commands::m02_cleanup_scan,
             cleanup::commands::m02_cleanup_execute,
             cleanup::commands::m02_cleanup_cancel,
@@ -30,6 +39,16 @@ fn main() {
             cleanup::commands::m02_scan_crash_dumps,
             cleanup::commands::m02_scan_application_logs,
             cleanup::commands::m02_scan_old_downloads,
+            completion14::m02_cleanup_scan_complete,
+            completion14::m02_cleanup_execute_complete,
+            completion14::m02_cleanup_cancel_complete,
+            completion14::m02_cleanup_history_complete,
+            completion14::m02_scan_windows_temp_complete,
+            completion14::m02_scan_crash_dumps_complete,
+            completion14::m02_scan_application_logs_complete,
+            completion14::m02_scan_old_downloads_complete,
+            completion14::m02_download_quarantine_list,
+            completion14::m02_download_quarantine_restore,
             duplicates::m03_scan_exact,
             duplicates::m03_scan_fast,
             duplicates::m03_scan_images,
@@ -47,6 +66,10 @@ fn main() {
             duplicates::m03_job_list,
             duplicates::m03_scan_history,
             duplicates::m03_scan_result,
+            completion14::m03_scan_images_complete,
+            completion14::m03_scan_videos_complete,
+            completion14::m03_scan_audio_complete,
+            completion14::m03_scan_archives_complete,
             storage_analyzer::commands::m04_storage_scan,
             storage_analyzer::commands::m04_largest_files,
             storage_analyzer::commands::m04_largest_folders,
@@ -58,6 +81,14 @@ fn main() {
             storage_analyzer::commands::m04_space_check,
             storage_analyzer::commands::m04_report_export,
             storage_analyzer::commands::m04_scan_cancel,
+            completion14::m04_storage_scan_complete,
+            completion14::m04_old_files_complete,
+            completion14::m04_downloads_complete,
+            completion14::m04_appdata_complete,
+            completion14::m04_external_drives_complete,
+            completion14::m04_space_check_complete,
+            completion14::m04_report_export_complete,
+            completion14::m04_scan_cancel_complete,
             developer::m15_environment_discover,
             developer::m15_path_audit,
             developer::m15_runtime_inspect,
