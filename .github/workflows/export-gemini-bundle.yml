@@ -110,3 +110,32 @@ jobs:
           path: KNOUX-ONE-Gemini-Integration-M03-M15-Next-M16.zip
           if-no-files-found: error
           retention-days: 30
+
+      - name: Checkout current main snapshot
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          path: audit-snapshots/repo-main
+          fetch-depth: 1
+
+      - name: Checkout current Module 15 snapshot
+        uses: actions/checkout@v4
+        with:
+          ref: feat/m15-developer-studio
+          path: audit-snapshots/repo-m15
+          fetch-depth: 1
+
+      - name: Archive clean current snapshots
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf audit-snapshots/repo-main/.git audit-snapshots/repo-m15/.git
+          zip -r -9 KNOUX-ONE-current-snapshots.zip audit-snapshots
+
+      - name: Upload current snapshots
+        uses: actions/upload-artifact@v4
+        with:
+          name: KNOUX-ONE-current-snapshots
+          path: KNOUX-ONE-current-snapshots.zip
+          if-no-files-found: error
+          retention-days: 3
