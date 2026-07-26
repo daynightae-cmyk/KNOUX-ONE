@@ -2,6 +2,8 @@ export interface StorageFileItem {
   path: string;
   sizeBytes: number;
   modifiedAt: string;
+  accessedAt?: string | null;
+  ageBasis?: 'last_access' | 'modified_fallback' | string;
   extension: string;
   category: string;
 }
@@ -24,6 +26,8 @@ export interface StorageOldFilesSummary {
   fileCount: number;
   sizeBytes: number;
   largestFiles: StorageFileItem[];
+  accessTimeSupported?: boolean;
+  fallbackFileCount?: number;
 }
 
 export interface StorageAnalysisResult {
@@ -43,6 +47,15 @@ export interface StorageAnalysisResult {
   warnings: string[];
 }
 
+export interface PhysicalStorageDevice {
+  friendlyName: string;
+  serialNumber: string;
+  mediaType: string;
+  busType: string;
+  healthStatus: string;
+  sizeBytes?: number | null;
+}
+
 export interface StorageDriveInfo {
   rootPath: string;
   driveType: string;
@@ -53,10 +66,13 @@ export interface StorageDriveInfo {
   freePercent: number;
   isExternal: boolean;
   isRemote: boolean;
+  volumeLabel?: string;
+  fileSystem?: string;
 }
 
 export interface StorageDriveInventory {
   drives: StorageDriveInfo[];
+  devices?: PhysicalStorageDevice[];
   measuredAt: string;
   warnings: string[];
 }
@@ -73,19 +89,21 @@ export interface StorageSpaceCheckResult {
   alerts: StorageSpaceAlert[];
   checkedAt: string;
   backgroundMonitoringEnabled: boolean;
+  monitorIntervalMinutes?: number;
   warnings: string[];
 }
 
 export interface StorageReportExportResult {
   scanId: string;
-  format: 'json';
+  format: 'json' | 'pdf+json';
   path: string;
   byteCount: number;
+  jsonEvidencePath?: string;
 }
 
 export interface StorageProgress {
   operationId: string;
-  phase: 'scanning' | 'scan_complete' | 'cancelled';
+  phase: 'scanning' | 'scanning_access_times' | 'scan_complete' | 'cancelled';
   filesProcessed: number;
   directoriesProcessed: number;
   bytesProcessed: number;
