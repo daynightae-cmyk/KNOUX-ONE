@@ -274,6 +274,7 @@ pub fn scan_path(
         total_bytes,
         inaccessible_items,
         truncated,
+        cancelled: cancelled_status,
         largest_files,
         largest_folders,
         type_distribution,
