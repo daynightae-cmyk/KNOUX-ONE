@@ -1,0 +1,58 @@
+name: Fix Module 05 Formatting
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/fix-m05-format.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          fetch-depth: 0
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
+      - name: Apply exact safety fixes and rustfmt
+        shell: pwsh
+        run: |
+          $rust = 'src-tauri/src/startup_services/mod.rs'
+          $text = Get-Content -Raw $rust
+          $text = $text.Replace('collections::{HashMap, HashSet},', 'collections::HashSet,')
+          $old = @'
+    let temporary = path.with_extension("tmp");
+    let bytes = serde_json::to_vec_pretty(value).map_err(|error| format!("json_encode_failed:{error}"))?;
+    fs::write(&temporary, bytes).map_err(|error| format!("write_failed:{}:{error}", temporary.display()))?;
+    fs::rename(&temporary, path).map_err(|error| format!("replace_failed:{}:{error}", path.display()))
+'@
+          $new = @'
+    let bytes = serde_json::to_vec_pretty(value).map_err(|error| format!("json_encode_failed:{error}"))?;
+    fs::write(path, bytes).map_err(|error| format!("write_failed:{}:{error}", path.display()))
+'@
+          $text = $text.Replace($old, $new)
+          $text = $text.Replace('.eq_ignore_ascii_case(&startup.to_string_lossy())', '.eq_ignore_ascii_case(startup.to_string_lossy().as_ref())')
+          $text = $text.Replace('format!("\\KNOUX ONE\\Delayed\\{}", item.id)', 'format!("KNOUX_ONE_Delayed_{}", item.id)')
+          Set-Content -NoNewline -Encoding UTF8 $rust $text
+
+          $ui = 'src/features/startup/StartupServicesWorkspace.tsx'
+          $uiText = Get-Content -Raw $ui
+          $uiText = $uiText.Replace('if (!runtime.available || busy) return;', 'if (!runtime.available) return;')
+          Set-Content -NoNewline -Encoding UTF8 $ui $uiText
+
+          Push-Location src-tauri
+          cargo fmt --all
+          Pop-Location
+      - name: Commit fixes
+        shell: pwsh
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add src-tauri/src/startup_services/mod.rs src/features/startup/StartupServicesWorkspace.tsx
+          git commit -m 'fix(m05): apply rustfmt and persistence safety fixes'
+          git push origin HEAD:${{ github.event.pull_request.head.ref }}
