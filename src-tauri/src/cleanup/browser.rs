@@ -37,7 +37,10 @@ pub fn browser_cache_roots() -> Vec<PathBuf> {
     if let Some(local_app_data) = env::var_os("LOCALAPPDATA").map(PathBuf::from) {
         chromium_profiles(local_app_data.join("Google/Chrome/User Data"), &mut roots);
         chromium_profiles(local_app_data.join("Microsoft/Edge/User Data"), &mut roots);
-        chromium_profiles(local_app_data.join("BraveSoftware/Brave-Browser/User Data"), &mut roots);
+        chromium_profiles(
+            local_app_data.join("BraveSoftware/Brave-Browser/User Data"),
+            &mut roots,
+        );
     }
 
     if let Some(app_data) = env::var_os("APPDATA").map(PathBuf::from) {
