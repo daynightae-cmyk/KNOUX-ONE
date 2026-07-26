@@ -2,7 +2,6 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { listen } from '@tauri-apps/api/event';
 import {
   AlertTriangle,
-  Broom,
   CheckCircle2,
   Clock3,
   Database,
@@ -173,7 +172,7 @@ export const SmartCleanupWorkspace: React.FC = () => {
       <section className="knoux-glass-panel overflow-hidden p-6 md:p-8">
         <div className="flex flex-col gap-6 xl:flex-row xl:items-center xl:justify-between">
           <div className="flex items-start gap-4 rtl:flex-row-reverse">
-            <div className="knoux-icon-plate h-16 w-16 rounded-2xl"><Broom className="h-8 w-8" /></div>
+            <div className="knoux-icon-plate h-16 w-16 rounded-2xl"><Trash2 className="h-8 w-8" /></div>
             <div>
               <div className="knoux-eyebrow">{t('Measured Windows cleanup', 'تنظيف ويندوز بقياسات حقيقية')}</div>
               <h1 className="mt-2 text-3xl font-black tracking-tight text-[var(--knoux-text)] md:text-5xl">{t(module.nameEn, module.nameAr)}</h1>
