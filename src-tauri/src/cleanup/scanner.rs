@@ -126,7 +126,7 @@ pub fn scan_targets(
                     summary.truncated = true;
                 }
 
-                if total_processed_files % 128 == 0 {
+                if total_processed_files.is_multiple_of(128) {
                     let _ = app.emit(
                         "m02://progress",
                         CleanupProgress {
