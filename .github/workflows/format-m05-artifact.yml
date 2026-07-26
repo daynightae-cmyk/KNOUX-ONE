@@ -1,0 +1,34 @@
+name: Format Module 05 Artifact
+
+on:
+  pull_request:
+    paths:
+      - 'src-tauri/src/startup_services/**'
+      - 'src/features/startup/**'
+      - 'scripts/fix_m05_before_rustfmt.py'
+      - '.github/workflows/format-m05-artifact.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  format:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
+      - name: Apply deterministic repairs
+        run: python scripts/fix_m05_before_rustfmt.py
+      - name: Apply rustfmt
+        working-directory: src-tauri
+        run: cargo fmt --all
+      - name: Upload formatted sources
+        uses: actions/upload-artifact@v4
+        with:
+          name: m05-rustfmt-sources
+          path: |
+            src-tauri/src/startup_services/mod.rs
+            src/features/startup/StartupServicesWorkspace.tsx
+          if-no-files-found: error
