@@ -24,6 +24,17 @@ pub struct StorageScanRequest {
     pub max_files: u64,
 }
 
+impl StorageScanRequest {
+    pub fn for_root(root_path: String) -> Self {
+        Self {
+            root_path,
+            top_limit: default_top_limit(),
+            old_days: default_old_days(),
+            max_files: default_max_files(),
+        }
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct StorageFileItem {
@@ -70,6 +81,7 @@ pub struct StorageAnalysisResult {
     pub total_bytes: u64,
     pub inaccessible_items: u64,
     pub truncated: bool,
+    pub cancelled: bool,
     pub largest_files: Vec<StorageFileItem>,
     pub largest_folders: Vec<StorageFolderItem>,
     pub type_distribution: Vec<StorageTypeItem>,
@@ -105,6 +117,14 @@ pub struct StorageDriveInventory {
 pub struct StorageSpaceCheckRequest {
     #[serde(default = "default_threshold_percent")]
     pub threshold_percent: f64,
+}
+
+impl Default for StorageSpaceCheckRequest {
+    fn default() -> Self {
+        Self {
+            threshold_percent: default_threshold_percent(),
+        }
+    }
 }
 
 fn default_threshold_percent() -> f64 {
