@@ -55,6 +55,58 @@ patchService('m01', 5, {
   availabilityReasonAr: 'تثبيت Winget للحزم المسموحة والتحقق بعد التثبيت متصلان، بينما يظل الطابور القابل للاستئناف مخططًا.',
 });
 
+const module02 = catalog.find(item => item.id === 'm02');
+if (module02) {
+  module02.nameEn = 'Device Cleanup';
+  module02.nameAr = 'تنظيف الملفات غير الضرورية';
+  module02.descriptionEn = 'Inspect real temporary locations, review measured file sizes, and remove verified disposable files without touching personal documents.';
+  module02.descriptionAr = 'فحص مواقع الملفات المؤقتة الحقيقية وعرض الأحجام المقاسة ثم حذف الملفات المتحقق من أمانها دون المساس بالمستندات الشخصية.';
+}
+
+const module02Names: Array<[number, string, string, string, string]> = [
+  [1, 'Your temporary files', 'ملفات حسابك المؤقتة', 'Inspect the current Windows user temporary directory and remove only unchanged files from the verified scan snapshot.', 'فحص مجلد الملفات المؤقتة لحساب ويندوز الحالي وحذف الملفات التي لم تتغير منذ المعاينة فقط.'],
+  [2, 'Windows temporary files', 'ملفات ويندوز المؤقتة', 'Inspect the real Windows Temp directory; cleanup depends on desktop administrator permissions.', 'فحص مجلد Windows Temp الحقيقي، ويعتمد الحذف على تشغيل التطبيق بصلاحية المسؤول.'],
+  [3, 'Browser temporary files', 'ملفات المتصفحات المؤقتة', 'Inspect cache-only folders for Chrome, Edge, Brave, and Firefox without reading history, cookies, or passwords.', 'فحص مجلدات الكاش فقط في Chrome وEdge وBrave وFirefox دون قراءة السجل أو ملفات الارتباط أو كلمات المرور.'],
+  [4, 'Image thumbnail files', 'ملفات الصور المصغرة', 'Inspect Windows thumbnail and icon cache databases and remove only files verified by the current scan.', 'فحص قواعد بيانات الصور والأيقونات المصغرة في ويندوز وحذف الملفات المطابقة للمعاينة الحالية فقط.'],
+  [5, 'Program crash reports', 'تقارير انهيار البرامج', 'Inspect local crash dumps and Windows error-report folders; protected locations may require administrator rights.', 'فحص تقارير الأعطال المحلية ومجلدات تقارير أخطاء ويندوز، وقد تتطلب المواقع المحمية صلاحية المسؤول.'],
+  [6, 'Windows update delivery files', 'ملفات تسليم تحديثات ويندوز', 'Reserved until service coordination, rollback evidence, and elevation are independently verified.', 'مؤجلة حتى يتم التحقق مستقلًا من تنسيق خدمات التحديث والتراجع والصلاحيات المرتفعة.'],
+  [7, 'Old application logs', 'سجلات التطبيقات القديمة', 'Inspect old log, ETL, and temporary files in the current user temp location; Windows Event Logs are not modified.', 'فحص ملفات السجل وETL والملفات المؤقتة القديمة داخل مجلد المستخدم فقط، دون تعديل سجلات أحداث ويندوز.'],
+  [8, 'Recycle Bin review', 'مراجعة سلة المحذوفات', 'Reserved until selective restore and purge can be implemented without fabricating item evidence.', 'مؤجلة حتى يتم تنفيذ المعاينة والاستعادة والحذف الانتقائي دون إنشاء بيانات وهمية.'],
+  [9, 'Old installers in Downloads', 'ملفات التثبيت القديمة في التنزيلات', 'Read-only review of installer and archive files older than 30 days; automatic deletion is disabled.', 'مراجعة للقراءة فقط لملفات التثبيت والملفات المضغوطة الأقدم من 30 يومًا، مع تعطيل الحذف التلقائي.'],
+  [10, 'Automatic cleanup schedules', 'جداول التنظيف التلقائي', 'Reserved until a verified Windows Task Scheduler integration and execution history are implemented.', 'مؤجلة حتى يتم تنفيذ تكامل موثق مع Windows Task Scheduler وسجل تشغيل حقيقي.'],
+];
+for (const [number, nameEn, nameAr, descriptionEn, descriptionAr] of module02Names) {
+  renameService('m02', number, nameEn, nameAr, descriptionEn, descriptionAr);
+}
+
+const m02States: Array<[number, string | undefined, KnouxCapability['implementationState'], KnouxCapability['status'], boolean, string, string]> = [
+  [1, 'm02.scan.user_temp', 'implemented', 'available', false, 'Real filesystem scan and verified cleanup are connected for the current user temporary directory.', 'تم ربط فحص الملفات الحقيقي والتنظيف المتحقق منه لمجلد الملفات المؤقتة للمستخدم الحالي.'],
+  [2, 'm02.scan.windows_temp', 'partial', 'available', true, 'Real scanning is connected; deletion succeeds only when the desktop process already has the required Windows permissions.', 'تم ربط الفحص الحقيقي، ويعمل الحذف فقط عندما تكون عملية سطح المكتب حاصلة بالفعل على صلاحيات ويندوز المطلوبة.'],
+  [3, 'm02.scan.browser_cache', 'implemented', 'available', false, 'Real cache-only discovery, scan evidence, and verified deletion are connected for supported browser profiles.', 'تم ربط اكتشاف مجلدات الكاش الحقيقية ومعاينتها وحذف الملفات المتحقق منها للمتصفحات المدعومة.'],
+  [4, 'm02.scan.thumbnail_cache', 'implemented', 'available', false, 'Real Windows thumbnail-cache discovery, evidence capture, and verified deletion are connected.', 'تم ربط اكتشاف كاش الصور المصغرة الحقيقي وحفظ الأدلة والحذف المتحقق منه.'],
+  [5, 'm02.scan.crash_dumps', 'partial', 'available', true, 'Real crash-report scanning is connected; some protected report folders require an elevated desktop process.', 'تم ربط فحص تقارير الأعطال الحقيقي، بينما تحتاج بعض المجلدات المحمية إلى تشغيل التطبيق بصلاحية مرتفعة.'],
+  [6, undefined, 'planned', 'planned', true, plannedReasonEn, plannedReasonAr],
+  [7, 'm02.scan.application_logs', 'partial', 'available', false, 'Real old-log scanning is limited to the current user temporary location; Windows Event Logs remain untouched.', 'الفحص الحقيقي للسجلات القديمة محدود بمجلد المستخدم المؤقت، ولا يتم تعديل سجلات أحداث ويندوز.'],
+  [8, undefined, 'planned', 'planned', false, plannedReasonEn, plannedReasonAr],
+  [9, 'm02.scan.old_downloads', 'partial', 'available', false, 'Real read-only review is connected for old installer files; deletion is intentionally unavailable.', 'تم ربط المراجعة الحقيقية للقراءة فقط لملفات التثبيت القديمة، والحذف غير متاح عمدًا.'],
+  [10, undefined, 'planned', 'planned', false, plannedReasonEn, plannedReasonAr],
+];
+for (const [number, handlerId, implementationState, status, requiresAdmin, availabilityReasonEn, availabilityReasonAr] of m02States) {
+  patchService('m02', number, {
+    handlerId,
+    implementationState,
+    status,
+    requiresAdmin,
+    runtime: requiresAdmin ? 'desktop_elevated' : 'desktop',
+    availabilityReasonEn,
+    availabilityReasonAr,
+    supportsCancel: Boolean(handlerId),
+    supportsDryRun: true,
+    supportsUndo: false,
+    supportsQuarantine: false,
+  });
+}
+
 const module03Names: Array<[number, string, string, string, string]> = [
   [1, 'Exact Duplicate Scan', 'فحص التطابق التام', 'Verify byte-identical files using size grouping, partial BLAKE3, full streaming BLAKE3, changed-file checks, and hard-link awareness.', 'التحقق من الملفات المتطابقة باستخدام الحجم ثم BLAKE3 الجزئي والكامل مع اكتشاف تغير الملف والروابط الصلبة.'],
   [2, 'Fast Candidate Scan', 'الفحص السريع للمرشحين', 'Create non-actionable partial-hash candidates that require full verification before quarantine.', 'إنشاء مرشحين بالبصمة الجزئية لا يمكن نقلهم إلى المحجر قبل التحقق الكامل.'],

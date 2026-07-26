@@ -4,6 +4,7 @@
 )]
 #![allow(clippy::unnecessary_sort_by, clippy::too_many_arguments)]
 
+mod cleanup;
 mod contracts;
 mod developer;
 mod duplicates;
@@ -17,6 +18,17 @@ fn main() {
             system::m01_system_discover,
             winget::m01_winget_verify,
             winget::m01_winget_install,
+            cleanup::commands::m02_cleanup_scan,
+            cleanup::commands::m02_cleanup_execute,
+            cleanup::commands::m02_cleanup_cancel,
+            cleanup::commands::m02_cleanup_history,
+            cleanup::commands::m02_scan_user_temp,
+            cleanup::commands::m02_scan_windows_temp,
+            cleanup::commands::m02_scan_browser_cache,
+            cleanup::commands::m02_scan_thumbnail_cache,
+            cleanup::commands::m02_scan_crash_dumps,
+            cleanup::commands::m02_scan_application_logs,
+            cleanup::commands::m02_scan_old_downloads,
             duplicates::m03_scan_exact,
             duplicates::m03_scan_fast,
             duplicates::m03_scan_images,

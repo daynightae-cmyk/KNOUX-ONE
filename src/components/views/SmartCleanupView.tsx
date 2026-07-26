@@ -1,19 +1,4 @@
 import React from 'react';
-import { MODULES_CATALOG } from '../../data/capabilitiesCatalog';
-import { UniversalServiceWorkspace } from '../common/UniversalServiceWorkspace';
+import { SmartCleanupWorkspace } from '../../features/cleanup/SmartCleanupWorkspace';
 
-export const SmartCleanupView: React.FC = () => {
-  const moduleData = MODULES_CATALOG.find(m => m.id === 'm02');
-  if (!moduleData) return null;
-
-  return (
-    <UniversalServiceWorkspace
-      moduleNumber={2}
-      moduleNameEn={moduleData.nameEn}
-      moduleNameAr={moduleData.nameAr}
-      descriptionEn={moduleData.descriptionEn}
-      descriptionAr={moduleData.descriptionAr}
-      capabilities={moduleData.services}
-    />
-  );
-};
+export const SmartCleanupView: React.FC = () => <SmartCleanupWorkspace />;
