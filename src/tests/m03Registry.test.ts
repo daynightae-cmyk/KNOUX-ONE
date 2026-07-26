@@ -10,7 +10,7 @@ describe('native command registry', () => {
   it('registers every Module 03 and Module 15 command in Tauri', () => {
     for (const [handlerId, command] of Object.entries(NATIVE_COMMANDS)) {
       if (handlerId.startsWith('m03.')) {
-        expect(main, handlerId).toContain(`${completionHandlers.has(handlerId) ? 'completion14' : 'duplicates'}::${command}`);
+        expect(main, handlerId).toContain(`${completionHandlers.has(handlerId) ? 'completion14::m03' : 'duplicates'}::${command}`);
       }
       if (handlerId.startsWith('m15.')) expect(main, handlerId).toContain(`developer::${command}`);
     }
