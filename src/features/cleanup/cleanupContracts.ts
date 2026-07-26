@@ -67,3 +67,13 @@ export interface CleanupHistoryEntry {
 export interface CleanupHistoryResult {
   entries: CleanupHistoryEntry[];
 }
+
+export interface DownloadQuarantineRecord {
+  quarantineId: string;
+  originalPath: string;
+  quarantinePath: string;
+  sizeBytes: number;
+  hash: string;
+  quarantinedAt: string;
+  status: 'quarantined' | 'restored' | string;
+}
