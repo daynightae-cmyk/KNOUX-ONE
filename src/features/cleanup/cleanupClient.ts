@@ -4,6 +4,7 @@ import type {
   CleanupExecuteResult,
   CleanupHistoryResult,
   CleanupScanResult,
+  DownloadQuarantineRecord,
 } from './cleanupContracts';
 
 export const cleanupClient = {
@@ -30,5 +31,17 @@ export const cleanupClient = {
 
   history(): Promise<OperationResult<CleanupHistoryResult>> {
     return NativeClient.executeCapability<CleanupHistoryResult>('m02_s01', 'm02.cleanup.history');
+  },
+
+  quarantineList(): Promise<DownloadQuarantineRecord[]> {
+    return NativeClient.invokeHandler<DownloadQuarantineRecord[]>('m02.downloads.quarantine.list');
+  },
+
+  restoreQuarantinedInstaller(quarantineId: string): Promise<OperationResult<DownloadQuarantineRecord>> {
+    return NativeClient.executeCapability<DownloadQuarantineRecord>(
+      'm02_s09',
+      'm02.downloads.quarantine.restore',
+      { quarantineId },
+    );
   },
 };
