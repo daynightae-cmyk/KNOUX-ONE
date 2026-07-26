@@ -18,20 +18,20 @@ const completedPartialIds = [
 ] as const;
 
 const expectedCommands = {
-  'm01.system.discover': 'm01_system_discover_complete',
-  'm01.winget.install': 'm01_winget_install_queued',
-  'm02.scan.windows_temp': 'm02_scan_windows_temp_complete',
-  'm02.scan.crash_dumps': 'm02_scan_crash_dumps_complete',
-  'm02.scan.application_logs': 'm02_scan_application_logs_complete',
-  'm02.scan.old_downloads': 'm02_scan_old_downloads_complete',
-  'm03.scan.images': 'm03_scan_images_complete',
-  'm03.scan.videos': 'm03_scan_videos_complete',
-  'm03.scan.audio': 'm03_scan_audio_complete',
-  'm03.scan.archives': 'm03_scan_archives_complete',
-  'm04.files.old': 'm04_old_files_complete',
-  'm04.drives.external': 'm04_external_drives_complete',
-  'm04.space.check': 'm04_space_check_complete',
-  'm04.report.export': 'm04_report_export_complete',
+  'm01.system.discover': ['m01_system_discover_complete', 'm01'],
+  'm01.winget.install': ['m01_winget_install_queued', 'm01'],
+  'm02.scan.windows_temp': ['m02_scan_windows_temp_complete', 'm02'],
+  'm02.scan.crash_dumps': ['m02_scan_crash_dumps_complete', 'm02'],
+  'm02.scan.application_logs': ['m02_scan_application_logs_complete', 'm02'],
+  'm02.scan.old_downloads': ['m02_scan_old_downloads_complete', 'm02'],
+  'm03.scan.images': ['m03_scan_images_complete', 'm03'],
+  'm03.scan.videos': ['m03_scan_videos_complete', 'm03'],
+  'm03.scan.audio': ['m03_scan_audio_complete', 'm03'],
+  'm03.scan.archives': ['m03_scan_archives_complete', 'm03'],
+  'm04.files.old': ['m04_old_files_complete', 'm04'],
+  'm04.drives.external': ['m04_external_drives_complete', 'm04'],
+  'm04.space.check': ['m04_space_check_complete', 'm04'],
+  'm04.report.export': ['m04_report_export_complete', 'm04'],
 } as const;
 
 describe('fourteen partial-service completion gate', () => {
@@ -50,9 +50,9 @@ describe('fourteen partial-service completion gate', () => {
   });
 
   it('maps each completed service to an explicit registered Rust command', () => {
-    for (const [handlerId, command] of Object.entries(expectedCommands)) {
+    for (const [handlerId, [command, module]] of Object.entries(expectedCommands)) {
       expect(NATIVE_COMMANDS[handlerId as keyof typeof NATIVE_COMMANDS], handlerId).toBe(command);
-      expect(main, handlerId).toContain(`completion14::${command}`);
+      expect(main, handlerId).toContain(`completion14::${module}::${command}`);
     }
     for (const handlerId of Object.keys(NATIVE_COMMANDS)) {
       expect(handlerId).not.toMatch(/^m\d{2}\.service\.\d+$/);
@@ -65,7 +65,7 @@ describe('fourteen partial-service completion gate', () => {
     expect(m01).toContain('queue.json');
     expect(m01).toContain('m01_winget_queue_resume');
 
-    expect(m02).toContain("-Verb RunAs");
+    expect(m02).toContain('-Verb RunAs');
     expect(m02).toContain('ExpectedHash');
     expect(m02).toContain('outside_allowed_root');
     expect(m02).toContain('download-quarantine');
