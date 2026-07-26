@@ -35,22 +35,37 @@ function patchService(moduleId: string, serviceNumber: number, patch: Partial<Kn
   Object.assign(service, patch);
 }
 
-function renameService(moduleId: string, serviceNumber: number, nameEn: string, nameAr: string, descriptionEn: string, descriptionAr: string) {
+function renameService(
+  moduleId: string,
+  serviceNumber: number,
+  nameEn: string,
+  nameAr: string,
+  descriptionEn: string,
+  descriptionAr: string,
+) {
   patchService(moduleId, serviceNumber, { nameEn, nameAr, descriptionEn, descriptionAr });
 }
 
 patchService('m01', 1, {
-  handlerId: 'm01.system.discover', implementationState: 'partial', status: 'available',
+  handlerId: 'm01.system.discover',
+  implementationState: 'partial',
+  status: 'available',
   availabilityReasonEn: 'Real Windows CIM discovery is connected; some hardware fields remain best-effort.',
   availabilityReasonAr: 'اكتشاف ويندوز الحقيقي عبر CIM متصل، وبعض حقول المكونات تظل حسب توفر النظام.',
 });
 patchService('m01', 2, {
-  handlerId: 'm01.winget.verify', implementationState: 'implemented', status: 'available',
+  handlerId: 'm01.winget.verify',
+  implementationState: 'implemented',
+  status: 'available',
   availabilityReasonEn: 'The real Winget executable path and version are verified through an explicit native command.',
   availabilityReasonAr: 'يتم التحقق من مسار Winget الحقيقي وإصداره عبر أمر محلي صريح.',
 });
 patchService('m01', 5, {
-  handlerId: 'm01.winget.install', implementationState: 'partial', status: 'available', runtime: 'desktop_elevated', requiresAdmin: true,
+  handlerId: 'm01.winget.install',
+  implementationState: 'partial',
+  status: 'available',
+  runtime: 'desktop_elevated',
+  requiresAdmin: true,
   availabilityReasonEn: 'Allowlisted Winget installation and post-install verification are connected; full resumable queue work remains planned.',
   availabilityReasonAr: 'تثبيت Winget للحزم المسموحة والتحقق بعد التثبيت متصلان، بينما يظل الطابور القابل للاستئناف مخططًا.',
 });
@@ -66,7 +81,7 @@ if (module02) {
 const module02Names: Array<[number, string, string, string, string]> = [
   [1, 'Your temporary files', 'ملفات حسابك المؤقتة', 'Inspect the current Windows user temporary directory and remove only unchanged files from the verified scan snapshot.', 'فحص مجلد الملفات المؤقتة لحساب ويندوز الحالي وحذف الملفات التي لم تتغير منذ المعاينة فقط.'],
   [2, 'Windows temporary files', 'ملفات ويندوز المؤقتة', 'Inspect the real Windows Temp directory; cleanup depends on desktop administrator permissions.', 'فحص مجلد Windows Temp الحقيقي، ويعتمد الحذف على تشغيل التطبيق بصلاحية المسؤول.'],
-  [3, 'Browser temporary files', 'ملفات المتصفحات المؤقتة', 'Inspect cache-only folders for Chrome, Edge, Brave, and Firefox without reading history, cookies, or passwords.', 'فحص مجلدات الكاش فقط في Chrome وEdge وBrave وFirefox دون قراءة السجل أو ملفات الارتباط أو كلمات المرور.'],
+  [3, 'Browser temporary files', 'ملفات المتصفحات المؤقتة', 'Inspect cache-only folders for supported browsers without reading history, cookies, or passwords.', 'فحص مجلدات الكاش فقط للمتصفحات المدعومة دون قراءة السجل أو ملفات الارتباط أو كلمات المرور.'],
   [4, 'Image thumbnail files', 'ملفات الصور المصغرة', 'Inspect Windows thumbnail and icon cache databases and remove only files verified by the current scan.', 'فحص قواعد بيانات الصور والأيقونات المصغرة في ويندوز وحذف الملفات المطابقة للمعاينة الحالية فقط.'],
   [5, 'Program crash reports', 'تقارير انهيار البرامج', 'Inspect local crash dumps and Windows error-report folders; protected locations may require administrator rights.', 'فحص تقارير الأعطال المحلية ومجلدات تقارير أخطاء ويندوز، وقد تتطلب المواقع المحمية صلاحية المسؤول.'],
   [6, 'Windows update delivery files', 'ملفات تسليم تحديثات ويندوز', 'Reserved until service coordination, rollback evidence, and elevation are independently verified.', 'مؤجلة حتى يتم التحقق مستقلًا من تنسيق خدمات التحديث والتراجع والصلاحيات المرتفعة.'],
@@ -119,7 +134,9 @@ const module03Names: Array<[number, string, string, string, string]> = [
   [9, 'Keeper Rule Planning', 'تخطيط قواعد الاحتفاظ', 'Generate explainable keeper plans and block groups without one verified keeper.', 'إنشاء خطط موضحة لاختيار النسخة المحتفظ بها ومنع أي مجموعة بلا نسخة موثقة.'],
   [10, 'Verified Quarantine & Restore', 'المحجر الموثق والاستعادة', 'Move, verify, persist, restore, and purge files through checksum-verified transactions.', 'نقل الملفات والتحقق منها وحفظها واستعادتها أو حذفها عبر معاملات موثقة بالبصمة.'],
 ];
-for (const [number, nameEn, nameAr, descriptionEn, descriptionAr] of module03Names) renameService('m03', number, nameEn, nameAr, descriptionEn, descriptionAr);
+for (const [number, nameEn, nameAr, descriptionEn, descriptionAr] of module03Names) {
+  renameService('m03', number, nameEn, nameAr, descriptionEn, descriptionAr);
+}
 
 const m03States: Array<[number, string, KnouxCapability['implementationState'], KnouxCapability['status'], string, string]> = [
   [1, 'm03.scan.exact', 'implemented', 'available', 'Real exact scan, full verification, file-change checks, and hard-link handling are connected.', 'تم ربط الفحص التام والتحقق الكامل وفحص تغير الملفات ومعالجة الروابط الصلبة.'],
@@ -134,7 +151,67 @@ const m03States: Array<[number, string, KnouxCapability['implementationState'], 
   [10, 'm03.quarantine.manage', 'implemented', 'available', 'Checksum-verified quarantine, list, verify, restore, conflict handling, and typed-confirmation purge are connected.', 'تم ربط المحجر والقائمة والتحقق والاستعادة ومعالجة التعارض والحذف النهائي بتأكيد مكتوب.'],
 ];
 for (const [number, handlerId, implementationState, status, availabilityReasonEn, availabilityReasonAr] of m03States) {
-  patchService('m03', number, { handlerId, implementationState, status, availabilityReasonEn, availabilityReasonAr, supportsQuarantine: [1, 4, 5, 6, 7, 10].includes(number) });
+  patchService('m03', number, {
+    handlerId,
+    implementationState,
+    status,
+    availabilityReasonEn,
+    availabilityReasonAr,
+    supportsQuarantine: [1, 4, 5, 6, 7, 10].includes(number),
+  });
+}
+
+const module04 = catalog.find(item => item.id === 'm04');
+if (module04) {
+  module04.nameEn = 'Storage Usage';
+  module04.nameAr = 'معرفة ما يستهلك مساحة الجهاز';
+  module04.descriptionEn = 'Measure a real folder or drive, find the largest files and folders, review file types and old data, inspect connected drives, and export local evidence.';
+  module04.descriptionAr = 'قياس مجلد أو قرص حقيقي ومعرفة أكبر الملفات والمجلدات وأنواع البيانات والملفات القديمة وفحص الأقراص المتصلة وتصدير الأدلة محليًا.';
+}
+
+const module04Names: Array<[number, string, string, string, string]> = [
+  [1, 'Storage map', 'خريطة استخدام المساحة', 'Measure the selected path recursively and create a proportional storage breakdown from real files.', 'قياس المسار المحدد بالكامل وإنشاء توزيع نسبي للمساحة من الملفات الحقيقية.'],
+  [2, 'Largest files', 'أكبر الملفات', 'Rank the largest measured files under the selected path with size, type, and modification date.', 'ترتيب أكبر الملفات المقاسة داخل المسار المحدد مع الحجم والنوع وتاريخ التعديل.'],
+  [3, 'Largest folders', 'أكبر المجلدات', 'Calculate recursive folder sizes from the files actually reached by the scan.', 'حساب أحجام المجلدات داخليًا من الملفات التي وصل إليها الفحص بالفعل.'],
+  [4, 'File types', 'أنواع الملفات', 'Group measured storage by file category and extension without opening file contents.', 'تجميع المساحة المقاسة حسب فئة الملف وامتداده دون فتح محتوى الملفات.'],
+  [5, 'Old files', 'الملفات القديمة', 'Find files whose modification date is older than the selected threshold.', 'العثور على الملفات التي يسبق تاريخ تعديلها الحد الزمني المحدد.'],
+  [6, 'Downloads folder', 'تحليل مجلد التنزيلات', 'Measure the current Windows user Downloads folder and show its largest items.', 'قياس مجلد التنزيلات لحساب ويندوز الحالي وعرض أكبر العناصر داخله.'],
+  [7, 'Program data folders', 'تحليل مساحة البرامج', 'Measure the current user Local AppData directory without changing application data.', 'قياس مجلد Local AppData للمستخدم الحالي دون تعديل بيانات البرامج.'],
+  [8, 'Connected drives', 'الأقراص المتصلة', 'Read logical-drive type and real capacity values from Windows, including removable and remote drives when available.', 'قراءة نوع الأقراص المنطقية وسعتها الحقيقية من ويندوز، بما فيها الأقراص الخارجية والبعيدة عند توفرها.'],
+  [9, 'Low-space check', 'فحص انخفاض المساحة', 'Run a one-time comparison of current free space against a selected threshold.', 'إجراء مقارنة لحظية بين المساحة الحرة الحالية والحد الذي يحدده المستخدم.'],
+  [10, 'Export storage report', 'تصدير تقرير التخزين', 'Export the current measured scan snapshot as a JSON evidence report in protected application data.', 'تصدير لقطة الفحص المقاسة الحالية كتقرير أدلة JSON داخل بيانات التطبيق المحمية.'],
+];
+for (const [number, nameEn, nameAr, descriptionEn, descriptionAr] of module04Names) {
+  renameService('m04', number, nameEn, nameAr, descriptionEn, descriptionAr);
+}
+
+const m04States: Array<[number, string, KnouxCapability['implementationState'], string, string, boolean]> = [
+  [1, 'm04.storage.scan', 'implemented', 'Real recursive measurement, bounded evidence, progress, and cancellation are connected.', 'تم ربط القياس الحقيقي المتكرر والأدلة المحدودة والتقدم والإلغاء.', true],
+  [2, 'm04.files.largest', 'implemented', 'Largest-file ranking is calculated from the real selected-path scan.', 'يتم حساب ترتيب أكبر الملفات من الفحص الحقيقي للمسار المحدد.', true],
+  [3, 'm04.folders.largest', 'implemented', 'Recursive folder totals are derived from measured files with a bounded directory map.', 'يتم اشتقاق إجماليات المجلدات من الملفات المقاسة مع حد آمن لخريطة المجلدات.', true],
+  [4, 'm04.types.distribution', 'implemented', 'File-category and extension totals are calculated from real metadata without reading contents.', 'يتم حساب إجماليات فئات الملفات وامتداداتها من البيانات الوصفية الحقيقية دون قراءة المحتوى.', true],
+  [5, 'm04.files.old', 'partial', 'Old-file evidence uses modification time because reliable last-access tracking is not guaranteed on Windows.', 'تعتمد أدلة الملفات القديمة على تاريخ التعديل لأن تتبع آخر وصول ليس مضمونًا في ويندوز.', true],
+  [6, 'm04.downloads.analyze', 'implemented', 'The real current-user Downloads directory is discovered and measured.', 'يتم اكتشاف مجلد التنزيلات الحقيقي للمستخدم الحالي وقياسه.', true],
+  [7, 'm04.appdata.analyze', 'implemented', 'The real current-user Local AppData directory is measured read-only.', 'يتم قياس مجلد Local AppData الحقيقي للمستخدم الحالي للقراءة فقط.', true],
+  [8, 'm04.drives.external', 'partial', 'Windows logical-drive inventory and capacity are connected; exhaustive disconnected-media and network-share discovery is not.', 'تم ربط جرد الأقراص المنطقية وسعتها في ويندوز، دون اكتشاف شامل للوسائط غير المتصلة ومشاركات الشبكة.', false],
+  [9, 'm04.space.check', 'partial', 'A real one-time threshold check is connected; background notifications are not enabled.', 'تم ربط فحص حقيقي لحظي للحد، بينما إشعارات الخلفية غير مفعلة.', false],
+  [10, 'm04.report.export', 'partial', 'Measured JSON report export is connected; PDF generation remains unimplemented.', 'تم ربط تصدير التقرير المقاس بصيغة JSON، بينما إنشاء PDF غير منفذ.', false],
+];
+for (const [number, handlerId, implementationState, availabilityReasonEn, availabilityReasonAr, supportsCancel] of m04States) {
+  patchService('m04', number, {
+    handlerId,
+    implementationState,
+    status: 'available',
+    availabilityReasonEn,
+    availabilityReasonAr,
+    requiresAdmin: false,
+    runtime: 'desktop',
+    supportsPreview: true,
+    supportsDryRun: true,
+    supportsCancel,
+    supportsUndo: false,
+    supportsQuarantine: false,
+  });
 }
 
 const module15 = catalog.find(item => item.id === 'm15');
@@ -157,7 +234,18 @@ const module15Names: Array<[number, string, string, string, string]> = [
   [9, 'Local HTTP & API Laboratory', 'مختبر HTTP وواجهات API', 'Execute explicit HTTP/HTTPS requests with timeout, headers, body, response timing, and bounded previews.', 'تنفيذ طلبات HTTP وHTTPS مع المهلة والترويسات والمحتوى وقياس الاستجابة ومعاينة محدودة.'],
   [10, 'Developer Evidence Report', 'تقرير أدلة بيئة التطوير', 'Export the loaded developer evidence as JSON or Markdown inside protected application data.', 'تصدير أدلة بيئة التطوير المحملة بصيغة JSON أو Markdown داخل بيانات التطبيق المحمية.'],
 ];
-const m15Handlers = ['m15.environment.discover', 'm15.path.audit', 'm15.runtime.inspect', 'm15.git.audit', 'm15.repositories.scan', 'm15.ports.manage', 'm15.projects.audit', 'm15.caches.manage', 'm15.http.execute', 'm15.report.export'];
+const m15Handlers = [
+  'm15.environment.discover',
+  'm15.path.audit',
+  'm15.runtime.inspect',
+  'm15.git.audit',
+  'm15.repositories.scan',
+  'm15.ports.manage',
+  'm15.projects.audit',
+  'm15.caches.manage',
+  'm15.http.execute',
+  'm15.report.export',
+];
 for (const [number, nameEn, nameAr, descriptionEn, descriptionAr] of module15Names) {
   renameService('m15', number, nameEn, nameAr, descriptionEn, descriptionAr);
   patchService('m15', number, {
