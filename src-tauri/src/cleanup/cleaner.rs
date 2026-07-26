@@ -137,7 +137,12 @@ pub fn execute_cleanup(
         "m02://progress",
         CleanupProgress {
             operation_id: operation_id.into(),
-            phase: if was_cancelled { "cancelled" } else { "cleanup_complete" }.into(),
+            phase: if was_cancelled {
+                "cancelled"
+            } else {
+                "cleanup_complete"
+            }
+            .into(),
             category: None,
             files_processed: deleted_files + skipped_files + failed_files.len() as u64,
             bytes_processed: deleted_bytes,
