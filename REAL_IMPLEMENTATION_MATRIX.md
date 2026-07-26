@@ -8,11 +8,11 @@ This file records implementation evidence. A service is not marked `implemented`
 |---|---:|
 | Modules | 19 |
 | Services | 190 |
-| Implemented services | 40 |
+| Implemented services | 50 |
 | Partial services | 0 |
-| Planned services | 150 |
+| Planned services | 140 |
 
-The 150 planned services remain non-executable and do not carry fabricated handlers.
+The 140 planned services remain non-executable and do not carry fabricated handlers.
 
 ## Module matrix
 
@@ -22,35 +22,33 @@ The 150 planned services remain non-executable and do not carry fabricated handl
 | M02 | تنظيف الملفات غير الضرورية | 7 | 0 | 3 | Verified scan snapshots, signed UAC manifest, bounded log discovery, reversible Downloads quarantine |
 | M03 | البحث عن الملفات المكررة | 10 | 0 | 0 | Exact BLAKE3, multi-signal images, decoded video/audio fingerprints, safe archive manifests, quarantine |
 | M04 | معرفة ما يستهلك مساحة الجهاز | 10 | 0 | 0 | Access-time evidence, logical/physical drives, persisted background monitor, PDF + JSON report |
-| M05–M14 | Remaining user modules | 0 | 0 | 100 | Planned; no executable handlers |
+| M05 | التحكم في برامج بدء التشغيل والخدمات | 10 | 0 | 0 | Registry and Startup-folder evidence, scheduled tasks, signed services, reversible user mutations, delays, profiles and Event 100 history |
+| M06–M14 | Remaining user modules | 0 | 0 | 90 | Planned; no executable handlers |
 | M15 | أدوات المطور | 10 | 0 | 0 | Explicit local developer commands and evidence reports |
 | M16–M19 | Remaining modules | 0 | 0 | 40 | Planned; no executable handlers |
 
-## Fourteen completed services
+## Module 05 completed services
 
-| Service | Handler | Completed Rust command | Real behavior / data source |
+| Service | Handler | Rust command | Real behavior / safety boundary |
 |---|---|---|---|
-| M01-S01 Device evidence | `m01.system.discover` | `m01_system_discover_complete` | CIM OS/computer/CPU, BIOS, baseboard, disks, GPUs, battery, Secure Boot and TPM |
-| M01-S05 Curated installation | `m01.winget.install` | `m01_winget_install_queued` | Allowlisted Winget execution, post-verification, AppData queue, retry and resume |
-| M02-S02 Windows Temp | `m02.scan.windows_temp` | `m02_scan_windows_temp_complete` | Signed SHA-256 manifest and UAC helper with root, reparse-point, size and timestamp checks |
-| M02-S05 Crash reports | `m02.scan.crash_dumps` | `m02_scan_crash_dumps_complete` | User and protected WER/CrashDumps evidence, elevated verified deletion where required |
-| M02-S07 Old logs | `m02.scan.application_logs` | `m02_scan_application_logs_complete` | Bounded LocalAppData log/report/WER/crash discovery without Event Log mutation |
-| M02-S09 Old installers | `m02.scan.old_downloads` | `m02_scan_old_downloads_complete` | Verified Downloads selection, BLAKE3 AppData quarantine and restore UI |
-| M03-S03 Similar images | `m03.scan.images` | `m03_scan_images_complete` | dHash, aHash, RGB histogram, dimensions and aspect-ratio clustering |
-| M03-S04 Video comparison | `m03.scan.videos` | `m03_scan_videos_complete` | ffprobe stream evidence and bounded decoded grayscale-frame fingerprint |
-| M03-S05 Audio comparison | `m03.scan.audio` | `m03_scan_audio_complete` | ffprobe evidence and normalized decoded PCM energy fingerprint |
-| M03-S07 Archive comparison | `m03.scan.archives` | `m03_scan_archives_complete` | ZIP compression API and 7-Zip listing manifests without extraction |
-| M04-S05 Old files | `m04.files.old` | `m04_old_files_complete` | Last-access timestamp when available; explicit per-file modification fallback |
-| M04-S08 Connected storage | `m04.drives.external` | `m04_external_drives_complete` | Win32 logical volumes plus Get-PhysicalDisk media, bus, health, serial and capacity |
-| M04-S09 Low-space monitor | `m04.space.check` | `m04_space_check_complete` | Persisted threshold/interval, in-process monitoring, Tauri events and Windows Toast |
-| M04-S10 Storage report | `m04.report.export` | `m04_report_export_complete` | Valid PDF 1.4 report with JSON evidence sidecar from a native measured snapshot |
+| M05-S01 Registry startup entries | `m05.registry.inspect` | `m05_registry_entries` | Reads HKCU/HKLM Run and RunOnce; Authenticode evidence; only user non-Microsoft entries are mutable |
+| M05-S02 Startup folders | `m05.folders.inspect` | `m05_startup_folders` | Reads user/common Startup folders, resolves `.lnk`, and moves user entries to AppData backup for reversible disable |
+| M05-S03 Scheduled startup tasks | `m05.tasks.inspect` | `m05_scheduled_tasks` | Reads boot/logon Task Scheduler entries and labels Microsoft task paths as protected |
+| M05-S04 Windows services | `m05.services.inspect` | `m05_windows_services` | Read-only Win32_Service inventory with executable signature evidence and critical-service protection |
+| M05-S05 Startup impact | `m05.impact.assess` | `m05_impact_assess` | Transparent heuristic based on signature/scope/command plus measured Diagnostics-Performance Event 100 history |
+| M05-S06 Safe recommendations | `m05.recommendations.generate` | `m05_recommendations` | Recommendations only for mutable non-Microsoft user entries; no automatic change |
+| M05-S07 Delayed startup | `m05.delay.manage` | `m05_delay_manage` | Creates a 30/60/90-second ONLOGON task, disables the original verified user entry, and supports one-step restoration |
+| M05-S08 Startup profiles | `m05.profiles.manage` | `m05_profiles_manage` | Persists named AppData profiles and applies only mutable user-entry states |
+| M05-S09 Restoration | `m05.restore.manage` | `m05_restore_manage` | AppData change journal restores registry values or moved Startup files after typed confirmation |
+| M05-S10 Boot history | `m05.boot.history` | `m05_boot_history` | Reads measured BootTime, MainPathBootTime and BootPostBootTime from Windows Event 100 |
 
 ## User-facing workflows
 
 - M01 has a dedicated device-evidence and Winget queue workspace with package selection, queue state and resume.
 - M02 exposes scan, cleanup, UAC behavior, history, installer quarantine listing and restoration.
-- M03 uses the existing dedicated duplicate control center; the four media handlers now route to completed engines.
+- M03 uses the dedicated duplicate control center with real media and archive evidence.
 - M04 exposes measured storage analysis and an in-app persistent low-space alert panel.
+- M05 has a dedicated startup workspace for startup entries, tasks, services, impact, recommendations, delayed startup, profiles, restoration and boot history.
 
 ## Non-negotiable rules
 

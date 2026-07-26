@@ -130,6 +130,23 @@ const m04: Array<[number, string, string, string, Partial<KnouxCapability>?]> = 
 ];
 for (const [number, handler, en, ar, options] of m04) implemented('m04', number, handler, en, ar, options);
 
+setModule('m05', 'Startup Control', 'التحكم في برامج بدء التشغيل والخدمات',
+  'Inspect real Windows startup sources, protect system entries, apply reversible user changes, delay programs, save profiles and measure boot history.',
+  'فحص مصادر بدء التشغيل الحقيقية وحماية عناصر النظام وتطبيق تغييرات قابلة للاستعادة وتأخير البرامج وحفظ البروفايلات وقياس سجل الإقلاع.');
+const m05: Array<[number, string, string, string, Partial<KnouxCapability>?]> = [
+  [1, 'm05.registry.inspect', 'HKCU and HKLM Run/RunOnce entries are read with executable signature evidence; only non-protected user entries can be changed.', 'تتم قراءة مدخلات Run وRunOnce للمستخدم والجهاز مع دليل توقيع الملف، ولا يمكن تغيير سوى عناصر المستخدم غير المحمية.', { supportsUndo: true }],
+  [2, 'm05.folders.inspect', 'User and common Startup folders are read and shortcuts are resolved; user items can be moved to a reversible AppData backup.', 'تتم قراءة مجلدي بدء التشغيل وحل الاختصارات، ويمكن نقل عناصر المستخدم إلى نسخة AppData قابلة للاستعادة.', { supportsUndo: true }],
+  [3, 'm05.tasks.inspect', 'Real boot and logon scheduled tasks are enumerated read-only with Microsoft task protection labels.', 'يتم استعراض مهام الإقلاع وتسجيل الدخول الحقيقية للقراءة فقط مع تمييز مهام Microsoft المحمية.'],
+  [4, 'm05.services.inspect', 'Windows services, executable paths and Authenticode publishers are inspected read-only; critical services remain protected.', 'يتم فحص خدمات ويندوز ومساراتها وناشري Authenticode للقراءة فقط، وتظل الخدمات الحرجة محمية.'],
+  [5, 'm05.impact.assess', 'A transparent review score uses signature, scope and command characteristics together with measured Event 100 boot history.', 'يستخدم مؤشر مراجعة شفاف التوقيع والنطاق وخصائص الأمر مع سجل الإقلاع المقاس من الحدث 100.'],
+  [6, 'm05.recommendations.generate', 'Recommendations are limited to recognized non-Microsoft user entries and never make automatic changes.', 'تقتصر التوصيات على عناصر المستخدم غير التابعة لمايكروسوفت ولا تنفذ تغييرات تلقائية.'],
+  [7, 'm05.delay.manage', 'Selected mutable user entries can be moved to a verified 30/60/90-second Task Scheduler delay with one-step restoration.', 'يمكن نقل عناصر المستخدم القابلة للتغيير إلى تشغيل مؤجل موثق لمدة 30 أو 60 أو 90 ثانية مع استعادة بخطوة واحدة.', { supportsUndo: true }],
+  [8, 'm05.profiles.manage', 'Named startup profiles persist selected user-entry states and apply them without touching protected or machine entries.', 'تحفظ بروفايلات التشغيل حالات عناصر المستخدم وتطبقها دون لمس عناصر الجهاز أو العناصر المحمية.', { supportsUndo: true }],
+  [9, 'm05.restore.manage', 'Every user startup mutation is journaled in AppData and can be restored after typed confirmation.', 'يتم تسجيل كل تعديل لبدء التشغيل داخل AppData ويمكن استعادته بعد تأكيد مكتوب.', { supportsUndo: true }],
+  [10, 'm05.boot.history', 'Measured boot duration, main-path time and post-boot time are read from Windows Diagnostics-Performance Event 100.', 'تتم قراءة زمن الإقلاع والمسار الرئيسي وما بعد الإقلاع من الحدث 100 في سجل أداء ويندوز.'],
+];
+for (const [number, handler, en, ar, options] of m05) implemented('m05', number, handler, en, ar, options);
+
 setModule('m15', 'KNOUX Developer Studio', 'استوديو المطورين KNOUX',
   'Local-first Windows developer tooling with explicit native commands and evidence reports.',
   'أدوات مطور محلية لويندوز بأوامر صريحة وتقارير أدلة.');
