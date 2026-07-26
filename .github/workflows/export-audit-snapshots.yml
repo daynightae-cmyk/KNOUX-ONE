@@ -1,0 +1,43 @@
+name: Export Audit Snapshots
+
+on:
+  push:
+    branches:
+      - bundle/gemini-m03-m15-m16
+    paths:
+      - '.github/workflows/export-audit-snapshots.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          path: repo-main
+          fetch-depth: 1
+      - name: Checkout Module 15 branch
+        uses: actions/checkout@v4
+        with:
+          ref: feat/m15-developer-studio
+          path: repo-m15
+          fetch-depth: 1
+      - name: Remove Git metadata and archive snapshots
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf repo-main/.git repo-m15/.git
+          zip -r -9 KNOUX-ONE-current-snapshots.zip repo-main repo-m15
+      - name: Upload snapshots
+        uses: actions/upload-artifact@v4
+        with:
+          name: KNOUX-ONE-current-snapshots
+          path: KNOUX-ONE-current-snapshots.zip
+          if-no-files-found: error
+          retention-days: 3
