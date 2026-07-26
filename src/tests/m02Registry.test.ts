@@ -23,7 +23,7 @@ describe('Module 02 native command registry', () => {
   it('uses only explicit cleanup handler mappings', () => {
     for (const [handlerId, command] of Object.entries(expectedHandlers)) {
       expect(NATIVE_COMMANDS[handlerId as keyof typeof NATIVE_COMMANDS], handlerId).toBe(command);
-      expect(main, handlerId).toContain(`cleanup::${command}`);
+      expect(main, handlerId).toContain(`cleanup::commands::${command}`);
     }
   });
 
