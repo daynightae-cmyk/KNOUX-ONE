@@ -27,6 +27,13 @@ jobs:
           $rust = 'src-tauri/src/startup_services/mod.rs'
           $text = Get-Content -Raw $rust
           $text = $text.Replace('collections::{HashMap, HashSet},', 'collections::HashSet,')
+          $badQuote = @'
+value.replace(''', "''")
+'@
+          $goodQuote = @'
+value.replace('\'', "''")
+'@
+          $text = $text.Replace($badQuote.Trim(), $goodQuote.Trim())
           $old = @'
     let temporary = path.with_extension("tmp");
     let bytes = serde_json::to_vec_pretty(value).map_err(|error| format!("json_encode_failed:{error}"))?;
