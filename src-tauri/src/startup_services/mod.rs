@@ -610,9 +610,9 @@ fn read_folder_items() -> Result<Vec<StartupItem>, String> {
 }
 
 fn to_startup_item(raw: RawStartupItem) -> StartupItem {
+    let (impact_score, impact_label, impact_basis) = impact(&raw);
     let publisher = raw.publisher.unwrap_or_default();
     let signature_status = raw.signature_status.unwrap_or_else(|| "NotChecked".into());
-    let (impact_score, impact_label, impact_basis) = impact(&raw);
     let protected = is_microsoft(
         &publisher,
         raw.executable_path.as_deref().unwrap_or(&raw.command),
