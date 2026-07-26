@@ -1,39 +1,812 @@
-use crate::{contracts::OperationResult, duplicates::contracts::{DuplicateFileItem, DuplicateGroup, DuplicateJobProgress, DuplicateScanRequest, DuplicateScanResult, DuplicateScanSummary}};
+use crate::{
+    contracts::OperationResult,
+    duplicates::contracts::{
+        DuplicateFileItem, DuplicateGroup, DuplicateJobProgress, DuplicateScanRequest,
+        DuplicateScanResult, DuplicateScanSummary,
+    },
+};
 use chrono::{DateTime, Utc};
 use image::imageops::FilterType;
 use serde_json::Value;
-use std::{collections::{HashMap, HashSet}, fs, io::Read, path::{Path, PathBuf}, process::Command, time::Instant};
+use std::{
+    collections::{HashMap, HashSet},
+    fs,
+    io::Read,
+    path::{Path, PathBuf},
+    process::Command,
+    time::Instant,
+};
 use tauri::{AppHandle, Emitter};
 use uuid::Uuid;
 use walkdir::WalkDir;
 
-fn op_result(op_id:String, capability:&str, handler:&str, started:String, timer:Instant, data:Option<DuplicateScanResult>, status:&str, summary_en:String, summary_ar:String, warnings:Vec<String>, error:Option<String>)->OperationResult<DuplicateScanResult>{OperationResult{operation_id:op_id,capability_id:capability.into(),handler_id:handler.into(),status:status.into(),started_at:started,completed_at:Some(Utc::now().to_rfc3339()),duration_ms:Some(timer.elapsed().as_millis() as u64),requires_restart:false,exit_code:Some(if status=="failed"{1}else{0}),stdout:None,stderr:error.clone(),summary_en,summary_ar,warnings,error_code:error.map(|_|"media_scan_failed".into()),data}}
-fn protected(path:&Path)->bool{let s=path.to_string_lossy().to_ascii_lowercase();[r"c:\windows",r"c:\program files",r"c:\program files (x86)",r"c:\programdata",r"c:\system volume information",r"c:\$recycle.bin"].iter().any(|p|s.starts_with(p))}
-fn time_string(value:Result<std::time::SystemTime,std::io::Error>)->String{value.ok().map(DateTime::<Utc>::from).unwrap_or_else(Utc::now).to_rfc3339()}
-fn mime(path:&Path)->String{mime_guess::from_path(path).first_or_octet_stream().essence_str().into()}
-fn full_hash(path:&Path)->Result<String,String>{let mut file=fs::File::open(path).map_err(|e|format!("file_open_failed:{e}"))?;let mut hasher=blake3::Hasher::new();let mut buffer=[0u8;1024*1024];loop{let n=file.read(&mut buffer).map_err(|e|format!("file_read_failed:{e}"))?;if n==0{break;}hasher.update(&buffer[..n]);}Ok(hasher.finalize().to_hex().to_string())}
-fn file_item(path:&Path, hash:String, perceptual:Option<String>, similarity:Option<f32>, dimensions:Option<(u32,u32)>)->Result<DuplicateFileItem,String>{let canonical=dunce::canonicalize(path).map_err(|e|format!("canonicalize_failed:{e}"))?;let metadata=fs::metadata(&canonical).map_err(|e|format!("metadata_failed:{e}"))?;Ok(DuplicateFileItem{id:Uuid::new_v4().to_string(),path:path.to_string_lossy().to_string(),canonical_path:canonical.to_string_lossy().to_string(),name:canonical.file_name().and_then(|v|v.to_str()).unwrap_or_default().into(),extension:canonical.extension().and_then(|v|v.to_str()).unwrap_or_default().to_ascii_lowercase(),size_bytes:metadata.len(),modified_time:time_string(metadata.modified()),created_time:time_string(metadata.created()),hash,partial_hash:None,perceptual_hash:perceptual,similarity_score:similarity,mime_type:mime(&canonical),width:dimensions.map(|v|v.0),height:dimensions.map(|v|v.1),file_identity:canonical.to_string_lossy().to_string(),hard_link_count:1,is_hard_link_alias:false,protected_path:protected(&canonical)})}
-fn extension_set(values:&[&str])->HashSet<String>{values.iter().map(|v|v.to_string()).collect()}
-fn collect_files(request:&DuplicateScanRequest, allowed:&HashSet<String>, app:&AppHandle, op_id:&str, mode:&str)->(Vec<PathBuf>,u64,u64,Vec<String>){let exclusions=request.excluded_paths.iter().filter_map(|p|dunce::canonicalize(p).ok()).collect::<Vec<_>>();let mut files=Vec::new();let mut bytes=0u64;let mut errors=0u64;let mut warnings=Vec::new();let mut seen=HashSet::new();for root in &request.paths{let root=match dunce::canonicalize(root){Ok(v)=>v,Err(e)=>{warnings.push(format!("scan_root_unavailable:{root}:{e}"));continue}};let walker=WalkDir::new(&root).follow_links(false).max_depth(if request.include_subfolders{usize::MAX}else{1});for entry in walker.into_iter(){let entry=match entry{Ok(v)=>v,Err(e)=>{errors+=1;if warnings.len()<50{warnings.push(format!("walk_error:{e}"));}continue}};if entry.file_type().is_symlink()||!entry.file_type().is_file(){continue;}let path=entry.path();let canonical=match dunce::canonicalize(path){Ok(v)=>v,Err(_)=>continue};if exclusions.iter().any(|v|canonical.starts_with(v))||!seen.insert(canonical.clone()){continue;}let ext=canonical.extension().and_then(|v|v.to_str()).unwrap_or_default().to_ascii_lowercase();if !allowed.contains(&ext){continue;}let metadata=match fs::metadata(&canonical){Ok(v)=>v,Err(_)=>{errors+=1;continue}};if metadata.len()<request.min_size_bytes||request.max_size_bytes.map(|v|metadata.len()>v).unwrap_or(false){continue;}bytes=bytes.saturating_add(metadata.len());files.push(canonical.clone());if files.len().is_multiple_of(32){let _=app.emit("m03://progress",DuplicateJobProgress{job_id:op_id.into(),operation_id:op_id.into(),phase:"fingerprinting".into(),mode:mode.into(),scanned_files:files.len() as u64,total_files:None,scanned_bytes:bytes,current_path:Some(canonical.to_string_lossy().to_string()),candidate_groups:0,verified_groups:0,errors,can_pause:false,can_cancel:false});}}}(files,bytes,errors,warnings)}
-fn summary(op_id:&str, request:&DuplicateScanRequest, mode:&str, files:u64, bytes:u64, groups:&[DuplicateGroup], errors:u64)->DuplicateScanSummary{DuplicateScanSummary{scan_id:Uuid::new_v4().to_string(),operation_id:op_id.into(),started_at:Utc::now().to_rfc3339(),completed_at:Utc::now().to_rfc3339(),target_folders:request.paths.clone(),total_files_scanned:files,total_bytes_scanned:bytes,duplicate_groups_found:groups.len() as u64,duplicate_files_found:groups.iter().map(|g|g.files.len().saturating_sub(1) as u64).sum(),total_wasted_bytes:groups.iter().map(|g|g.wasted_size_bytes).sum(),scan_mode:mode.into(),error_count:errors}}
-fn make_group(mode:&str, category:&str, signature:String, mut files:Vec<DuplicateFileItem>, confidence:f32, actionable:bool)->DuplicateGroup{files.sort_by(|a,b|a.canonical_path.cmp(&b.canonical_path));let smallest=files.iter().map(|f|f.size_bytes).min().unwrap_or(0);let wasted=smallest.saturating_mul(files.len().saturating_sub(1) as u64);DuplicateGroup{group_id:Uuid::new_v4().to_string(),mode:mode.into(),category:category.into(),files,wasted_size_bytes:wasted,common_hash:signature,proof_status:"verified_local_evidence".into(),confidence,actionable,warnings:Vec::new()}}
+fn op_result(
+    op_id: String,
+    capability: &str,
+    handler: &str,
+    started: String,
+    timer: Instant,
+    data: Option<DuplicateScanResult>,
+    status: &str,
+    summary_en: String,
+    summary_ar: String,
+    warnings: Vec<String>,
+    error: Option<String>,
+) -> OperationResult<DuplicateScanResult> {
+    OperationResult {
+        operation_id: op_id,
+        capability_id: capability.into(),
+        handler_id: handler.into(),
+        status: status.into(),
+        started_at: started,
+        completed_at: Some(Utc::now().to_rfc3339()),
+        duration_ms: Some(timer.elapsed().as_millis() as u64),
+        requires_restart: false,
+        exit_code: Some(if status == "failed" { 1 } else { 0 }),
+        stdout: None,
+        stderr: error.clone(),
+        summary_en,
+        summary_ar,
+        warnings,
+        error_code: error.map(|_| "media_scan_failed".into()),
+        data,
+    }
+}
+fn protected(path: &Path) -> bool {
+    let s = path.to_string_lossy().to_ascii_lowercase();
+    [
+        r"c:\windows",
+        r"c:\program files",
+        r"c:\program files (x86)",
+        r"c:\programdata",
+        r"c:\system volume information",
+        r"c:\$recycle.bin",
+    ]
+    .iter()
+    .any(|p| s.starts_with(p))
+}
+fn time_string(value: Result<std::time::SystemTime, std::io::Error>) -> String {
+    value
+        .ok()
+        .map(DateTime::<Utc>::from)
+        .unwrap_or_else(Utc::now)
+        .to_rfc3339()
+}
+fn mime(path: &Path) -> String {
+    mime_guess::from_path(path)
+        .first_or_octet_stream()
+        .essence_str()
+        .into()
+}
+fn full_hash(path: &Path) -> Result<String, String> {
+    let mut file = fs::File::open(path).map_err(|e| format!("file_open_failed:{e}"))?;
+    let mut hasher = blake3::Hasher::new();
+    let mut buffer = [0u8; 1024 * 1024];
+    loop {
+        let n = file
+            .read(&mut buffer)
+            .map_err(|e| format!("file_read_failed:{e}"))?;
+        if n == 0 {
+            break;
+        }
+        hasher.update(&buffer[..n]);
+    }
+    Ok(hasher.finalize().to_hex().to_string())
+}
+fn file_item(
+    path: &Path,
+    hash: String,
+    perceptual: Option<String>,
+    similarity: Option<f32>,
+    dimensions: Option<(u32, u32)>,
+) -> Result<DuplicateFileItem, String> {
+    let canonical = dunce::canonicalize(path).map_err(|e| format!("canonicalize_failed:{e}"))?;
+    let metadata = fs::metadata(&canonical).map_err(|e| format!("metadata_failed:{e}"))?;
+    Ok(DuplicateFileItem {
+        id: Uuid::new_v4().to_string(),
+        path: path.to_string_lossy().to_string(),
+        canonical_path: canonical.to_string_lossy().to_string(),
+        name: canonical
+            .file_name()
+            .and_then(|v| v.to_str())
+            .unwrap_or_default()
+            .into(),
+        extension: canonical
+            .extension()
+            .and_then(|v| v.to_str())
+            .unwrap_or_default()
+            .to_ascii_lowercase(),
+        size_bytes: metadata.len(),
+        modified_time: time_string(metadata.modified()),
+        created_time: time_string(metadata.created()),
+        hash,
+        partial_hash: None,
+        perceptual_hash: perceptual,
+        similarity_score: similarity,
+        mime_type: mime(&canonical),
+        width: dimensions.map(|v| v.0),
+        height: dimensions.map(|v| v.1),
+        file_identity: canonical.to_string_lossy().to_string(),
+        hard_link_count: 1,
+        is_hard_link_alias: false,
+        protected_path: protected(&canonical),
+    })
+}
+fn extension_set(values: &[&str]) -> HashSet<String> {
+    values.iter().map(|v| v.to_string()).collect()
+}
+fn collect_files(
+    request: &DuplicateScanRequest,
+    allowed: &HashSet<String>,
+    app: &AppHandle,
+    op_id: &str,
+    mode: &str,
+) -> (Vec<PathBuf>, u64, u64, Vec<String>) {
+    let exclusions = request
+        .excluded_paths
+        .iter()
+        .filter_map(|p| dunce::canonicalize(p).ok())
+        .collect::<Vec<_>>();
+    let mut files = Vec::new();
+    let mut bytes = 0u64;
+    let mut errors = 0u64;
+    let mut warnings = Vec::new();
+    let mut seen = HashSet::new();
+    for root in &request.paths {
+        let root = match dunce::canonicalize(root) {
+            Ok(v) => v,
+            Err(e) => {
+                warnings.push(format!("scan_root_unavailable:{root}:{e}"));
+                continue;
+            }
+        };
+        let walker =
+            WalkDir::new(&root)
+                .follow_links(false)
+                .max_depth(if request.include_subfolders {
+                    usize::MAX
+                } else {
+                    1
+                });
+        for entry in walker.into_iter() {
+            let entry = match entry {
+                Ok(v) => v,
+                Err(e) => {
+                    errors += 1;
+                    if warnings.len() < 50 {
+                        warnings.push(format!("walk_error:{e}"));
+                    }
+                    continue;
+                }
+            };
+            if entry.file_type().is_symlink() || !entry.file_type().is_file() {
+                continue;
+            }
+            let path = entry.path();
+            let canonical = match dunce::canonicalize(path) {
+                Ok(v) => v,
+                Err(_) => continue,
+            };
+            if exclusions.iter().any(|v| canonical.starts_with(v))
+                || !seen.insert(canonical.clone())
+            {
+                continue;
+            }
+            let ext = canonical
+                .extension()
+                .and_then(|v| v.to_str())
+                .unwrap_or_default()
+                .to_ascii_lowercase();
+            if !allowed.contains(&ext) {
+                continue;
+            }
+            let metadata = match fs::metadata(&canonical) {
+                Ok(v) => v,
+                Err(_) => {
+                    errors += 1;
+                    continue;
+                }
+            };
+            if metadata.len() < request.min_size_bytes
+                || request
+                    .max_size_bytes
+                    .map(|v| metadata.len() > v)
+                    .unwrap_or(false)
+            {
+                continue;
+            }
+            bytes = bytes.saturating_add(metadata.len());
+            files.push(canonical.clone());
+            if files.len().is_multiple_of(32) {
+                let _ = app.emit(
+                    "m03://progress",
+                    DuplicateJobProgress {
+                        job_id: op_id.into(),
+                        operation_id: op_id.into(),
+                        phase: "fingerprinting".into(),
+                        mode: mode.into(),
+                        scanned_files: files.len() as u64,
+                        total_files: None,
+                        scanned_bytes: bytes,
+                        current_path: Some(canonical.to_string_lossy().to_string()),
+                        candidate_groups: 0,
+                        verified_groups: 0,
+                        errors,
+                        can_pause: false,
+                        can_cancel: false,
+                    },
+                );
+            }
+        }
+    }
+    (files, bytes, errors, warnings)
+}
+fn summary(
+    op_id: &str,
+    request: &DuplicateScanRequest,
+    mode: &str,
+    files: u64,
+    bytes: u64,
+    groups: &[DuplicateGroup],
+    errors: u64,
+) -> DuplicateScanSummary {
+    DuplicateScanSummary {
+        scan_id: Uuid::new_v4().to_string(),
+        operation_id: op_id.into(),
+        started_at: Utc::now().to_rfc3339(),
+        completed_at: Utc::now().to_rfc3339(),
+        target_folders: request.paths.clone(),
+        total_files_scanned: files,
+        total_bytes_scanned: bytes,
+        duplicate_groups_found: groups.len() as u64,
+        duplicate_files_found: groups
+            .iter()
+            .map(|g| g.files.len().saturating_sub(1) as u64)
+            .sum(),
+        total_wasted_bytes: groups.iter().map(|g| g.wasted_size_bytes).sum(),
+        scan_mode: mode.into(),
+        error_count: errors,
+    }
+}
+fn make_group(
+    mode: &str,
+    category: &str,
+    signature: String,
+    mut files: Vec<DuplicateFileItem>,
+    confidence: f32,
+    actionable: bool,
+) -> DuplicateGroup {
+    files.sort_by(|a, b| a.canonical_path.cmp(&b.canonical_path));
+    let smallest = files.iter().map(|f| f.size_bytes).min().unwrap_or(0);
+    let wasted = smallest.saturating_mul(files.len().saturating_sub(1) as u64);
+    DuplicateGroup {
+        group_id: Uuid::new_v4().to_string(),
+        mode: mode.into(),
+        category: category.into(),
+        files,
+        wasted_size_bytes: wasted,
+        common_hash: signature,
+        proof_status: "verified_local_evidence".into(),
+        confidence,
+        actionable,
+        warnings: Vec::new(),
+    }
+}
 
-#[derive(Clone)]struct ImageFingerprint{path:PathBuf,dhash:u64,ahash:u64,hist:[f32;48],width:u32,height:u32,full:String}
-fn image_fp(path:&Path)->Result<ImageFingerprint,String>{let image=image::open(path).map_err(|e|format!("image_decode_failed:{e}"))?;let width=image.width();let height=image.height();let gray=image.resize_exact(9,8,FilterType::Triangle).to_luma8();let mut dhash=0u64;for y in 0..8{for x in 0..8{dhash<<=1;if gray.get_pixel(x,y)[0]>gray.get_pixel(x+1,y)[0]{dhash|=1;}}}let small=image.resize_exact(8,8,FilterType::Triangle).to_luma8();let avg=small.pixels().map(|p|p[0] as u64).sum::<u64>()/64;let mut ahash=0u64;for p in small.pixels(){ahash<<=1;if p[0] as u64>=avg{ahash|=1;}}let rgb=image.resize_exact(64,64,FilterType::Triangle).to_rgb8();let mut hist=[0f32;48];for p in rgb.pixels(){for c in 0..3{let bin=(p[c] as usize*16/256).min(15);hist[c*16+bin]+=1.0;}}for value in &mut hist{*value/=4096.0;}Ok(ImageFingerprint{path:path.to_path_buf(),dhash,ahash,hist,width,height,full:full_hash(path)?})}
-fn image_similarity(a:&ImageFingerprint,b:&ImageFingerprint)->f32{let dh=1.0-(a.dhash^b.dhash).count_ones() as f32/64.0;let ah=1.0-(a.ahash^b.ahash).count_ones() as f32/64.0;let hist=1.0-a.hist.iter().zip(b.hist.iter()).map(|(x,y)|(x-y).abs()).sum::<f32>().min(2.0)/2.0;let aspect_a=a.width.max(1) as f32/a.height.max(1) as f32;let aspect_b=b.width.max(1) as f32/b.height.max(1) as f32;let aspect=(1.0-((aspect_a-aspect_b).abs()/aspect_a.max(aspect_b)).min(1.0)).max(0.0);(dh*0.45+ah*0.25+hist*0.20+aspect*0.10)*100.0}
-fn union_find_groups(count:usize,pairs:&[(usize,usize)])->Vec<Vec<usize>>{let mut parent=(0..count).collect::<Vec<_>>();fn find(p:&mut[usize],x:usize)->usize{if p[x]!=x{let r=find(p,p[x]);p[x]=r;}p[x]}for&(a,b)in pairs{let ra=find(&mut parent,a);let rb=find(&mut parent,b);if ra!=rb{parent[rb]=ra;}}let mut map=HashMap::<usize,Vec<usize>>::new();for i in 0..count{let r=find(&mut parent,i);map.entry(r).or_default().push(i);}map.into_values().filter(|g|g.len()>1).collect()}
+#[derive(Clone)]
+struct ImageFingerprint {
+    path: PathBuf,
+    dhash: u64,
+    ahash: u64,
+    hist: [f32; 48],
+    width: u32,
+    height: u32,
+    full: String,
+}
+fn image_fp(path: &Path) -> Result<ImageFingerprint, String> {
+    let image = image::open(path).map_err(|e| format!("image_decode_failed:{e}"))?;
+    let width = image.width();
+    let height = image.height();
+    let gray = image.resize_exact(9, 8, FilterType::Triangle).to_luma8();
+    let mut dhash = 0u64;
+    for y in 0..8 {
+        for x in 0..8 {
+            dhash <<= 1;
+            if gray.get_pixel(x, y)[0] > gray.get_pixel(x + 1, y)[0] {
+                dhash |= 1;
+            }
+        }
+    }
+    let small = image.resize_exact(8, 8, FilterType::Triangle).to_luma8();
+    let avg = small.pixels().map(|p| p[0] as u64).sum::<u64>() / 64;
+    let mut ahash = 0u64;
+    for p in small.pixels() {
+        ahash <<= 1;
+        if p[0] as u64 >= avg {
+            ahash |= 1;
+        }
+    }
+    let rgb = image.resize_exact(64, 64, FilterType::Triangle).to_rgb8();
+    let mut hist = [0f32; 48];
+    for p in rgb.pixels() {
+        for c in 0..3 {
+            let bin = (p[c] as usize * 16 / 256).min(15);
+            hist[c * 16 + bin] += 1.0;
+        }
+    }
+    for value in &mut hist {
+        *value /= 4096.0;
+    }
+    Ok(ImageFingerprint {
+        path: path.to_path_buf(),
+        dhash,
+        ahash,
+        hist,
+        width,
+        height,
+        full: full_hash(path)?,
+    })
+}
+fn image_similarity(a: &ImageFingerprint, b: &ImageFingerprint) -> f32 {
+    let dh = 1.0 - (a.dhash ^ b.dhash).count_ones() as f32 / 64.0;
+    let ah = 1.0 - (a.ahash ^ b.ahash).count_ones() as f32 / 64.0;
+    let hist = 1.0
+        - a.hist
+            .iter()
+            .zip(b.hist.iter())
+            .map(|(x, y)| (x - y).abs())
+            .sum::<f32>()
+            .min(2.0)
+            / 2.0;
+    let aspect_a = a.width.max(1) as f32 / a.height.max(1) as f32;
+    let aspect_b = b.width.max(1) as f32 / b.height.max(1) as f32;
+    let aspect = (1.0 - ((aspect_a - aspect_b).abs() / aspect_a.max(aspect_b)).min(1.0)).max(0.0);
+    (dh * 0.45 + ah * 0.25 + hist * 0.20 + aspect * 0.10) * 100.0
+}
+fn union_find_groups(count: usize, pairs: &[(usize, usize)]) -> Vec<Vec<usize>> {
+    let mut parent = (0..count).collect::<Vec<_>>();
+    fn find(p: &mut [usize], x: usize) -> usize {
+        if p[x] != x {
+            let r = find(p, p[x]);
+            p[x] = r;
+        }
+        p[x]
+    }
+    for &(a, b) in pairs {
+        let ra = find(&mut parent, a);
+        let rb = find(&mut parent, b);
+        if ra != rb {
+            parent[rb] = ra;
+        }
+    }
+    let mut map = HashMap::<usize, Vec<usize>>::new();
+    for i in 0..count {
+        let r = find(&mut parent, i);
+        map.entry(r).or_default().push(i);
+    }
+    map.into_values().filter(|g| g.len() > 1).collect()
+}
 
 #[tauri::command]
-pub async fn m03_scan_images_complete(app:AppHandle,op_id:String,request:DuplicateScanRequest)->Result<OperationResult<DuplicateScanResult>,String>{let started=Utc::now().to_rfc3339();let timer=Instant::now();let worker_app=app.clone();let worker_op=op_id.clone();let worker_req=request.clone();let execution=tauri::async_runtime::spawn_blocking(move||{let allowed=extension_set(&["jpg","jpeg","png","gif","bmp","tif","tiff","webp"]);let(files,bytes,mut errors,mut warnings)=collect_files(&worker_req,&allowed,&worker_app,&worker_op,"perceptual_multisignal");let mut fps=Vec::new();for path in files{match image_fp(&path){Ok(v)=>fps.push(v),Err(e)=>{errors+=1;if warnings.len()<50{warnings.push(format!("{}:{e}",path.display()));}}}}let threshold=worker_req.similarity_threshold.clamp(50.0,100.0);let mut pairs=Vec::new();let mut scores=HashMap::new();for i in 0..fps.len(){for j in i+1..fps.len(){let score=image_similarity(&fps[i],&fps[j]);if score>=threshold{pairs.push((i,j));scores.insert((i,j),score);}}}let mut groups=Vec::new();for indices in union_find_groups(fps.len(),&pairs){let mut items=Vec::new();let mut min_score=100.0f32;for &i in &indices{let fp=&fps[i];for &j in &indices{if i<j{min_score=min_score.min(*scores.get(&(i,j)).unwrap_or(&100.0));}}items.push(file_item(&fp.path,fp.full.clone(),Some(format!("d{:016x}-a{:016x}",fp.dhash,fp.ahash)),Some(min_score),Some((fp.width,fp.height)))?);}groups.push(make_group("perceptual_multisignal","images",format!("image-cluster-{}",Uuid::new_v4()),items,min_score,false));}Ok::<_,String>((DuplicateScanResult{job_id:worker_op.clone(),summary:summary(&worker_op,&worker_req,"perceptual_multisignal",fps.len() as u64,bytes,&groups,errors),groups,warnings:warnings.clone()},warnings))}).await.map_err(|e|format!("image_worker_join_failed:{e}"))?;match execution{Ok((data,warnings))=>Ok(op_result(op_id,"m03_s03","m03.scan.images",started,timer,Some(data),if warnings.is_empty(){"completed"}else{"completed_with_warnings"},"Local multi-signal image classification completed with dHash, aHash, color histogram and aspect-ratio evidence.".into(),"اكتمل تصنيف الصور محليًا باستخدام dHash وaHash وتوزيع الألوان ونسبة الأبعاد.".into(),warnings,None)),Err(e)=>Ok(op_result(op_id,"m03_s03","m03.scan.images",started,timer,None,"failed","Image classification failed.".into(),"فشل تصنيف الصور.".into(),Vec::new(),Some(e)))}}
+pub async fn m03_scan_images_complete(
+    app: AppHandle,
+    op_id: String,
+    request: DuplicateScanRequest,
+) -> Result<OperationResult<DuplicateScanResult>, String> {
+    let started = Utc::now().to_rfc3339();
+    let timer = Instant::now();
+    let worker_app = app.clone();
+    let worker_op = op_id.clone();
+    let worker_req = request.clone();
+    let execution = tauri::async_runtime::spawn_blocking(move || {
+        let allowed = extension_set(&["jpg", "jpeg", "png", "gif", "bmp", "tif", "tiff", "webp"]);
+        let (files, bytes, mut errors, mut warnings) = collect_files(
+            &worker_req,
+            &allowed,
+            &worker_app,
+            &worker_op,
+            "perceptual_multisignal",
+        );
+        let mut fps = Vec::new();
+        for path in files {
+            match image_fp(&path) {
+                Ok(v) => fps.push(v),
+                Err(e) => {
+                    errors += 1;
+                    if warnings.len() < 50 {
+                        warnings.push(format!("{}:{e}", path.display()));
+                    }
+                }
+            }
+        }
+        let threshold = worker_req.similarity_threshold.clamp(50.0, 100.0);
+        let mut pairs = Vec::new();
+        let mut scores = HashMap::new();
+        for i in 0..fps.len() {
+            for j in i + 1..fps.len() {
+                let score = image_similarity(&fps[i], &fps[j]);
+                if score >= threshold {
+                    pairs.push((i, j));
+                    scores.insert((i, j), score);
+                }
+            }
+        }
+        let mut groups = Vec::new();
+        for indices in union_find_groups(fps.len(), &pairs) {
+            let mut items = Vec::new();
+            let mut min_score = 100.0f32;
+            for &i in &indices {
+                let fp = &fps[i];
+                for &j in &indices {
+                    if i < j {
+                        min_score = min_score.min(*scores.get(&(i, j)).unwrap_or(&100.0));
+                    }
+                }
+                items.push(file_item(
+                    &fp.path,
+                    fp.full.clone(),
+                    Some(format!("d{:016x}-a{:016x}", fp.dhash, fp.ahash)),
+                    Some(min_score),
+                    Some((fp.width, fp.height)),
+                )?);
+            }
+            groups.push(make_group(
+                "perceptual_multisignal",
+                "images",
+                format!("image-cluster-{}", Uuid::new_v4()),
+                items,
+                min_score,
+                false,
+            ));
+        }
+        Ok::<_, String>((
+            DuplicateScanResult {
+                job_id: worker_op.clone(),
+                summary: summary(
+                    &worker_op,
+                    &worker_req,
+                    "perceptual_multisignal",
+                    fps.len() as u64,
+                    bytes,
+                    &groups,
+                    errors,
+                ),
+                groups,
+                warnings: warnings.clone(),
+            },
+            warnings,
+        ))
+    })
+    .await
+    .map_err(|e| format!("image_worker_join_failed:{e}"))?;
+    match execution{Ok((data,warnings))=>Ok(op_result(op_id,"m03_s03","m03.scan.images",started,timer,Some(data),if warnings.is_empty(){"completed"}else{"completed_with_warnings"},"Local multi-signal image classification completed with dHash, aHash, color histogram and aspect-ratio evidence.".into(),"اكتمل تصنيف الصور محليًا باستخدام dHash وaHash وتوزيع الألوان ونسبة الأبعاد.".into(),warnings,None)),Err(e)=>Ok(op_result(op_id,"m03_s03","m03.scan.images",started,timer,None,"failed","Image classification failed.".into(),"فشل تصنيف الصور.".into(),Vec::new(),Some(e)))}
+}
 
-fn resolve_tool(name:&str)->Result<String,String>{let output=Command::new(if cfg!(target_os="windows"){"where.exe"}else{"which"}).arg(name).output().map_err(|e|format!("tool_resolve_failed:{e}"))?;if !output.status.success(){return Err(format!("required_tool_missing:{name}"));}let path=String::from_utf8_lossy(&output.stdout).lines().next().unwrap_or_default().trim().to_string();if path.is_empty(){Err(format!("required_tool_missing:{name}"))}else{Ok(path)}}
-fn media_fingerprint(path:&Path,kind:&str)->Result<(String,String),String>{let ffprobe=resolve_tool("ffprobe")?;let probe=Command::new(ffprobe).args(["-v","error","-show_entries","format=duration,size:stream=codec_type,codec_name,width,height,sample_rate,channels","-of","json",path.to_string_lossy().as_ref()]).output().map_err(|e|format!("ffprobe_failed:{e}"))?;if !probe.status.success(){return Err(format!("ffprobe_exit_failed:{}",String::from_utf8_lossy(&probe.stderr)));}let probe_value:Value=serde_json::from_slice(&probe.stdout).map_err(|e|format!("ffprobe_json_failed:{e}"))?;let normalized=serde_json::to_string(&probe_value).map_err(|e|format!("probe_normalize_failed:{e}"))?;let ffmpeg=resolve_tool("ffmpeg")?;let mut command=Command::new(ffmpeg);command.args(["-v","error","-i",path.to_string_lossy().as_ref(),"-t",if kind=="video"{"120"}else{"300"}]);if kind=="video"{command.args(["-vf","fps=1/10,scale=32:32,format=gray","-an","-f","rawvideo","-"]);}else{command.args(["-vn","-ac","1","-ar","8000","-f","s16le","-"]);}let output=command.output().map_err(|e|format!("ffmpeg_fingerprint_failed:{e}"))?;if !output.status.success()||output.stdout.is_empty(){return Err(format!("ffmpeg_fingerprint_exit_failed:{}",String::from_utf8_lossy(&output.stderr)));}let fingerprint=if kind=="audio"{let samples=output.stdout.chunks_exact(2).map(|b|i16::from_le_bytes([b[0],b[1]]) as f64).collect::<Vec<_>>();let chunk=8000usize;let mut energy=Vec::new();for values in samples.chunks(chunk){if values.is_empty(){continue;}let rms=(values.iter().map(|v|v*v).sum::<f64>()/values.len() as f64).sqrt();energy.push(rms);}let max=energy.iter().copied().fold(1.0f64,f64::max);let quantized=energy.iter().take(300).map(|v|((*v/max)*31.0).round() as u8).collect::<Vec<_>>();blake3::hash(&quantized).to_hex().to_string()}else{blake3::hash(&output.stdout).to_hex().to_string()};Ok((fingerprint,normalized))}
-fn archive_manifest(path:&Path)->Result<String,String>{let ext=path.extension().and_then(|v|v.to_str()).unwrap_or_default().to_ascii_lowercase();let output=if ext=="zip"{let script=format!(r#"Add-Type -AssemblyName System.IO.Compression.FileSystem;$z=[IO.Compression.ZipFile]::OpenRead('{}');try{{$z.Entries|Sort-Object FullName|ForEach-Object{{[pscustomobject]@{{path=$_.FullName;length=[int64]$_.Length;compressed=[int64]$_.CompressedLength}}}}|ConvertTo-Json -Compress}}finally{{$z.Dispose()}}"#,path.to_string_lossy().replace('\'',"''"));Command::new("powershell.exe").args(["-NoProfile","-NonInteractive","-Command",&script]).output().map_err(|e|format!("zip_manifest_failed:{e}"))?}else{let seven=resolve_tool("7z")?;Command::new(seven).args(["l","-slt","-ba",path.to_string_lossy().as_ref()]).output().map_err(|e|format!("7z_manifest_failed:{e}"))?};if !output.status.success(){return Err(format!("archive_manifest_exit_failed:{}",String::from_utf8_lossy(&output.stderr)));}let text=String::from_utf8_lossy(&output.stdout);let normalized=text.lines().map(str::trim).filter(|l|!l.is_empty()&&!l.starts_with("Modified =")&&!l.starts_with("Created =")&&!l.starts_with("Accessed =")).collect::<Vec<_>>().join("\n");Ok(blake3::hash(normalized.as_bytes()).to_hex().to_string())}
-fn fingerprint_group_scan(app:&AppHandle,op_id:&str,request:&DuplicateScanRequest,mode:&str,category:&str,extensions:&[&str],fingerprint:fn(&Path)->Result<(String,String),String>)->Result<DuplicateScanResult,String>{let allowed=extension_set(extensions);let(files,bytes,mut errors,mut warnings)=collect_files(request,&allowed,app,op_id,mode);let scanned_files=files.len() as u64;let mut buckets=HashMap::<String,Vec<(PathBuf,String)>>::new();for path in files{match fingerprint(&path){Ok((sig,evidence))=>buckets.entry(sig).or_default().push((path,evidence)),Err(e)=>{errors+=1;if warnings.len()<50{warnings.push(format!("{}:{e}",path.display()));}}}}let mut groups=Vec::new();for(sig,entries)in buckets.into_iter().filter(|(_,v)|v.len()>1){let mut items=Vec::new();for(path,evidence)in entries{items.push(file_item(&path,full_hash(&path)?,Some(evidence),Some(100.0),None)?);}groups.push(make_group(mode,category,sig,items,100.0,true));}Ok(DuplicateScanResult{job_id:op_id.into(),summary:summary(op_id,request,mode,scanned_files,bytes,&groups,errors),groups,warnings})}
-fn video_fp(path:&Path)->Result<(String,String),String>{media_fingerprint(path,"video")}
-fn audio_fp(path:&Path)->Result<(String,String),String>{media_fingerprint(path,"audio")}
-fn archive_fp(path:&Path)->Result<(String,String),String>{let manifest=archive_manifest(path)?;Ok((manifest.clone(),format!("manifest:{manifest}")))}
-async fn run_fingerprint_command(app:AppHandle,op_id:String,request:DuplicateScanRequest,capability:&'static str,handler:&'static str,mode:&'static str,category:&'static str,extensions:&'static[&'static str],function:fn(&Path)->Result<(String,String),String>)->Result<OperationResult<DuplicateScanResult>,String>{let started=Utc::now().to_rfc3339();let timer=Instant::now();let worker_app=app.clone();let worker_op=op_id.clone();let worker_request=request.clone();let execution=tauri::async_runtime::spawn_blocking(move||fingerprint_group_scan(&worker_app,&worker_op,&worker_request,mode,category,extensions,function)).await.map_err(|e|format!("fingerprint_worker_join_failed:{e}"))?;match execution{Ok(data)=>{let warnings=data.warnings.clone();Ok(op_result(op_id,capability,handler,started,timer,Some(data),if warnings.is_empty(){"completed"}else{"completed_with_warnings"},format!("{category} content fingerprints were generated from decoded local evidence."),format!("تم إنشاء بصمات محتوى {category} من أدلة محلية مفكوكة."),warnings,None))},Err(e)=>Ok(op_result(op_id,capability,handler,started,timer,None,"failed",format!("{category} fingerprinting failed."),format!("فشل إنشاء بصمات {category}."),Vec::new(),Some(e)))}}
-#[tauri::command]pub async fn m03_scan_videos_complete(app:AppHandle,op_id:String,request:DuplicateScanRequest)->Result<OperationResult<DuplicateScanResult>,String>{run_fingerprint_command(app,op_id,request,"m03_s04","m03.scan.videos","decoded_video_fingerprint","videos",&["mp4","mkv","avi","mov","wmv","webm","m4v","flv"],video_fp).await}
-#[tauri::command]pub async fn m03_scan_audio_complete(app:AppHandle,op_id:String,request:DuplicateScanRequest)->Result<OperationResult<DuplicateScanResult>,String>{run_fingerprint_command(app,op_id,request,"m03_s05","m03.scan.audio","normalized_audio_energy","audio",&["mp3","wav","flac","aac","m4a","ogg","wma"],audio_fp).await}
-#[tauri::command]pub async fn m03_scan_archives_complete(app:AppHandle,op_id:String,request:DuplicateScanRequest)->Result<OperationResult<DuplicateScanResult>,String>{run_fingerprint_command(app,op_id,request,"m03_s07","m03.scan.archives","safe_archive_manifest","archives",&["zip","rar","7z"],archive_fp).await}
+fn resolve_tool(name: &str) -> Result<String, String> {
+    let output = Command::new(if cfg!(target_os = "windows") {
+        "where.exe"
+    } else {
+        "which"
+    })
+    .arg(name)
+    .output()
+    .map_err(|e| format!("tool_resolve_failed:{e}"))?;
+    if !output.status.success() {
+        return Err(format!("required_tool_missing:{name}"));
+    }
+    let path = String::from_utf8_lossy(&output.stdout)
+        .lines()
+        .next()
+        .unwrap_or_default()
+        .trim()
+        .to_string();
+    if path.is_empty() {
+        Err(format!("required_tool_missing:{name}"))
+    } else {
+        Ok(path)
+    }
+}
+fn media_fingerprint(path: &Path, kind: &str) -> Result<(String, String), String> {
+    let ffprobe = resolve_tool("ffprobe")?;
+    let probe = Command::new(ffprobe)
+        .args([
+            "-v",
+            "error",
+            "-show_entries",
+            "format=duration,size:stream=codec_type,codec_name,width,height,sample_rate,channels",
+            "-of",
+            "json",
+            path.to_string_lossy().as_ref(),
+        ])
+        .output()
+        .map_err(|e| format!("ffprobe_failed:{e}"))?;
+    if !probe.status.success() {
+        return Err(format!(
+            "ffprobe_exit_failed:{}",
+            String::from_utf8_lossy(&probe.stderr)
+        ));
+    }
+    let probe_value: Value =
+        serde_json::from_slice(&probe.stdout).map_err(|e| format!("ffprobe_json_failed:{e}"))?;
+    let normalized =
+        serde_json::to_string(&probe_value).map_err(|e| format!("probe_normalize_failed:{e}"))?;
+    let ffmpeg = resolve_tool("ffmpeg")?;
+    let mut command = Command::new(ffmpeg);
+    command.args([
+        "-v",
+        "error",
+        "-i",
+        path.to_string_lossy().as_ref(),
+        "-t",
+        if kind == "video" { "120" } else { "300" },
+    ]);
+    if kind == "video" {
+        command.args([
+            "-vf",
+            "fps=1/10,scale=32:32,format=gray",
+            "-an",
+            "-f",
+            "rawvideo",
+            "-",
+        ]);
+    } else {
+        command.args(["-vn", "-ac", "1", "-ar", "8000", "-f", "s16le", "-"]);
+    }
+    let output = command
+        .output()
+        .map_err(|e| format!("ffmpeg_fingerprint_failed:{e}"))?;
+    if !output.status.success() || output.stdout.is_empty() {
+        return Err(format!(
+            "ffmpeg_fingerprint_exit_failed:{}",
+            String::from_utf8_lossy(&output.stderr)
+        ));
+    }
+    let fingerprint = if kind == "audio" {
+        let samples = output
+            .stdout
+            .chunks_exact(2)
+            .map(|b| i16::from_le_bytes([b[0], b[1]]) as f64)
+            .collect::<Vec<_>>();
+        let chunk = 8000usize;
+        let mut energy = Vec::new();
+        for values in samples.chunks(chunk) {
+            if values.is_empty() {
+                continue;
+            }
+            let rms = (values.iter().map(|v| v * v).sum::<f64>() / values.len() as f64).sqrt();
+            energy.push(rms);
+        }
+        let max = energy.iter().copied().fold(1.0f64, f64::max);
+        let quantized = energy
+            .iter()
+            .take(300)
+            .map(|v| ((*v / max) * 31.0).round() as u8)
+            .collect::<Vec<_>>();
+        blake3::hash(&quantized).to_hex().to_string()
+    } else {
+        blake3::hash(&output.stdout).to_hex().to_string()
+    };
+    Ok((fingerprint, normalized))
+}
+fn archive_manifest(path: &Path) -> Result<String, String> {
+    let ext = path
+        .extension()
+        .and_then(|v| v.to_str())
+        .unwrap_or_default()
+        .to_ascii_lowercase();
+    let output = if ext == "zip" {
+        let script = format!(
+            r#"Add-Type -AssemblyName System.IO.Compression.FileSystem;$z=[IO.Compression.ZipFile]::OpenRead('{}');try{{$z.Entries|Sort-Object FullName|ForEach-Object{{[pscustomobject]@{{path=$_.FullName;length=[int64]$_.Length;compressed=[int64]$_.CompressedLength}}}}|ConvertTo-Json -Compress}}finally{{$z.Dispose()}}"#,
+            path.to_string_lossy().replace('\'', "''")
+        );
+        Command::new("powershell.exe")
+            .args(["-NoProfile", "-NonInteractive", "-Command", &script])
+            .output()
+            .map_err(|e| format!("zip_manifest_failed:{e}"))?
+    } else {
+        let seven = resolve_tool("7z")?;
+        Command::new(seven)
+            .args(["l", "-slt", "-ba", path.to_string_lossy().as_ref()])
+            .output()
+            .map_err(|e| format!("7z_manifest_failed:{e}"))?
+    };
+    if !output.status.success() {
+        return Err(format!(
+            "archive_manifest_exit_failed:{}",
+            String::from_utf8_lossy(&output.stderr)
+        ));
+    }
+    let text = String::from_utf8_lossy(&output.stdout);
+    let normalized = text
+        .lines()
+        .map(str::trim)
+        .filter(|l| {
+            !l.is_empty()
+                && !l.starts_with("Modified =")
+                && !l.starts_with("Created =")
+                && !l.starts_with("Accessed =")
+        })
+        .collect::<Vec<_>>()
+        .join("\n");
+    Ok(blake3::hash(normalized.as_bytes()).to_hex().to_string())
+}
+fn fingerprint_group_scan(
+    app: &AppHandle,
+    op_id: &str,
+    request: &DuplicateScanRequest,
+    mode: &str,
+    category: &str,
+    extensions: &[&str],
+    fingerprint: fn(&Path) -> Result<(String, String), String>,
+) -> Result<DuplicateScanResult, String> {
+    let allowed = extension_set(extensions);
+    let (files, bytes, mut errors, mut warnings) =
+        collect_files(request, &allowed, app, op_id, mode);
+    let scanned_files = files.len() as u64;
+    let mut buckets = HashMap::<String, Vec<(PathBuf, String)>>::new();
+    for path in files {
+        match fingerprint(&path) {
+            Ok((sig, evidence)) => buckets.entry(sig).or_default().push((path, evidence)),
+            Err(e) => {
+                errors += 1;
+                if warnings.len() < 50 {
+                    warnings.push(format!("{}:{e}", path.display()));
+                }
+            }
+        }
+    }
+    let mut groups = Vec::new();
+    for (sig, entries) in buckets.into_iter().filter(|(_, v)| v.len() > 1) {
+        let mut items = Vec::new();
+        for (path, evidence) in entries {
+            items.push(file_item(
+                &path,
+                full_hash(&path)?,
+                Some(evidence),
+                Some(100.0),
+                None,
+            )?);
+        }
+        groups.push(make_group(mode, category, sig, items, 100.0, true));
+    }
+    Ok(DuplicateScanResult {
+        job_id: op_id.into(),
+        summary: summary(op_id, request, mode, scanned_files, bytes, &groups, errors),
+        groups,
+        warnings,
+    })
+}
+fn video_fp(path: &Path) -> Result<(String, String), String> {
+    media_fingerprint(path, "video")
+}
+fn audio_fp(path: &Path) -> Result<(String, String), String> {
+    media_fingerprint(path, "audio")
+}
+fn archive_fp(path: &Path) -> Result<(String, String), String> {
+    let manifest = archive_manifest(path)?;
+    Ok((manifest.clone(), format!("manifest:{manifest}")))
+}
+async fn run_fingerprint_command(
+    app: AppHandle,
+    op_id: String,
+    request: DuplicateScanRequest,
+    capability: &'static str,
+    handler: &'static str,
+    mode: &'static str,
+    category: &'static str,
+    extensions: &'static [&'static str],
+    function: fn(&Path) -> Result<(String, String), String>,
+) -> Result<OperationResult<DuplicateScanResult>, String> {
+    let started = Utc::now().to_rfc3339();
+    let timer = Instant::now();
+    let worker_app = app.clone();
+    let worker_op = op_id.clone();
+    let worker_request = request.clone();
+    let execution = tauri::async_runtime::spawn_blocking(move || {
+        fingerprint_group_scan(
+            &worker_app,
+            &worker_op,
+            &worker_request,
+            mode,
+            category,
+            extensions,
+            function,
+        )
+    })
+    .await
+    .map_err(|e| format!("fingerprint_worker_join_failed:{e}"))?;
+    match execution {
+        Ok(data) => {
+            let warnings = data.warnings.clone();
+            Ok(op_result(
+                op_id,
+                capability,
+                handler,
+                started,
+                timer,
+                Some(data),
+                if warnings.is_empty() {
+                    "completed"
+                } else {
+                    "completed_with_warnings"
+                },
+                format!(
+                    "{category} content fingerprints were generated from decoded local evidence."
+                ),
+                format!("تم إنشاء بصمات محتوى {category} من أدلة محلية مفكوكة."),
+                warnings,
+                None,
+            ))
+        }
+        Err(e) => Ok(op_result(
+            op_id,
+            capability,
+            handler,
+            started,
+            timer,
+            None,
+            "failed",
+            format!("{category} fingerprinting failed."),
+            format!("فشل إنشاء بصمات {category}."),
+            Vec::new(),
+            Some(e),
+        )),
+    }
+}
+#[tauri::command]
+pub async fn m03_scan_videos_complete(
+    app: AppHandle,
+    op_id: String,
+    request: DuplicateScanRequest,
+) -> Result<OperationResult<DuplicateScanResult>, String> {
+    run_fingerprint_command(
+        app,
+        op_id,
+        request,
+        "m03_s04",
+        "m03.scan.videos",
+        "decoded_video_fingerprint",
+        "videos",
+        &["mp4", "mkv", "avi", "mov", "wmv", "webm", "m4v", "flv"],
+        video_fp,
+    )
+    .await
+}
+#[tauri::command]
+pub async fn m03_scan_audio_complete(
+    app: AppHandle,
+    op_id: String,
+    request: DuplicateScanRequest,
+) -> Result<OperationResult<DuplicateScanResult>, String> {
+    run_fingerprint_command(
+        app,
+        op_id,
+        request,
+        "m03_s05",
+        "m03.scan.audio",
+        "normalized_audio_energy",
+        "audio",
+        &["mp3", "wav", "flac", "aac", "m4a", "ogg", "wma"],
+        audio_fp,
+    )
+    .await
+}
+#[tauri::command]
+pub async fn m03_scan_archives_complete(
+    app: AppHandle,
+    op_id: String,
+    request: DuplicateScanRequest,
+) -> Result<OperationResult<DuplicateScanResult>, String> {
+    run_fingerprint_command(
+        app,
+        op_id,
+        request,
+        "m03_s07",
+        "m03.scan.archives",
+        "safe_archive_manifest",
+        "archives",
+        &["zip", "rar", "7z"],
+        archive_fp,
+    )
+    .await
+}

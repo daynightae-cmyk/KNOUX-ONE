@@ -2,14 +2,7 @@ use crate::contracts::OperationResult;
 use chrono::Utc;
 use once_cell::sync::Lazy;
 use serde::{Deserialize, Serialize};
-use std::{
-    collections::HashSet,
-    fs,
-    path::PathBuf,
-    process::Command,
-    sync::Mutex,
-    time::Instant,
-};
+use std::{collections::HashSet, fs, path::PathBuf, process::Command, sync::Mutex, time::Instant};
 use tauri::{AppHandle, Manager};
 use uuid::Uuid;
 
@@ -217,12 +210,21 @@ $batteries = @(Get-CimInstance Win32_Battery -ErrorAction SilentlyContinue | For
             started_at,
             timer,
             Some(data),
-            if warnings.is_empty() { "completed" } else { "completed_with_warnings" },
-            "Windows hardware, firmware, storage, display and security evidence was measured.".into(),
+            if warnings.is_empty() {
+                "completed"
+            } else {
+                "completed_with_warnings"
+            },
+            "Windows hardware, firmware, storage, display and security evidence was measured."
+                .into(),
             "تم قياس أدلة مكونات الجهاز والبرامج الثابتة والتخزين والعرض والأمان من ويندوز.".into(),
             warnings,
             None,
-            if stderr.is_empty() { None } else { Some(stderr) },
+            if stderr.is_empty() {
+                None
+            } else {
+                Some(stderr)
+            },
             output.status.code(),
         ))
     }
@@ -264,11 +266,24 @@ pub struct InstallQueueItem {
 
 fn allowed_package_ids() -> HashSet<&'static str> {
     [
-        "Google.Chrome", "Mozilla.Firefox", "Brave.Brave", "7zip.7zip",
-        "Microsoft.PowerToys", "voidtools.Everything", "Notepad++.Notepad++",
-        "Telegram.TelegramDesktop", "WhatsApp.WhatsApp", "Discord.Discord",
-        "VideoLAN.VLC", "Spotify.Spotify", "Microsoft.VisualStudioCode", "Git.Git",
-        "OpenJS.NodeJS.LTS", "Python.Python.3.12", "Microsoft.WindowsTerminal", "Figma.Figma",
+        "Google.Chrome",
+        "Mozilla.Firefox",
+        "Brave.Brave",
+        "7zip.7zip",
+        "Microsoft.PowerToys",
+        "voidtools.Everything",
+        "Notepad++.Notepad++",
+        "Telegram.TelegramDesktop",
+        "WhatsApp.WhatsApp",
+        "Discord.Discord",
+        "VideoLAN.VLC",
+        "Spotify.Spotify",
+        "Microsoft.VisualStudioCode",
+        "Git.Git",
+        "OpenJS.NodeJS.LTS",
+        "Python.Python.3.12",
+        "Microsoft.WindowsTerminal",
+        "Figma.Figma",
     ]
     .into_iter()
     .collect()
@@ -323,8 +338,14 @@ fn install_one(app: &AppHandle, queue_id: &str) -> Result<InstallQueueItem, Stri
     #[cfg(target_os = "windows")]
     let execution = Command::new("winget.exe")
         .args([
-            "install", "--id", &package_id, "--exact", "--silent",
-            "--disable-interactivity", "--accept-package-agreements", "--accept-source-agreements",
+            "install",
+            "--id",
+            &package_id,
+            "--exact",
+            "--silent",
+            "--disable-interactivity",
+            "--accept-package-agreements",
+            "--accept-source-agreements",
         ])
         .output()
         .map_err(|error| format!("winget_install_launch_failed:{error}"));
@@ -343,9 +364,20 @@ fn install_one(app: &AppHandle, queue_id: &str) -> Result<InstallQueueItem, Stri
             let stderr = String::from_utf8_lossy(&output.stderr).trim().to_string();
             let verified = if output.status.success() {
                 Command::new("winget.exe")
-                    .args(["list", "--id", &package_id, "--exact", "--disable-interactivity"])
+                    .args([
+                        "list",
+                        "--id",
+                        &package_id,
+                        "--exact",
+                        "--disable-interactivity",
+                    ])
                     .output()
-                    .map(|check| check.status.success() && String::from_utf8_lossy(&check.stdout).to_ascii_lowercase().contains(&package_id.to_ascii_lowercase()))
+                    .map(|check| {
+                        check.status.success()
+                            && String::from_utf8_lossy(&check.stdout)
+                                .to_ascii_lowercase()
+                                .contains(&package_id.to_ascii_lowercase())
+                    })
                     .unwrap_or(false)
             } else {
                 false
@@ -354,7 +386,15 @@ fn install_one(app: &AppHandle, queue_id: &str) -> Result<InstallQueueItem, Stri
             queue[index].completed_at = Some(Utc::now().to_rfc3339());
             queue[index].exit_code = output.status.code();
             queue[index].requires_restart = stdout.to_ascii_lowercase().contains("restart");
-            queue[index].last_error = if verified { None } else { Some(if stderr.is_empty() { "Post-install verification failed.".into() } else { stderr }) };
+            queue[index].last_error = if verified {
+                None
+            } else {
+                Some(if stderr.is_empty() {
+                    "Post-install verification failed.".into()
+                } else {
+                    stderr
+                })
+            };
         }
         Err(error) => {
             queue[index].status = "failed".into();
@@ -426,10 +466,16 @@ pub fn m01_winget_install_queued(
         if success {
             format!("تم تثبيت {package_id} والتحقق منه وحفظه في طابور التثبيت القابل للاستكمال.")
         } else {
-            format!("بقيت الحزمة {package_id} في طابور التثبيت بعد فشل المحاولة ويمكن إعادة تشغيلها.")
+            format!(
+                "بقيت الحزمة {package_id} في طابور التثبيت بعد فشل المحاولة ويمكن إعادة تشغيلها."
+            )
         },
         Vec::new(),
-        if success { None } else { Some("winget_install_failed".into()) },
+        if success {
+            None
+        } else {
+            Some("winget_install_failed".into())
+        },
         completed.last_error,
         completed.exit_code,
     ))
@@ -464,10 +510,22 @@ pub fn m01_winget_queue_resume(
         started_at,
         timer,
         Some(queue),
-        if failed == 0 { "completed" } else { "completed_with_warnings" },
-        format!("The resumable installation queue was processed; {failed} items still need review."),
-        format!("تمت معالجة طابور التثبيت القابل للاستكمال؛ ما زالت {failed} حزمة تحتاج إلى مراجعة."),
-        if failed == 0 { Vec::new() } else { vec![format!("{failed} queue items failed.")] },
+        if failed == 0 {
+            "completed"
+        } else {
+            "completed_with_warnings"
+        },
+        format!(
+            "The resumable installation queue was processed; {failed} items still need review."
+        ),
+        format!(
+            "تمت معالجة طابور التثبيت القابل للاستكمال؛ ما زالت {failed} حزمة تحتاج إلى مراجعة."
+        ),
+        if failed == 0 {
+            Vec::new()
+        } else {
+            vec![format!("{failed} queue items failed.")]
+        },
         None,
         None,
         Some(0),
