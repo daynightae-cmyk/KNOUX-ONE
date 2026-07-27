@@ -147,6 +147,23 @@ const m05: Array<[number, string, string, string, Partial<KnouxCapability>?]> = 
 ];
 for (const [number, handler, en, ar, options] of m05) implemented('m05', number, handler, en, ar, options);
 
+setModule('m06', 'Performance Center', 'تسريع الجهاز وتحسين الأداء',
+  'Measure real CPU, memory, disk, network and process activity; apply reversible process-priority and power-plan changes; save safe profiles and run a bounded local benchmark.',
+  'قياس المعالج والذاكرة والأقراص والشبكة والعمليات الحقيقية، وتطبيق تغييرات أولوية وخطط طاقة قابلة للاستعادة، وحفظ بروفايلات آمنة وتشغيل قياس محلي محدود.');
+const m06: Array<[number, string, string, string, Partial<KnouxCapability>?]> = [
+  [1, 'm06.cpu.monitor', 'Windows performance data provides total and per-core CPU utilization together with measured clock values.', 'توفر بيانات أداء ويندوز استخدام المعالج الكلي وكل نواة مع سرعات التشغيل المقاسة.'],
+  [2, 'm06.memory.monitor', 'Physical, available, committed, cached and commit-limit memory values are read from Windows.', 'تتم قراءة الذاكرة الفعلية والمتاحة والمحجوزة والمخبأة وحد الالتزام من ويندوز.'],
+  [3, 'm06.disk.activity', 'Physical-disk read, write, transfer, active-time and queue values are measured from Windows performance data.', 'يتم قياس القراءة والكتابة والعمليات ووقت النشاط وطابور الأقراص من بيانات ويندوز.'],
+  [4, 'm06.network.activity', 'Adapter throughput is measured and established TCP connections are grouped by owning process without inventing per-process bandwidth.', 'يتم قياس سرعة محولات الشبكة وتجميع اتصالات TCP حسب البرنامج دون اختلاق سرعة لكل برنامج.'],
+  [5, 'm06.process.explorer', 'The live process inventory includes parent, path, command, memory, CPU time, threads, handles and protected-process evidence.', 'تشمل قائمة العمليات الحية الأصل والمسار والأمر والذاكرة ووقت المعالج والخيوط والمقابض ودليل الحماية.'],
+  [6, 'm06.process.heavy', 'A bounded two-sample CPU measurement and real memory values identify high-usage processes without claiming a leak from one sample.', 'تحدد عينة معالج مزدوجة محدودة وقيم الذاكرة الحقيقية البرامج الأعلى استهلاكًا دون ادعاء تسريب من عينة واحدة.'],
+  [7, 'm06.priority.manage', 'Only non-protected processes can receive allowlisted non-realtime priorities after typed confirmation, with a restoration journal.', 'لا يمكن تغيير سوى العمليات غير المحمية إلى أولويات مسموحة غير Realtime بعد تأكيد مكتوب مع سجل استعادة.', { supportsUndo: true }],
+  [8, 'm06.power.manage', 'Installed Windows power plans are read through powercfg and changes are typed-confirmed and journaled for restoration.', 'تتم قراءة خطط طاقة ويندوز المثبتة عبر powercfg وتأكيد التغييرات كتابيًا وتسجيلها للاستعادة.', { supportsUndo: true }],
+  [9, 'm06.profiles.manage', 'Named profiles persist an installed power scheme and transparent CPU/RAM attention thresholds without hidden registry tuning.', 'تحفظ البروفايلات خطة طاقة مثبتة وحدود مراجعة واضحة للمعالج والذاكرة دون تعديلات Registry مخفية.', { supportsUndo: true }],
+  [10, 'm06.benchmark.report', 'A bounded SHA-256 CPU sample and an 8 MB temporary disk write/read sample produce a local JSON evidence report and remove the temporary file.', 'تنتج عينة SHA-256 محدودة للمعالج وعينة كتابة وقراءة ملف مؤقت 8 MB تقرير JSON محليًا مع حذف الملف المؤقت.'],
+];
+for (const [number, handler, en, ar, options] of m06) implemented('m06', number, handler, en, ar, options);
+
 setModule('m15', 'KNOUX Developer Studio', 'استوديو المطورين KNOUX',
   'Local-first Windows developer tooling with explicit native commands and evidence reports.',
   'أدوات مطور محلية لويندوز بأوامر صريحة وتقارير أدلة.');

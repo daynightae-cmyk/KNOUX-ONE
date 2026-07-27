@@ -8,11 +8,11 @@ This file records implementation evidence. A service is not marked `implemented`
 |---|---:|
 | Modules | 19 |
 | Services | 190 |
-| Implemented services | 50 |
+| Implemented services | 60 |
 | Partial services | 0 |
-| Planned services | 140 |
+| Planned services | 130 |
 
-The 140 planned services remain non-executable and do not carry fabricated handlers.
+The 130 planned services remain non-executable and do not carry fabricated handlers.
 
 ## Module matrix
 
@@ -23,24 +23,25 @@ The 140 planned services remain non-executable and do not carry fabricated handl
 | M03 | البحث عن الملفات المكررة | 10 | 0 | 0 | Exact BLAKE3, multi-signal images, decoded video/audio fingerprints, safe archive manifests, quarantine |
 | M04 | معرفة ما يستهلك مساحة الجهاز | 10 | 0 | 0 | Access-time evidence, logical/physical drives, persisted background monitor, PDF + JSON report |
 | M05 | التحكم في برامج بدء التشغيل والخدمات | 10 | 0 | 0 | Registry and Startup-folder evidence, scheduled tasks, signed services, reversible user mutations, delays, profiles and Event 100 history |
-| M06–M14 | Remaining user modules | 0 | 0 | 90 | Planned; no executable handlers |
+| M06 | تسريع الجهاز وتحسين الأداء | 10 | 0 | 0 | Windows CPU/RAM/disk/network/process evidence, reversible priority and power-plan changes, transparent profiles and bounded benchmark |
+| M07–M14 | Remaining user modules | 0 | 0 | 80 | Planned; no executable handlers |
 | M15 | أدوات المطور | 10 | 0 | 0 | Explicit local developer commands and evidence reports |
 | M16–M19 | Remaining modules | 0 | 0 | 40 | Planned; no executable handlers |
 
-## Module 05 completed services
+## Module 06 completed services
 
 | Service | Handler | Rust command | Real behavior / safety boundary |
 |---|---|---|---|
-| M05-S01 Registry startup entries | `m05.registry.inspect` | `m05_registry_entries` | Reads HKCU/HKLM Run and RunOnce; Authenticode evidence; only user non-Microsoft entries are mutable |
-| M05-S02 Startup folders | `m05.folders.inspect` | `m05_startup_folders` | Reads user/common Startup folders, resolves `.lnk`, and moves user entries to AppData backup for reversible disable |
-| M05-S03 Scheduled startup tasks | `m05.tasks.inspect` | `m05_scheduled_tasks` | Reads boot/logon Task Scheduler entries and labels Microsoft task paths as protected |
-| M05-S04 Windows services | `m05.services.inspect` | `m05_windows_services` | Read-only Win32_Service inventory with executable signature evidence and critical-service protection |
-| M05-S05 Startup impact | `m05.impact.assess` | `m05_impact_assess` | Transparent heuristic based on signature/scope/command plus measured Diagnostics-Performance Event 100 history |
-| M05-S06 Safe recommendations | `m05.recommendations.generate` | `m05_recommendations` | Recommendations only for mutable non-Microsoft user entries; no automatic change |
-| M05-S07 Delayed startup | `m05.delay.manage` | `m05_delay_manage` | Creates a 30/60/90-second ONLOGON task, disables the original verified user entry, and supports one-step restoration |
-| M05-S08 Startup profiles | `m05.profiles.manage` | `m05_profiles_manage` | Persists named AppData profiles and applies only mutable user-entry states |
-| M05-S09 Restoration | `m05.restore.manage` | `m05_restore_manage` | AppData change journal restores registry values or moved Startup files after typed confirmation |
-| M05-S10 Boot history | `m05.boot.history` | `m05_boot_history` | Reads measured BootTime, MainPathBootTime and BootPostBootTime from Windows Event 100 |
+| M06-S01 CPU monitoring | `m06.cpu.monitor` | `m06_cpu_monitor` | Reads total/per-core utilization and measured clocks from Windows performance data |
+| M06-S02 RAM monitoring | `m06.memory.monitor` | `m06_memory_monitor` | Reads physical, available, committed, cached and commit-limit memory evidence |
+| M06-S03 Disk activity | `m06.disk.activity` | `m06_disk_activity` | Reads physical disk throughput, active time, transfers and queue length |
+| M06-S04 Network activity | `m06.network.activity` | `m06_network_activity` | Reads adapter throughput and established TCP connection counts by owning process; does not fabricate per-process bandwidth |
+| M06-S05 Process explorer | `m06.process.explorer` | `m06_process_explorer` | Reads parent PID, command, path, memory, CPU time, threads, handles and protected-process evidence |
+| M06-S06 Heavy processes | `m06.process.heavy` | `m06_heavy_processes` | Uses a bounded two-sample CPU delta and real memory; explicitly avoids declaring a memory leak from one sample |
+| M06-S07 Priority control | `m06.priority.manage` | `m06_priority_manage` | Blocks protected processes and Realtime priority; requires `PRIORITY <PID>` and journals previous priority for restoration |
+| M06-S08 Power plans | `m06.power.manage` | `m06_power_plans_manage` | Reads installed powercfg schemes; typed-confirmed changes are journaled and restorable |
+| M06-S09 Performance profiles | `m06.profiles.manage` | `m06_profiles_manage` | Persists an installed power scheme plus transparent CPU/RAM attention thresholds; no hidden registry tuning |
+| M06-S10 Benchmark report | `m06.benchmark.report` | `m06_benchmark_report` | Runs a bounded SHA-256 CPU sample and 8 MB temporary disk write/read, removes the temporary file and stores JSON evidence |
 
 ## User-facing workflows
 
@@ -49,11 +50,13 @@ The 140 planned services remain non-executable and do not carry fabricated handl
 - M03 uses the dedicated duplicate control center with real media and archive evidence.
 - M04 exposes measured storage analysis and an in-app persistent low-space alert panel.
 - M05 has a dedicated startup workspace for startup entries, tasks, services, impact, recommendations, delayed startup, profiles, restoration and boot history.
+- M06 has a dedicated performance workspace for live native measurements, process evidence, reversible controls, power plans, profiles and benchmark reports.
 
 ## Non-negotiable rules
 
 - Never create `mXX.service.N` handlers.
 - Never add a handler before the Rust command exists.
 - Never use timers, random values, fixed sizes or sample host facts as operation results.
+- A polling timer may only request fresh native measurements; it must never manufacture progress or values.
 - Never expose planned services as executable.
 - Never describe this branch as validated until TypeScript, Vitest, Vite, Cargo fmt/check/clippy/test have all passed.

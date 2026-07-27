@@ -22,15 +22,15 @@ const handlers = {
 } as const;
 
 describe('Module 05 startup and services completion gate', () => {
-  it('publishes exactly ten implemented Module 05 services and keeps other totals honest', () => {
+  it('publishes exactly ten implemented Module 05 services and keeps subsequent totals honest', () => {
     const module = MODULES_CATALOG.find(item => item.id === 'm05');
     expect(module).toBeDefined();
     expect(module!.services).toHaveLength(10);
     expect(module!.services.every(service => service.implementationState === 'implemented')).toBe(true);
     expect(module!.services.every(service => service.status === 'available')).toBe(true);
-    expect(ALL_CAPABILITIES.filter(item => item.implementationState === 'implemented')).toHaveLength(50);
+    expect(ALL_CAPABILITIES.filter(item => item.implementationState === 'implemented')).toHaveLength(60);
     expect(ALL_CAPABILITIES.filter(item => item.implementationState === 'partial')).toHaveLength(0);
-    expect(ALL_CAPABILITIES.filter(item => item.implementationState === 'planned')).toHaveLength(140);
+    expect(ALL_CAPABILITIES.filter(item => item.implementationState === 'planned')).toHaveLength(130);
   });
 
   it('maps every catalog service to an explicit registered Rust command', () => {
