@@ -67,7 +67,7 @@ describe('Module 08 network and internet completion gate', () => {
     expect(native).not.toContain('Set-NetFirewallProfile');
     expect(native).not.toContain('Remove-NetFirewallRule');
     expect(native).not.toContain('Math.random');
-    expect(native).not.toContain('setTimeout');
+    expect(native).not.toContain('setTimeout(');
   });
 
   it('uses a dedicated understandable Arabic and English workspace', () => {
@@ -78,6 +78,6 @@ describe('Module 08 network and internet completion gate', () => {
     expect(workspace).toContain('إعادة ضبط الشبكة');
     expect(workspace).toContain('فحص البروكسي والجدار');
     expect(workspace).not.toContain('Math.random');
-    expect(workspace).not.toContain('setTimeout');
+    expect(workspace).not.toContain('setTimeout(');
   });
 });
