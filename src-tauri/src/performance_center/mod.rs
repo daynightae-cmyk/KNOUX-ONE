@@ -219,10 +219,7 @@ pub enum PowerPlanRequest {
     #[serde(rename = "list")]
     List,
     #[serde(rename = "set")]
-    Set {
-        guid: String,
-        confirmation: String,
-    },
+    Set { guid: String, confirmation: String },
     #[serde(rename = "restore")]
     Restore {
         change_id: String,
@@ -398,7 +395,8 @@ fn load_json<T: DeserializeOwned + Default>(path: &Path) -> Result<T, String> {
     if !path.exists() {
         return Ok(T::default());
     }
-    let bytes = fs::read(path).map_err(|error| format!("read_failed:{}:{error}", path.display()))?;
+    let bytes =
+        fs::read(path).map_err(|error| format!("read_failed:{}:{error}", path.display()))?;
     serde_json::from_slice(&bytes)
         .map_err(|error| format!("json_invalid:{}:{error}", path.display()))
 }
@@ -407,8 +405,8 @@ fn save_json<T: Serialize>(path: &Path, value: &T) -> Result<(), String> {
     if let Some(parent) = path.parent() {
         fs::create_dir_all(parent).map_err(|error| format!("directory_create_failed:{error}"))?;
     }
-    let bytes = serde_json::to_vec_pretty(value)
-        .map_err(|error| format!("json_encode_failed:{error}"))?;
+    let bytes =
+        serde_json::to_vec_pretty(value).map_err(|error| format!("json_encode_failed:{error}"))?;
     fs::write(path, bytes).map_err(|error| format!("write_failed:{}:{error}", path.display()))
 }
 
@@ -715,13 +713,10 @@ $plans=@(powercfg /L | ForEach-Object {
 
 fn valid_guid(value: &str) -> bool {
     value.len() == 36
-        && value
-            .chars()
-            .enumerate()
-            .all(|(index, ch)| match index {
-                8 | 13 | 18 | 23 => ch == '-',
-                _ => ch.is_ascii_hexdigit(),
-            })
+        && value.chars().enumerate().all(|(index, ch)| match index {
+            8 | 13 | 18 | 23 => ch == '-',
+            _ => ch.is_ascii_hexdigit(),
+        })
 }
 
 fn activate_power_plan(guid: &str) -> Result<(), String> {
@@ -820,8 +815,8 @@ fn benchmark(app: &AppHandle) -> Result<BenchmarkReport, String> {
     let write_seconds = write_start.elapsed().as_secs_f64().max(0.000_001);
 
     let read_start = Instant::now();
-    let mut read_file = File::open(&temporary_path)
-        .map_err(|error| format!("benchmark_open_failed:{error}"))?;
+    let mut read_file =
+        File::open(&temporary_path).map_err(|error| format!("benchmark_open_failed:{error}"))?;
     let mut read_payload = Vec::with_capacity(disk_test_bytes as usize);
     read_file
         .read_to_end(&mut read_payload)
