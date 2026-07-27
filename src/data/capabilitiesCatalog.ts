@@ -164,6 +164,23 @@ const m06: Array<[number, string, string, string, Partial<KnouxCapability>?]> = 
 ];
 for (const [number, handler, en, ar, options] of m06) implemented('m06', number, handler, en, ar, options);
 
+setModule('m07', 'Windows Repair', 'إصلاح مشاكل Windows',
+  'Run official Windows integrity checks and focused component repairs with typed confirmation, original command evidence and reversible Windows Update backups.',
+  'تشغيل فحوص سلامة ويندوز الرسمية وإصلاحات محددة للمكونات مع تأكيد مكتوب وأدلة الأوامر الأصلية ونسخ قابلة للاستعادة لتحديثات ويندوز.');
+const m07: Array<[number, string, string, string, Partial<KnouxCapability>?]> = [
+  [1, 'm07.sfc.manage', 'Official SFC verify and repair modes preserve the original Windows output and require typed confirmation before repair.', 'يوفر SFC وضع الفحص والإصلاح الرسمي مع حفظ خرج ويندوز الأصلي وطلب تأكيد مكتوب قبل الإصلاح.', { requiresAdmin: true }],
+  [2, 'm07.dism.check_health', 'DISM CheckHealth reads the online component-store state through the official executable.', 'يقرأ DISM CheckHealth حالة مخزن مكونات ويندوز عبر الأداة الرسمية.', { requiresAdmin: true }],
+  [3, 'm07.dism.scan_health', 'DISM ScanHealth performs a comprehensive read-only component-store scan.', 'ينفذ DISM ScanHealth فحصًا شاملًا لمخزن المكونات دون تعديل.', { requiresAdmin: true }],
+  [4, 'm07.dism.restore_health', 'DISM RestoreHealth uses the default official Windows repair source after exact typed confirmation.', 'يستخدم DISM RestoreHealth مصدر إصلاح ويندوز الرسمي بعد تأكيد مكتوب مطابق.', { requiresAdmin: true }],
+  [5, 'm07.update.manage', 'Windows Update services and folders are inspected, reset by unique renaming rather than deletion, and recorded for restoration.', 'يتم فحص خدمات ومجلدات Windows Update وإعادة ضبطها بإعادة تسمية فريدة بدل الحذف وتسجيلها للاستعادة.', { requiresAdmin: true, supportsUndo: true }],
+  [6, 'm07.cache.manage', 'Only allowlisted LocalAppData icon and thumbnail cache files are inspected and removed for Explorer rebuild.', 'يتم فحص وحذف ملفات كاش الأيقونات والمصغرات المسموح بها فقط داخل LocalAppData لإعادة بناء Explorer.'],
+  [7, 'm07.wmi.manage', 'WMI repository verification and safe salvage are available while destructive resetrepository is blocked.', 'يتوفر التحقق من مستودع WMI وإصلاح Salvage الآمن مع منع resetrepository العنيف.', { requiresAdmin: true }],
+  [8, 'm07.installer.manage', 'The Windows Installer service is inspected and only official System32 and SysWOW64 msiexec binaries are re-registered.', 'يتم فحص Windows Installer وإعادة تسجيل ملفات msiexec الرسمية فقط من System32 وSysWOW64.', { requiresAdmin: true }],
+  [9, 'm07.vss.manage', 'VSS services and writers are inspected and repaired without broad version-sensitive DLL registration recipes.', 'يتم فحص وإصلاح خدمات وكتّاب VSS دون وصفات تسجيل DLL عامة وحساسة لإصدار ويندوز.', { requiresAdmin: true }],
+  [10, 'm07.store.manage', 'Microsoft Store package and services can be inspected, reset with wsreset and re-registered for the current user.', 'يمكن فحص حزمة وخدمات Microsoft Store وإعادة ضبطها عبر wsreset وإعادة تسجيلها للمستخدم الحالي.'],
+];
+for (const [number, handler, en, ar, options] of m07) implemented('m07', number, handler, en, ar, options);
+
 setModule('m15', 'KNOUX Developer Studio', 'استوديو المطورين KNOUX',
   'Local-first Windows developer tooling with explicit native commands and evidence reports.',
   'أدوات مطور محلية لويندوز بأوامر صريحة وتقارير أدلة.');

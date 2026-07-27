@@ -102,15 +102,18 @@ fn load_json<T: DeserializeOwned + Default>(path: &Path) -> Result<T, String> {
     if !path.exists() {
         return Ok(T::default());
     }
-    let bytes = fs::read(path).map_err(|error| format!("read_failed:{}:{error}", path.display()))?;
-    serde_json::from_slice(&bytes).map_err(|error| format!("json_invalid:{}:{error}", path.display()))
+    let bytes =
+        fs::read(path).map_err(|error| format!("read_failed:{}:{error}", path.display()))?;
+    serde_json::from_slice(&bytes)
+        .map_err(|error| format!("json_invalid:{}:{error}", path.display()))
 }
 
 fn save_json<T: Serialize>(path: &Path, value: &T) -> Result<(), String> {
     if let Some(parent) = path.parent() {
         fs::create_dir_all(parent).map_err(|error| format!("directory_create_failed:{error}"))?;
     }
-    let bytes = serde_json::to_vec_pretty(value).map_err(|error| format!("json_encode_failed:{error}"))?;
+    let bytes =
+        serde_json::to_vec_pretty(value).map_err(|error| format!("json_encode_failed:{error}"))?;
     fs::write(path, bytes).map_err(|error| format!("write_failed:{}:{error}", path.display()))
 }
 
@@ -170,7 +173,11 @@ fn evidence_path(app: &AppHandle, operation_id: &str) -> Result<PathBuf, String>
     Ok(path.join(format!("{operation_id}.json")))
 }
 
-fn persist_evidence(app: &AppHandle, operation_id: &str, report: &RepairReport) -> Result<String, String> {
+fn persist_evidence(
+    app: &AppHandle,
+    operation_id: &str,
+    report: &RepairReport,
+) -> Result<String, String> {
     let path = evidence_path(app, operation_id)?;
     save_json(&path, report)?;
     Ok(path.to_string_lossy().to_string())
@@ -346,7 +353,7 @@ fn confirmation(request: &RepairRequest, expected: &str) -> Result<(), String> {
 }
 
 fn invalid_action<T>(
-    app: &AppHandle,
+    _app: &AppHandle,
     capability_id: &str,
     handler_id: &str,
     service: &str,
@@ -382,18 +389,31 @@ fn confirmation_failure(
     action: &str,
     error: String,
 ) -> OperationResult<RepairReport> {
-    execute_steps(
+    let operation_id = Uuid::new_v4().to_string();
+    let started_at = Utc::now().to_rfc3339();
+    let timer = Instant::now();
+    let report = RepairReport {
+        service: service.into(),
+        action: action.into(),
+        elevated: is_elevated(),
+        requires_restart: false,
+        commands: Vec::new(),
+        artifacts: Vec::new(),
+        update_backups: Vec::new(),
+        notes: vec![error.clone()],
+        evidence_path: None,
+        measured_at: Utc::now().to_rfc3339(),
+    };
+    report_result(
         app,
+        operation_id,
         capability_id,
         handler_id,
-        service,
-        action,
-        false,
-        false,
+        started_at,
+        timer,
+        report,
+        Some(error.clone()),
         Vec::new(),
-        Vec::new(),
-        Vec::new(),
-        vec![error.clone()],
         &error,
         &format!("التأكيد المكتوب غير صحيح: {error}"),
     )
@@ -405,7 +425,14 @@ pub fn m07_sfc_manage(app: AppHandle, request: RepairRequest) -> OperationResult
         "verify" => (vec!["/verifyonly"], "verify"),
         "repair" => {
             if let Err(error) = confirmation(&request, "RUN SFC REPAIR") {
-                return confirmation_failure(&app, "m07_s01", "m07.sfc.manage", "sfc", "repair", error);
+                return confirmation_failure(
+                    &app,
+                    "m07_s01",
+                    "m07.sfc.manage",
+                    "sfc",
+                    "repair",
+                    error,
+                );
             }
             (vec!["/scannow"], "repair")
         }
@@ -597,29 +624,18 @@ pub fn m07_windows_update_manage(
             let id = Uuid::new_v4().to_string();
             let software = PathBuf::from(&windir).join("SoftwareDistribution");
             let catroot2 = PathBuf::from(&windir).join("System32").join("catroot2");
-            let software_backup = software.with_file_name(format!("SoftwareDistribution.knoux-{id}"));
+            let software_backup =
+                software.with_file_name(format!("SoftwareDistribution.knoux-{id}"));
             let catroot_backup = catroot2.with_file_name(format!("catroot2.knoux-{id}"));
             let script = format!(
                 "$ErrorActionPreference='Stop'; $names=@('bits','wuauserv','cryptsvc','msiserver'); foreach($n in $names){{Stop-Service -Name $n -Force -ErrorAction SilentlyContinue}}; if(Test-Path {software}){{Rename-Item -LiteralPath {software} -NewName {software_name}}}; if(Test-Path {catroot}){{Rename-Item -LiteralPath {catroot} -NewName {catroot_name}}}; foreach($n in @('cryptsvc','bits','wuauserv')){{Start-Service -Name $n -ErrorAction SilentlyContinue}}",
                 software = ps_quote(&software.to_string_lossy()),
-                software_name = ps_quote(software_backup.file_name().unwrap_or_default().to_string_lossy().as_ref()),
+                software_name = ps_quote(software_backup.file_name().and_then(|item| item.to_str()).unwrap_or("")),
                 catroot = ps_quote(&catroot2.to_string_lossy()),
-                catroot_name = ps_quote(catroot_backup.file_name().unwrap_or_default().to_string_lossy().as_ref()),
+                catroot_name = ps_quote(catroot_backup.file_name().and_then(|item| item.to_str()).unwrap_or("")),
             );
-            let step = powershell_step(script, true);
-            let evidence = run_step(&step);
             let mut history = update_history(&app).unwrap_or_default();
-            if evidence.success {
-                history.push(UpdateBackup {
-                    id,
-                    software_distribution_backup: software_backup.exists().then(|| software_backup.to_string_lossy().to_string()),
-                    catroot2_backup: catroot_backup.exists().then(|| catroot_backup.to_string_lossy().to_string()),
-                    created_at: Utc::now().to_rfc3339(),
-                    restored_at: None,
-                });
-                let _ = save_update_history(&app, &history);
-            }
-            execute_steps(
+            let mut result = execute_steps(
                 &app,
                 "m07_s05",
                 "m07.update.manage",
@@ -627,13 +643,31 @@ pub fn m07_windows_update_manage(
                 "reset",
                 true,
                 true,
-                vec![Step::owned(&evidence.program, evidence.arguments.clone(), true)],
+                vec![powershell_step(script, true)],
                 Vec::new(),
-                history,
+                history.clone(),
                 vec!["SoftwareDistribution and catroot2 are renamed to unique KNOUX backup paths instead of being permanently deleted.".into()],
                 "Windows Update reset completed with reversible backups",
                 "اكتملت إعادة ضبط Windows Update مع نسخ احتياطية قابلة للاستعادة",
-            )
+            );
+            if result.status != "failed" {
+                history.push(UpdateBackup {
+                    id,
+                    software_distribution_backup: software_backup
+                        .exists()
+                        .then(|| software_backup.to_string_lossy().to_string()),
+                    catroot2_backup: catroot_backup
+                        .exists()
+                        .then(|| catroot_backup.to_string_lossy().to_string()),
+                    created_at: Utc::now().to_rfc3339(),
+                    restored_at: None,
+                });
+                let _ = save_update_history(&app, &history);
+                if let Some(data) = result.data.as_mut() {
+                    data.update_backups = history;
+                }
+            }
+            result
         }
         "restore" => {
             if let Err(error) = confirmation(&request, "RESTORE WINDOWS UPDATE") {
@@ -648,7 +682,9 @@ pub fn m07_windows_update_manage(
             }
             let mut history = update_history(&app).unwrap_or_default();
             let selected = if let Some(target) = request.target_id.as_deref() {
-                history.iter().position(|item| item.id == target && item.restored_at.is_none())
+                history
+                    .iter()
+                    .position(|item| item.id == target && item.restored_at.is_none())
             } else {
                 history.iter().rposition(|item| item.restored_at.is_none())
             };
@@ -665,18 +701,20 @@ pub fn m07_windows_update_manage(
             let software = PathBuf::from(&windir).join("SoftwareDistribution");
             let catroot2 = PathBuf::from(&windir).join("System32").join("catroot2");
             let current_id = Uuid::new_v4().to_string();
-            let software_current = software.with_file_name(format!("SoftwareDistribution.post-reset-{current_id}"));
-            let catroot_current = catroot2.with_file_name(format!("catroot2.post-reset-{current_id}"));
+            let software_current =
+                software.with_file_name(format!("SoftwareDistribution.post-reset-{current_id}"));
+            let catroot_current =
+                catroot2.with_file_name(format!("catroot2.post-reset-{current_id}"));
             let backup = history[index].clone();
             let mut restore_lines = vec![
                 "$ErrorActionPreference='Stop'".to_string(),
                 "$names=@('bits','wuauserv','cryptsvc','msiserver'); foreach($n in $names){Stop-Service -Name $n -Force -ErrorAction SilentlyContinue}".to_string(),
             ];
             if let Some(path) = &backup.software_distribution_backup {
-                restore_lines.push(format!("if(Test-Path {original}){{Rename-Item -LiteralPath {original} -NewName {current_name}}}; if(Test-Path {backup}){{Rename-Item -LiteralPath {backup} -NewName 'SoftwareDistribution'}}", original=ps_quote(&software.to_string_lossy()), current_name=ps_quote(software_current.file_name().unwrap_or_default().to_string_lossy().as_ref()), backup=ps_quote(path)));
+                restore_lines.push(format!("if(Test-Path {original}){{Rename-Item -LiteralPath {original} -NewName {current_name}}}; if(Test-Path {backup}){{Rename-Item -LiteralPath {backup} -NewName 'SoftwareDistribution'}}", original=ps_quote(&software.to_string_lossy()), current_name=ps_quote(software_current.file_name().and_then(|item| item.to_str()).unwrap_or("")), backup=ps_quote(path)));
             }
             if let Some(path) = &backup.catroot2_backup {
-                restore_lines.push(format!("if(Test-Path {original}){{Rename-Item -LiteralPath {original} -NewName {current_name}}}; if(Test-Path {backup}){{Rename-Item -LiteralPath {backup} -NewName 'catroot2'}}", original=ps_quote(&catroot2.to_string_lossy()), current_name=ps_quote(catroot_current.file_name().unwrap_or_default().to_string_lossy().as_ref()), backup=ps_quote(path)));
+                restore_lines.push(format!("if(Test-Path {original}){{Rename-Item -LiteralPath {original} -NewName {current_name}}}; if(Test-Path {backup}){{Rename-Item -LiteralPath {backup} -NewName 'catroot2'}}", original=ps_quote(&catroot2.to_string_lossy()), current_name=ps_quote(catroot_current.file_name().and_then(|item| item.to_str()).unwrap_or("")), backup=ps_quote(path)));
             }
             restore_lines.push("foreach($n in @('cryptsvc','bits','wuauserv')){Start-Service -Name $n -ErrorAction SilentlyContinue}".into());
             let result = execute_steps(
@@ -700,7 +738,13 @@ pub fn m07_windows_update_manage(
             }
             result
         }
-        other => invalid_action(&app, "m07_s05", "m07.update.manage", "windows_update", other),
+        other => invalid_action(
+            &app,
+            "m07_s05",
+            "m07.update.manage",
+            "windows_update",
+            other,
+        ),
     }
 }
 
@@ -715,12 +759,20 @@ fn cache_files() -> Vec<RepairArtifact> {
             status: "found".into(),
         });
     }
-    let explorer = PathBuf::from(local).join("Microsoft").join("Windows").join("Explorer");
+    let explorer = PathBuf::from(local)
+        .join("Microsoft")
+        .join("Windows")
+        .join("Explorer");
     if let Ok(entries) = fs::read_dir(explorer) {
         for entry in entries.flatten() {
             let path = entry.path();
-            let name = path.file_name().and_then(|item| item.to_str()).unwrap_or_default().to_ascii_lowercase();
-            if path.is_file() && (name.starts_with("iconcache_") || name.starts_with("thumbcache_")) {
+            let name = path
+                .file_name()
+                .and_then(|item| item.to_str())
+                .unwrap_or_default()
+                .to_ascii_lowercase();
+            if path.is_file() && (name.starts_with("iconcache_") || name.starts_with("thumbcache_"))
+            {
                 files.push(RepairArtifact {
                     path: path.to_string_lossy().to_string(),
                     size_bytes: path.metadata().map(|item| item.len()).unwrap_or(0),
@@ -762,7 +814,11 @@ pub fn m07_cache_manage(app: AppHandle, request: RepairRequest) -> OperationResu
                     error,
                 );
             }
-            let stop = run_step(&Step::new("taskkill.exe", &["/F", "/IM", "explorer.exe"], false));
+            let stop = run_step(&Step::new(
+                "taskkill.exe",
+                &["/F", "/IM", "explorer.exe"],
+                false,
+            ));
             for artifact in &mut artifacts {
                 artifact.status = match fs::remove_file(&artifact.path) {
                     Ok(()) => "deleted_for_rebuild".into(),
@@ -804,7 +860,13 @@ pub fn m07_cache_manage(app: AppHandle, request: RepairRequest) -> OperationResu
                 "تمت إعادة بناء كاش الأيقونات والمصغرات",
             )
         }
-        other => invalid_action(&app, "m07_s06", "m07.cache.manage", "icon_thumbnail_cache", other),
+        other => invalid_action(
+            &app,
+            "m07_s06",
+            "m07.cache.manage",
+            "icon_thumbnail_cache",
+            other,
+        ),
     }
 }
 
@@ -814,7 +876,14 @@ pub fn m07_wmi_manage(app: AppHandle, request: RepairRequest) -> OperationResult
         "verify" => (vec!["/verifyrepository"], "verify", false),
         "salvage" => {
             if let Err(error) = confirmation(&request, "SALVAGE WMI") {
-                return confirmation_failure(&app, "m07_s07", "m07.wmi.manage", "wmi", "salvage", error);
+                return confirmation_failure(
+                    &app,
+                    "m07_s07",
+                    "m07.wmi.manage",
+                    "wmi",
+                    "salvage",
+                    error,
+                );
             }
             (vec!["/salvagerepository"], "salvage", true)
         }
@@ -918,7 +987,14 @@ pub fn m07_vss_manage(app: AppHandle, request: RepairRequest) -> OperationResult
         ),
         "repair" => {
             if let Err(error) = confirmation(&request, "REPAIR VSS") {
-                return confirmation_failure(&app, "m07_s09", "m07.vss.manage", "vss", "repair", error);
+                return confirmation_failure(
+                    &app,
+                    "m07_s09",
+                    "m07.vss.manage",
+                    "vss",
+                    "repair",
+                    error,
+                );
             }
             execute_steps(
                 &app,

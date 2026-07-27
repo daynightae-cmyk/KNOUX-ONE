@@ -8,9 +8,9 @@ describe('KNOUX ONE honest capability catalog', () => {
     for (const module of MODULES_CATALOG) expect(module.services, module.id).toHaveLength(10);
     expect(ALL_CAPABILITIES).toHaveLength(190);
     expect(new Set(ALL_CAPABILITIES.map(item => item.id)).size).toBe(190);
-    expect(ALL_CAPABILITIES.filter(item => item.implementationState === 'implemented')).toHaveLength(60);
+    expect(ALL_CAPABILITIES.filter(item => item.implementationState === 'implemented')).toHaveLength(70);
     expect(ALL_CAPABILITIES.filter(item => item.implementationState === 'partial')).toHaveLength(0);
-    expect(ALL_CAPABILITIES.filter(item => item.implementationState === 'planned')).toHaveLength(130);
+    expect(ALL_CAPABILITIES.filter(item => item.implementationState === 'planned')).toHaveLength(120);
   });
 
   it('never exposes a planned service as an executable handler', () => {

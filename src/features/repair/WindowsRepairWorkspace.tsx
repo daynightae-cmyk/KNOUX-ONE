@@ -119,8 +119,7 @@ export const WindowsRepairWorkspace: React.FC = () => {
     void run(key, operation(value));
   };
 
-  const latestBackup = backups.findLast?.(item => !item.restoredAt)
-    ?? [...backups].reverse().find(item => !item.restoredAt);
+  const latestBackup = [...backups].reverse().find(item => !item.restoredAt);
 
   if (!module) return null;
 

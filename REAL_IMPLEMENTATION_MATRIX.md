@@ -60,3 +60,15 @@ The 130 planned services remain non-executable and do not carry fabricated handl
 - A polling timer may only request fresh native measurements; it must never manufacture progress or values.
 - Never expose planned services as executable.
 - Never describe this branch as validated until TypeScript, Vitest, Vite, Cargo fmt/check/clippy/test have all passed.
+
+
+## Module 07 — Windows Repair
+
+- Catalog state after this phase: 70 implemented, 0 partial, 120 planned.
+- Dedicated UI: `src/features/repair/WindowsRepairWorkspace.tsx`.
+- Typed bridge: `src/features/repair/repairClient.ts` and `repairContracts.ts`.
+- Native engine: `src-tauri/src/windows_repair/mod.rs`.
+- Explicit allowlist mappings: `src/services/nativeCommandRegistry.ts`.
+- Registered Tauri commands: `src-tauri/src/main.rs`.
+- Safety: typed confirmation, administrator checks, original stdout/stderr evidence, reversible Windows Update folder backups, WMI resetrepository blocked, broad regsvr32 recipes blocked.
+- Integrity gate: `src/tests/m07Integrity.test.ts`.
