@@ -14,6 +14,7 @@ mod startup_services;
 mod storage;
 mod storage_analyzer;
 mod system;
+mod windows_repair;
 mod winget;
 
 fn main() {
@@ -112,6 +113,16 @@ fn main() {
             performance_center::m06_power_plans_manage,
             performance_center::m06_profiles_manage,
             performance_center::m06_benchmark_report,
+            windows_repair::m07_sfc_manage,
+            windows_repair::m07_dism_check_health,
+            windows_repair::m07_dism_scan_health,
+            windows_repair::m07_dism_restore_health,
+            windows_repair::m07_windows_update_manage,
+            windows_repair::m07_cache_manage,
+            windows_repair::m07_wmi_manage,
+            windows_repair::m07_installer_manage,
+            windows_repair::m07_vss_manage,
+            windows_repair::m07_store_manage,
             developer::m15_environment_discover,
             developer::m15_path_audit,
             developer::m15_runtime_inspect,

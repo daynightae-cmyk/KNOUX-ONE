@@ -7,17 +7,18 @@ const main = fs.readFileSync(path.resolve('src-tauri/src/main.rs'), 'utf8');
 const completionHandlers = new Set(['m03.scan.images', 'm03.scan.videos', 'm03.scan.audio', 'm03.scan.archives']);
 
 describe('native command registry', () => {
-  it('registers every Module 03 and Module 15 command in Tauri', () => {
+  it('registers every Module 03, Module 07, and Module 15 command in Tauri', () => {
     for (const [handlerId, command] of Object.entries(NATIVE_COMMANDS)) {
       if (handlerId.startsWith('m03.')) {
         expect(main, handlerId).toContain(`${completionHandlers.has(handlerId) ? 'completion14::m03' : 'duplicates'}::${command}`);
       }
+      if (handlerId.startsWith('m07.')) expect(main, handlerId).toContain(`windows_repair::${command}`);
       if (handlerId.startsWith('m15.')) expect(main, handlerId).toContain(`developer::${command}`);
     }
   });
 
-  it('does not register removed Module 07 and Module 16 stubs', () => {
-    expect(main).not.toContain('windows_repair::');
+  it('does not register removed Module 16 generic project stubs', () => {
     expect(main).not.toContain('projects::');
+    expect(Object.keys(NATIVE_COMMANDS).some(handler => handler.startsWith('m16.'))).toBe(false);
   });
 });
