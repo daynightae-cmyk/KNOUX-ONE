@@ -1125,8 +1125,8 @@ pub fn m06_power_plans_manage(
             started_at,
             timer,
             data,
-            "Power-plan operation completed and journaled.",
-            "اكتملت عملية خطة الطاقة وتم تسجيلها للاستعادة.",
+            "Power-plan operation completed and journaled.".into(),
+            "اكتملت عملية خطة الطاقة وتم تسجيلها للاستعادة.".into(),
             Vec::new(),
         ),
         Err(error) => failure(
@@ -1239,8 +1239,8 @@ pub fn m06_profiles_manage(
             started_at,
             timer,
             data,
-            "Performance profile operation completed.",
-            "اكتملت عملية بروفايل الأداء.",
+            "Performance profile operation completed.".into(),
+            "اكتملت عملية بروفايل الأداء.".into(),
             Vec::new(),
         ),
         Err(error) => failure(
@@ -1268,8 +1268,8 @@ pub fn m06_benchmark_report(app: AppHandle) -> OperationResult<BenchmarkReport> 
             started_at,
             timer,
             data,
-            "Completed a bounded CPU hash and temporary-disk throughput sample.",
-            "اكتملت عينة محدودة لبصمات المعالج وسرعة ملف مؤقت على القرص.",
+            "Completed a bounded CPU hash and temporary-disk throughput sample.".into(),
+            "اكتملت عينة محدودة لبصمات المعالج وسرعة ملف مؤقت على القرص.".into(),
             Vec::new(),
         ),
         Err(error) => failure(
