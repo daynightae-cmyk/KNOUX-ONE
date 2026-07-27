@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - 'src-tauri/src/network_optimizer/**'
+      - 'scripts/fix_m08_rust.py'
       - '.github/workflows/fix-m08-rust.yml'
 
 permissions:
@@ -20,35 +21,8 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
         with:
           components: rustfmt
-      - name: Apply Rust ownership and log-directory fixes
-        shell: pwsh
-        run: |
-          $path = 'src-tauri/src/network_optimizer/mod.rs'
-          $text = [System.IO.File]::ReadAllText($path)
-          $text = $text.Replace("        Some(message),`n", "        Some(message.clone()),`n")
-          $old = @'
-    let log_path = match app_root(&app) {
-        Ok(root) => root
-            .join("reset-logs")
-            .join(format!("ip-reset-{}.log", Uuid::new_v4())),
-        Err(error) => {
-'@
-          $new = @'
-    let log_path = match app_root(&app).and_then(|root| {
-        let directory = root.join("reset-logs");
-        fs::create_dir_all(&directory)
-            .map_err(|error| format!("reset_log_directory_failed:{error}"))?;
-        Ok(directory.join(format!("ip-reset-{}.log", Uuid::new_v4())))
-    }) {
-        Ok(path) => path,
-        Err(error) => {
-'@
-          if ($text.Contains($old)) {
-            $text = $text.Replace($old, $new)
-          } elseif (-not $text.Contains('reset_log_directory_failed')) {
-            throw 'stack reset log block not found'
-          }
-          [System.IO.File]::WriteAllText($path, $text, [System.Text.UTF8Encoding]::new($false))
+      - name: Apply deterministic Rust correctness patch
+        run: python scripts/fix_m08_rust.py
       - name: Apply rustfmt
         working-directory: src-tauri
         run: cargo fmt --all
