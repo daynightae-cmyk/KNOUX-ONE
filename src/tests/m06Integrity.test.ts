@@ -57,7 +57,7 @@ describe('Module 06 performance center completion gate', () => {
     expect(native).toContain('protected_process_priority_change_blocked');
     expect(native).toContain('unsupported_priority_or_realtime_blocked');
     expect(native).toContain('pid_reused_by_different_process');
-    expect(native).toContain('PRIORITY {}');
+    expect(native).toContain('format!("PRIORITY {pid}")');
     expect(native).toContain('RESTORE PRIORITY');
     expect(native).toContain('priority-changes.json');
     expect(native).toContain('power-changes.json');
