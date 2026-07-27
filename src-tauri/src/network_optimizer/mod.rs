@@ -174,7 +174,9 @@ fn validate_target(input: Option<&str>) -> Result<String, String> {
             || label.len() > 63
             || label.starts_with('-')
             || label.ends_with('-')
-            || !label.chars().all(|ch| ch.is_ascii_alphanumeric() || ch == '-')
+            || !label
+                .chars()
+                .all(|ch| ch.is_ascii_alphanumeric() || ch == '-')
         {
             return Err("target_hostname_invalid".into());
         }
@@ -611,16 +613,31 @@ pub fn m08_ip_configuration(app: AppHandle) -> OperationResult<NetworkReport> {
 }
 
 #[tauri::command]
-pub fn m08_ping_test(
-    app: AppHandle,
-    request: NetworkRequest,
-) -> OperationResult<NetworkReport> {
+pub fn m08_ping_test(app: AppHandle, request: NetworkRequest) -> OperationResult<NetworkReport> {
     if let Err(error) = validate_action(&request, "test") {
-        return failure_result(&app, "m08_s03", "m08.ping.test", "ping", "test", request.target, error);
+        return failure_result(
+            &app,
+            "m08_s03",
+            "m08.ping.test",
+            "ping",
+            "test",
+            request.target,
+            error,
+        );
     }
     let target = match validate_target(request.target.as_deref()) {
         Ok(value) => value,
-        Err(error) => return failure_result(&app, "m08_s03", "m08.ping.test", "ping", "test", request.target, error),
+        Err(error) => {
+            return failure_result(
+                &app,
+                "m08_s03",
+                "m08.ping.test",
+                "ping",
+                "test",
+                request.target,
+                error,
+            )
+        }
     };
     let count = request.count.unwrap_or(4).clamp(1, 10);
     let timeout = request.timeout_ms.unwrap_or(1_000).clamp(100, 5_000);
@@ -645,16 +662,31 @@ pub fn m08_ping_test(
 }
 
 #[tauri::command]
-pub fn m08_traceroute(
-    app: AppHandle,
-    request: NetworkRequest,
-) -> OperationResult<NetworkReport> {
+pub fn m08_traceroute(app: AppHandle, request: NetworkRequest) -> OperationResult<NetworkReport> {
     if let Err(error) = validate_action(&request, "trace") {
-        return failure_result(&app, "m08_s04", "m08.traceroute.run", "traceroute", "trace", request.target, error);
+        return failure_result(
+            &app,
+            "m08_s04",
+            "m08.traceroute.run",
+            "traceroute",
+            "trace",
+            request.target,
+            error,
+        );
     }
     let target = match validate_target(request.target.as_deref()) {
         Ok(value) => value,
-        Err(error) => return failure_result(&app, "m08_s04", "m08.traceroute.run", "traceroute", "trace", request.target, error),
+        Err(error) => {
+            return failure_result(
+                &app,
+                "m08_s04",
+                "m08.traceroute.run",
+                "traceroute",
+                "trace",
+                request.target,
+                error,
+            )
+        }
     };
     let max_hops = request.max_hops.unwrap_or(12).clamp(1, 30);
     let timeout = request.timeout_ms.unwrap_or(1_000).clamp(100, 3_000);
@@ -695,11 +727,29 @@ pub fn m08_dns_benchmark(
     request: NetworkRequest,
 ) -> OperationResult<NetworkReport> {
     if let Err(error) = validate_action(&request, "benchmark") {
-        return failure_result(&app, "m08_s05", "m08.dns.benchmark", "dns_benchmark", "benchmark", request.target, error);
+        return failure_result(
+            &app,
+            "m08_s05",
+            "m08.dns.benchmark",
+            "dns_benchmark",
+            "benchmark",
+            request.target,
+            error,
+        );
     }
     let domain = match validate_target(request.target.as_deref()) {
         Ok(value) => value,
-        Err(error) => return failure_result(&app, "m08_s05", "m08.dns.benchmark", "dns_benchmark", "benchmark", request.target, error),
+        Err(error) => {
+            return failure_result(
+                &app,
+                "m08_s05",
+                "m08.dns.benchmark",
+                "dns_benchmark",
+                "benchmark",
+                request.target,
+                error,
+            )
+        }
     };
     run_service(
         &app,
@@ -722,12 +772,17 @@ pub fn m08_dns_benchmark(
 }
 
 #[tauri::command]
-pub fn m08_flush_dns(
-    app: AppHandle,
-    request: NetworkRequest,
-) -> OperationResult<NetworkReport> {
+pub fn m08_flush_dns(app: AppHandle, request: NetworkRequest) -> OperationResult<NetworkReport> {
     if let Err(error) = validate_action(&request, "flush") {
-        return failure_result(&app, "m08_s06", "m08.dns.flush", "dns_flush", "flush", None, error);
+        return failure_result(
+            &app,
+            "m08_s06",
+            "m08.dns.flush",
+            "dns_flush",
+            "flush",
+            None,
+            error,
+        );
     }
     run_service(
         &app,
@@ -750,12 +805,19 @@ pub fn m08_flush_dns(
 }
 
 #[tauri::command]
-pub fn m08_renew_ip(
-    app: AppHandle,
-    request: NetworkRequest,
-) -> OperationResult<NetworkReport> {
-    if let Err(error) = validate_action(&request, "renew").and_then(|_| require_confirmation(&request, "RENEW IP LEASE")) {
-        return failure_result(&app, "m08_s07", "m08.ip.renew", "ip_renew", "renew", None, error);
+pub fn m08_renew_ip(app: AppHandle, request: NetworkRequest) -> OperationResult<NetworkReport> {
+    if let Err(error) = validate_action(&request, "renew")
+        .and_then(|_| require_confirmation(&request, "RENEW IP LEASE"))
+    {
+        return failure_result(
+            &app,
+            "m08_s07",
+            "m08.ip.renew",
+            "ip_renew",
+            "renew",
+            None,
+            error,
+        );
     }
     run_service(
         &app,
@@ -783,16 +845,35 @@ pub fn m08_renew_ip(
 }
 
 #[tauri::command]
-pub fn m08_stack_reset(
-    app: AppHandle,
-    request: NetworkRequest,
-) -> OperationResult<NetworkReport> {
-    if let Err(error) = validate_action(&request, "reset").and_then(|_| require_confirmation(&request, "RESET NETWORK STACK")) {
-        return failure_result(&app, "m08_s08", "m08.stack.reset", "network_stack", "reset", None, error);
+pub fn m08_stack_reset(app: AppHandle, request: NetworkRequest) -> OperationResult<NetworkReport> {
+    if let Err(error) = validate_action(&request, "reset")
+        .and_then(|_| require_confirmation(&request, "RESET NETWORK STACK"))
+    {
+        return failure_result(
+            &app,
+            "m08_s08",
+            "m08.stack.reset",
+            "network_stack",
+            "reset",
+            None,
+            error,
+        );
     }
     let log_path = match app_root(&app) {
-        Ok(root) => root.join("reset-logs").join(format!("ip-reset-{}.log", Uuid::new_v4())),
-        Err(error) => return failure_result(&app, "m08_s08", "m08.stack.reset", "network_stack", "reset", None, error),
+        Ok(root) => root
+            .join("reset-logs")
+            .join(format!("ip-reset-{}.log", Uuid::new_v4())),
+        Err(error) => {
+            return failure_result(
+                &app,
+                "m08_s08",
+                "m08.stack.reset",
+                "network_stack",
+                "reset",
+                None,
+                error,
+            )
+        }
     };
     run_service(
         &app,
@@ -857,11 +938,29 @@ pub fn m08_report_export(
     request: NetworkRequest,
 ) -> OperationResult<NetworkReport> {
     if let Err(error) = validate_action(&request, "export") {
-        return failure_result(&app, "m08_s10", "m08.report.export", "network_report", "export", request.target, error);
+        return failure_result(
+            &app,
+            "m08_s10",
+            "m08.report.export",
+            "network_report",
+            "export",
+            request.target,
+            error,
+        );
     }
     let target = match validate_target(request.target.as_deref()) {
         Ok(value) => value,
-        Err(error) => return failure_result(&app, "m08_s10", "m08.report.export", "network_report", "export", request.target, error),
+        Err(error) => {
+            return failure_result(
+                &app,
+                "m08_s10",
+                "m08.report.export",
+                "network_report",
+                "export",
+                request.target,
+                error,
+            )
+        }
     };
     let count = request.count.unwrap_or(4).clamp(1, 10);
     let timeout = request.timeout_ms.unwrap_or(1_000).clamp(100, 5_000);

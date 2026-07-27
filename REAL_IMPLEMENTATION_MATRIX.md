@@ -8,11 +8,11 @@ This file records implementation evidence. A service is not marked `implemented`
 |---|---:|
 | Modules | 19 |
 | Services | 190 |
-| Implemented services | 60 |
+| Implemented services | 80 |
 | Partial services | 0 |
-| Planned services | 130 |
+| Planned services | 110 |
 
-The 130 planned services remain non-executable and do not carry fabricated handlers.
+The 110 planned services remain non-executable and do not carry fabricated handlers.
 
 ## Module matrix
 
@@ -24,7 +24,9 @@ The 130 planned services remain non-executable and do not carry fabricated handl
 | M04 | معرفة ما يستهلك مساحة الجهاز | 10 | 0 | 0 | Access-time evidence, logical/physical drives, persisted background monitor, PDF + JSON report |
 | M05 | التحكم في برامج بدء التشغيل والخدمات | 10 | 0 | 0 | Registry and Startup-folder evidence, scheduled tasks, signed services, reversible user mutations, delays, profiles and Event 100 history |
 | M06 | تسريع الجهاز وتحسين الأداء | 10 | 0 | 0 | Windows CPU/RAM/disk/network/process evidence, reversible priority and power-plan changes, transparent profiles and bounded benchmark |
-| M07–M14 | Remaining user modules | 0 | 0 | 80 | Planned; no executable handlers |
+| M07 | إصلاح مشاكل Windows | 10 | 0 | 0 | Official SFC/DISM, reversible Windows Update reset, cache, WMI, MSI, VSS and Store repair evidence |
+| M08 | إصلاح وتحسين الإنترنت | 10 | 0 | 0 | Adapter/IP/DNS/latency/route/proxy/firewall evidence plus confirmed bounded Windows repair commands |
+| M09–M14 | Remaining user modules | 0 | 0 | 60 | Planned; no executable handlers |
 | M15 | أدوات المطور | 10 | 0 | 0 | Explicit local developer commands and evidence reports |
 | M16–M19 | Remaining modules | 0 | 0 | 40 | Planned; no executable handlers |
 
@@ -51,6 +53,8 @@ The 130 planned services remain non-executable and do not carry fabricated handl
 - M04 exposes measured storage analysis and an in-app persistent low-space alert panel.
 - M05 has a dedicated startup workspace for startup entries, tasks, services, impact, recommendations, delayed startup, profiles, restoration and boot history.
 - M06 has a dedicated performance workspace for live native measurements, process evidence, reversible controls, power plans, profiles and benchmark reports.
+- M07 has a dedicated Windows repair workspace with typed confirmation and original command evidence.
+- M08 has a dedicated network workspace for adapters, IP, ping, traceroute, DNS, cache flush, DHCP renewal, stack reset, proxy/firewall review and report export.
 
 ## Non-negotiable rules
 
@@ -72,3 +76,15 @@ The 130 planned services remain non-executable and do not carry fabricated handl
 - Registered Tauri commands: `src-tauri/src/main.rs`.
 - Safety: typed confirmation, administrator checks, original stdout/stderr evidence, reversible Windows Update folder backups, WMI resetrepository blocked, broad regsvr32 recipes blocked.
 - Integrity gate: `src/tests/m07Integrity.test.ts`.
+
+
+## Module 08 — Network & Internet
+
+- Catalog state after this phase: 80 implemented, 0 partial, 110 planned.
+- Dedicated UI: `src/features/network/NetworkOptimizerWorkspace.tsx`.
+- Typed bridge: `src/features/network/networkClient.ts` and `networkContracts.ts`.
+- Native engine: `src-tauri/src/network_optimizer/mod.rs`.
+- Explicit allowlist mappings: `src/services/nativeCommandRegistry.ts`.
+- Registered Tauri commands: `src-tauri/src/main.rs`.
+- Safety: hostname/IP validation, bounded counts/timeouts/hops, typed confirmation for DHCP renewal and stack reset, administrator checks, read-only DNS/proxy/firewall inspection, original stdout/stderr evidence and JSON report files.
+- Integrity gate: `src/tests/m08Integrity.test.ts`.
