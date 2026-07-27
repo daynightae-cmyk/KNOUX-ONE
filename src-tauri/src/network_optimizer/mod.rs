@@ -225,7 +225,7 @@ fn failure_result(
         None,
         &message,
         &format!("فشلت عملية الشبكة: {message}"),
-        Some(message),
+        Some(message.clone()),
     )
 }
 
@@ -859,10 +859,13 @@ pub fn m08_stack_reset(app: AppHandle, request: NetworkRequest) -> OperationResu
             error,
         );
     }
-    let log_path = match app_root(&app) {
-        Ok(root) => root
-            .join("reset-logs")
-            .join(format!("ip-reset-{}.log", Uuid::new_v4())),
+    let log_path = match app_root(&app).and_then(|root| {
+        let directory = root.join("reset-logs");
+        fs::create_dir_all(&directory)
+            .map_err(|error| format!("reset_log_directory_failed:{error}"))?;
+        Ok(directory.join(format!("ip-reset-{}.log", Uuid::new_v4())))
+    }) {
+        Ok(path) => path,
         Err(error) => {
             return failure_result(
                 &app,
