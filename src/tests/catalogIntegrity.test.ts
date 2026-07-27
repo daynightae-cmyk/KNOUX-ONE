@@ -8,9 +8,9 @@ describe('KNOUX ONE honest capability catalog', () => {
     for (const module of MODULES_CATALOG) expect(module.services, module.id).toHaveLength(10);
     expect(ALL_CAPABILITIES).toHaveLength(190);
     expect(new Set(ALL_CAPABILITIES.map(item => item.id)).size).toBe(190);
-    expect(ALL_CAPABILITIES.filter(item => item.implementationState === 'implemented')).toHaveLength(50);
+    expect(ALL_CAPABILITIES.filter(item => item.implementationState === 'implemented')).toHaveLength(60);
     expect(ALL_CAPABILITIES.filter(item => item.implementationState === 'partial')).toHaveLength(0);
-    expect(ALL_CAPABILITIES.filter(item => item.implementationState === 'planned')).toHaveLength(140);
+    expect(ALL_CAPABILITIES.filter(item => item.implementationState === 'planned')).toHaveLength(130);
   });
 
   it('never exposes a planned service as an executable handler', () => {
@@ -57,6 +57,20 @@ describe('KNOUX ONE honest capability catalog', () => {
       'm05.registry.inspect', 'm05.folders.inspect', 'm05.tasks.inspect', 'm05.services.inspect',
       'm05.impact.assess', 'm05.recommendations.generate', 'm05.delay.manage',
       'm05.profiles.manage', 'm05.restore.manage', 'm05.boot.history',
+    ]);
+    for (const service of module!.services) {
+      expect(service.status).toBe('available');
+      expect(service.implementationState).toBe('implemented');
+    }
+  });
+
+  it('publishes ten completed Module 06 services', () => {
+    const module = MODULES_CATALOG.find(item => item.id === 'm06');
+    expect(module).toBeDefined();
+    expect(module!.services.map(service => service.handlerId)).toEqual([
+      'm06.cpu.monitor', 'm06.memory.monitor', 'm06.disk.activity', 'm06.network.activity',
+      'm06.process.explorer', 'm06.process.heavy', 'm06.priority.manage', 'm06.power.manage',
+      'm06.profiles.manage', 'm06.benchmark.report',
     ]);
     for (const service of module!.services) {
       expect(service.status).toBe('available');
