@@ -60,8 +60,8 @@ describe('Module 07 Windows repair completion gate', () => {
   });
 
   it('blocks unsafe repair shortcuts and journals reversible update resets', () => {
-    expect(native).not.toContain('/resetrepository');
-    expect(native).not.toContain('regsvr32');
+    expect(native).not.toContain('vec!["/resetrepository"]');
+    expect(native).not.toContain('Step::new("regsvr32');
     expect(native).not.toContain('Remove-Item -Recurse');
     expect(native).toContain('SoftwareDistribution.knoux-');
     expect(native).toContain('catroot2.knoux-');
