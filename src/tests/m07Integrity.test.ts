@@ -29,9 +29,9 @@ describe('Module 07 Windows repair completion gate', () => {
     expect(module!.services).toHaveLength(10);
     expect(module!.services.every(service => service.status === 'available')).toBe(true);
     expect(module!.services.every(service => service.implementationState === 'implemented')).toBe(true);
-    expect(ALL_CAPABILITIES.filter(item => item.implementationState === 'implemented')).toHaveLength(70);
+    expect(ALL_CAPABILITIES.filter(item => item.implementationState === 'implemented')).toHaveLength(80);
     expect(ALL_CAPABILITIES.filter(item => item.implementationState === 'partial')).toHaveLength(0);
-    expect(ALL_CAPABILITIES.filter(item => item.implementationState === 'planned')).toHaveLength(120);
+    expect(ALL_CAPABILITIES.filter(item => item.implementationState === 'planned')).toHaveLength(110);
   });
 
   it('maps every service to one explicit registered Rust command', () => {

@@ -181,6 +181,23 @@ const m07: Array<[number, string, string, string, Partial<KnouxCapability>?]> = 
 ];
 for (const [number, handler, en, ar, options] of m07) implemented('m07', number, handler, en, ar, options);
 
+setModule('m08', 'Network Diagnostics', 'إصلاح وتحسين الإنترنت',
+  'Inspect real Windows adapters, IP, DNS, latency, routes, proxy and firewall evidence, then run explicit bounded repair commands only after user confirmation.',
+  'فحص محولات ويندوز وعناوين IP وDNS وزمن الاستجابة والمسارات والبروكسي وجدار الحماية، ثم تشغيل إصلاحات محددة ومحدودة بعد تأكيد المستخدم.');
+const m08: Array<[number, string, string, string, Partial<KnouxCapability>?]> = [
+  [1, 'm08.adapters.inspect', 'Windows CIM adapter, MAC, speed, state and signed driver metadata are read without changing adapter state.', 'تتم قراءة محولات الشبكة وعنوان MAC والسرعة والحالة وبيانات التعريف الموقعة دون تغيير حالة المحول.'],
+  [2, 'm08.ip.inspect', 'Local IPv4/IPv6, gateways, routes, DHCP and configured DNS servers are read from Windows without contacting a public-IP service.', 'تتم قراءة IPv4 وIPv6 والبوابات والمسارات وDHCP وخوادم DNS من ويندوز دون الاتصال بخدمة خارجية لمعرفة العنوان العام.'],
+  [3, 'm08.ping.test', 'Validated targets are measured through bounded .NET Ping requests with real latency and packet-loss evidence.', 'يتم قياس الهدف بعد التحقق منه عبر طلبات Ping محدودة مع زمن الاستجابة وفقدان الحزم الحقيقي.'],
+  [4, 'm08.traceroute.run', 'Validated targets use bounded tracert hop and timeout limits while preserving original command output.', 'يستخدم الهدف المتحقق منه أمر tracert بحدود واضحة لعدد القفزات والمهلة مع حفظ الخرج الأصلي.'],
+  [5, 'm08.dns.benchmark', 'Cloudflare, Google and Quad9 resolution times are measured read-only without changing the configured DNS server.', 'يتم قياس استجابة Cloudflare وGoogle وQuad9 للقراءة فقط دون تغيير خادم DNS المضبوط.'],
+  [6, 'm08.dns.flush', 'The official ipconfig DNS-cache flush is executed without modifying DNS server configuration.', 'يتم تشغيل تنظيف ذاكرة DNS الرسمي عبر ipconfig دون تعديل إعدادات خادم DNS.'],
+  [7, 'm08.ip.renew', 'A typed-confirmed administrator operation records pre/post evidence around bounded DHCP release and renew commands.', 'تسجل عملية بصلاحية المسؤول وبعد تأكيد مكتوب أدلة قبل وبعد أوامر تحرير وتجديد DHCP المحدودة.', { requiresAdmin: true }],
+  [8, 'm08.stack.reset', 'Typed-confirmed official Winsock and TCP/IP reset commands preserve their reset log and report the required restart.', 'تشغل أوامر Winsock وTCP/IP الرسمية بعد تأكيد مكتوب وتحفظ سجل الإعادة وتوضح ضرورة إعادة التشغيل.', { requiresAdmin: true }],
+  [9, 'm08.proxy_firewall.inspect', 'WinHTTP, current-user proxy and Windows Defender Firewall profiles and rule counts are inspected read-only.', 'يتم فحص WinHTTP وبروكسي المستخدم وملفات جدار حماية Windows Defender وأعداد القواعد للقراءة فقط.'],
+  [10, 'm08.report.export', 'A local JSON report exports measured adapter, IP, proxy, firewall, TCP/UDP and bounded ping evidence.', 'يتم تصدير تقرير JSON محلي يضم أدلة المحولات وIP والبروكسي والجدار وإحصاءات TCP/UDP وعينة Ping محدودة.'],
+];
+for (const [number, handler, en, ar, options] of m08) implemented('m08', number, handler, en, ar, options);
+
 setModule('m15', 'KNOUX Developer Studio', 'استوديو المطورين KNOUX',
   'Local-first Windows developer tooling with explicit native commands and evidence reports.',
   'أدوات مطور محلية لويندوز بأوامر صريحة وتقارير أدلة.');
