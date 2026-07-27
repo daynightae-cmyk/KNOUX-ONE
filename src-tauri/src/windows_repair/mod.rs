@@ -108,7 +108,7 @@ fn load_json<T: DeserializeOwned + Default>(path: &Path) -> Result<T, String> {
         .map_err(|error| format!("json_invalid:{}:{error}", path.display()))
 }
 
-fn save_json<T: Serialize>(path: &Path, value: &T) -> Result<(), String> {
+fn save_json<T: Serialize + ?Sized>(path: &Path, value: &T) -> Result<(), String> {
     if let Some(parent) = path.parent() {
         fs::create_dir_all(parent).map_err(|error| format!("directory_create_failed:{error}"))?;
     }
