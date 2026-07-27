@@ -9,6 +9,7 @@ mod completion14;
 mod contracts;
 mod developer;
 mod duplicates;
+mod network_optimizer;
 mod performance_center;
 mod startup_services;
 mod storage;
@@ -123,6 +124,16 @@ fn main() {
             windows_repair::m07_installer_manage,
             windows_repair::m07_vss_manage,
             windows_repair::m07_store_manage,
+            network_optimizer::m08_adapter_inventory,
+            network_optimizer::m08_ip_configuration,
+            network_optimizer::m08_ping_test,
+            network_optimizer::m08_traceroute,
+            network_optimizer::m08_dns_benchmark,
+            network_optimizer::m08_flush_dns,
+            network_optimizer::m08_renew_ip,
+            network_optimizer::m08_stack_reset,
+            network_optimizer::m08_proxy_firewall_status,
+            network_optimizer::m08_report_export,
             developer::m15_environment_discover,
             developer::m15_path_audit,
             developer::m15_runtime_inspect,
