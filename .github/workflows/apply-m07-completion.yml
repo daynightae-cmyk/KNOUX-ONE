@@ -1,0 +1,43 @@
+name: Apply Module 07 Completion
+
+on:
+  pull_request:
+    paths:
+      - 'src-tauri/src/windows_repair/**'
+      - 'src/features/repair/**'
+      - 'src/data/capabilitiesCatalog.ts'
+      - 'src/tests/**'
+      - 'scripts/apply_m07_completion.py'
+      - '.github/workflows/apply-m07-completion.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
+          fetch-depth: 0
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
+      - name: Apply Module 07 completion patch
+        run: python scripts/apply_m07_completion.py
+      - name: Apply rustfmt
+        working-directory: src-tauri
+        run: cargo fmt --all
+      - name: Commit deterministic changes
+        shell: pwsh
+        run: |
+          if (-not (git status --porcelain)) {
+            Write-Host 'No completion changes required.'
+            exit 0
+          }
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add src/data/capabilitiesCatalog.ts src/tests src/features/repair/WindowsRepairWorkspace.tsx src-tauri/src/windows_repair/mod.rs REAL_IMPLEMENTATION_MATRIX.md
+          git commit -m 'feat(m07): finalize catalog safety and integrity state'
+          git push origin HEAD:${{ github.event.pull_request.head.ref }}
