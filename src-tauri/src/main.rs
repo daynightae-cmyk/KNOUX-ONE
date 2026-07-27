@@ -9,6 +9,7 @@ mod completion14;
 mod contracts;
 mod developer;
 mod duplicates;
+mod performance_center;
 mod startup_services;
 mod storage;
 mod storage_analyzer;
@@ -101,6 +102,16 @@ fn main() {
             startup_services::m05_profiles_manage,
             startup_services::m05_restore_manage,
             startup_services::m05_boot_history,
+            performance_center::m06_cpu_monitor,
+            performance_center::m06_memory_monitor,
+            performance_center::m06_disk_activity,
+            performance_center::m06_network_activity,
+            performance_center::m06_process_explorer,
+            performance_center::m06_heavy_processes,
+            performance_center::m06_priority_manage,
+            performance_center::m06_power_plans_manage,
+            performance_center::m06_profiles_manage,
+            performance_center::m06_benchmark_report,
             developer::m15_environment_discover,
             developer::m15_path_audit,
             developer::m15_runtime_inspect,
