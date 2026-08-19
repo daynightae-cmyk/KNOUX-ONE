@@ -16,6 +16,7 @@
     "services:generate": "bun scripts/generate-service-reality.ts",
     "services:check": "bun scripts/generate-service-reality.ts --check",
     "release:verify-version": "bun scripts/verify-release-version.ts",
+    "release:verify-signatures": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/verify-windows-signatures.ps1",
     "tauri": "tauri",
     "desktop:dev": "tauri dev",
     "desktop:build": "tauri build"
