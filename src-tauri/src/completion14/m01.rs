@@ -32,6 +32,16 @@ pub struct DiskItem {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+pub struct LogicalVolume {
+    pub device_id: String,
+    pub name: String,
+    pub size_bytes: Option<u64>,
+    pub free_space_bytes: Option<u64>,
+    pub status: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct GpuItem {
     pub name: String,
     pub driver_version: String,
@@ -53,7 +63,9 @@ pub struct SystemDiscoveryData {
     pub architecture: String,
     pub install_date: String,
     pub last_boot_time: String,
+    #[serde(rename = "totalRamGB")]
     pub total_ram_gb: Option<f64>,
+    #[serde(rename = "availableRamGB")]
     pub available_ram_gb: Option<f64>,
     pub cpu_model: String,
     pub cpu_cores: Option<u32>,
@@ -65,8 +77,11 @@ pub struct SystemDiscoveryData {
     pub bios: Vec<HardwareItem>,
     pub baseboards: Vec<HardwareItem>,
     pub disks: Vec<DiskItem>,
+    pub logical_volumes: Vec<LogicalVolume>,
     pub gpus: Vec<GpuItem>,
     pub batteries: Vec<HardwareItem>,
+    pub defender_enabled: Option<bool>,
+    pub firewall_enabled: Option<bool>,
     pub evidence_source: String,
     pub measured_at: String,
 }
@@ -135,6 +150,19 @@ $boards = @(Get-CimInstance Win32_BaseBoard | ForEach-Object {
 $disks = @(Get-CimInstance Win32_DiskDrive | ForEach-Object {
   [pscustomobject]@{ deviceId=[string]$_.DeviceID; model=[string]$_.Model; mediaType=[string]$_.MediaType; interfaceType=[string]$_.InterfaceType; serialNumber=[string]$_.SerialNumber; sizeBytes=if ($_.Size) {[uint64]$_.Size} else {$null}; status=[string]$_.Status }
 })
+$logicalVolumes = @(Get-CimInstance Win32_LogicalDisk -Filter 'DriveType = 3' | ForEach-Object {
+  [pscustomobject]@{ deviceId=[string]$_.DeviceID; name=[string]$_.VolumeName; sizeBytes=if ($_.Size) {[uint64]$_.Size} else {$null}; freeSpaceBytes=if ($_.FreeSpace) {[uint64]$_.FreeSpace} else {$null}; status=[string]$_.Status }
+})
+$defenderEnabled = $null
+try {
+  $mp = Get-MpComputerStatus
+  if ($null -ne $mp) { $defenderEnabled = [bool]($mp.AntivirusEnabled -and $mp.RealTimeProtectionEnabled) }
+} catch {}
+$firewallEnabled = $null
+try {
+  $profiles = @(Get-NetFirewallProfile)
+  if ($profiles.Count -gt 0) { $firewallEnabled = @($profiles | Where-Object { -not $_.Enabled }).Count -eq 0 }
+} catch {}
 $gpus = @(Get-CimInstance Win32_VideoController | ForEach-Object {
   [pscustomobject]@{ name=[string]$_.Name; driverVersion=[string]$_.DriverVersion; adapterRamBytes=if ($_.AdapterRAM) {[uint64]$_.AdapterRAM} else {$null}; status=[string]$_.Status }
 })
@@ -142,7 +170,7 @@ $batteries = @(Get-CimInstance Win32_Battery -ErrorAction SilentlyContinue | For
   [pscustomobject]@{ name=[string]$_.Name; manufacturer=[string]$_.Manufacturer; model=[string]$_.DeviceID; serialNumber=[string]$_.PNPDeviceID; status=[string]$_.Status }
 })
 [pscustomobject]@{
-  computerName = [string]$env:COMPUTERNAME
+  computerName = if ($computer.Name) { [string]$computer.Name } elseif ($env:COMPUTERNAME) { [string]$env:COMPUTERNAME } else { '' }
   manufacturer = [string]$computer.Manufacturer
   computerModel = [string]$computer.Model
   systemType = [string]$computer.SystemType
@@ -165,9 +193,12 @@ $batteries = @(Get-CimInstance Win32_Battery -ErrorAction SilentlyContinue | For
   bios = $bios
   baseboards = $boards
   disks = $disks
+  logicalVolumes = $logicalVolumes
   gpus = $gpus
   batteries = $batteries
-  evidenceSource = 'Windows CIM, Secure Boot and TPM providers'
+  defenderEnabled = $defenderEnabled
+  firewallEnabled = $firewallEnabled
+  evidenceSource = 'Windows CIM, Windows Defender, Firewall, Secure Boot and TPM providers'
   measuredAt = [datetime]::UtcNow.ToString('o')
 } | ConvertTo-Json -Depth 6 -Compress
 "#;
@@ -530,4 +561,37 @@ pub fn m01_winget_queue_resume(
         None,
         Some(0),
     ))
+}
+
+#[cfg(all(test, target_os = "windows"))]
+mod runtime_tests {
+    use super::m01_system_discover_complete;
+
+    #[test]
+    fn system_discovery_returns_measured_windows_evidence() {
+        let outcome = m01_system_discover_complete("runtime-system-discovery-test".into())
+            .expect("the Windows discovery command should return an operation result");
+        assert!(
+            matches!(
+                outcome.status.as_str(),
+                "completed" | "completed_with_warnings"
+            ),
+            "unexpected discovery status: {}",
+            outcome.status
+        );
+
+        let evidence = outcome
+            .data
+            .expect("a successful Windows discovery result must include measured evidence");
+        assert!(!evidence.computer_name.trim().is_empty());
+        assert!(!evidence.os_product_name.trim().is_empty());
+        assert!(!evidence.cpu_model.trim().is_empty());
+        assert!(evidence.total_ram_gb.unwrap_or_default() > 0.0);
+        assert!(!evidence.logical_volumes.is_empty());
+        assert!(evidence
+            .logical_volumes
+            .iter()
+            .any(|volume| volume.size_bytes.unwrap_or_default() > 0));
+        assert!(!evidence.measured_at.trim().is_empty());
+    }
 }

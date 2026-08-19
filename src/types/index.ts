@@ -103,7 +103,12 @@ export interface KnouxModule {
 
 export interface SystemSpecs {
   computerName: string;
+  manufacturer?: string;
+  computerModel?: string;
+  systemType?: string;
+  activeUser?: string;
   processor: string;
+
   cpuCores: number;
   cpuLoadPercentage: number;
   totalRamGB: number;
@@ -113,8 +118,12 @@ export interface SystemSpecs {
   osVersion: string;
   osBuild: string;
   architecture: string;
-  uptimeHours: number;
+    uptimeHours: number;
   uptimeFormatted: string;
+  lastBootTime?: string;
+  evidenceSource?: string;
+  measuredAt?: string;
+
   diskTotalGB: number;
   diskUsedGB: number;
   diskFreeGB: number;
@@ -122,9 +131,13 @@ export interface SystemSpecs {
   networkAdapter: string;
   networkSpeedMbps: number;
   ipAddress: string;
-  defenderStatus: boolean;
-  firewallStatus: boolean;
+    defenderStatus: boolean | null;
+  firewallStatus: boolean | null;
+  secureBootEnabled?: boolean | null;
+  tpmAvailable?: boolean | null;
+  tpmReady?: boolean | null;
   healthScore: number;
+
 }
 
 export interface EssentialApp {

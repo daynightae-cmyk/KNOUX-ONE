@@ -18,6 +18,7 @@ import {
 } from '../types';
 import { ESSENTIAL_APPS_CATALOG } from '../data/essentialAppsCatalog';
 import { NativeClient } from '../services/nativeClient';
+import { mapSystemDiscoveryToSpecs } from '../services/systemDiscoveryMapper';
 
 interface ElevationRequest {
   isOpen: boolean;
@@ -74,28 +75,38 @@ interface KnouxContextType {
 const KnouxContext = createContext<KnouxContextType | undefined>(undefined);
 
 const INITIAL_UNSCANNED_SPECS: SystemSpecs = {
-  computerName: 'KNOUX Host Device',
-  processor: 'Awaiting Hardware Scan',
+  computerName: '',
+  manufacturer: '',
+  computerModel: '',
+  systemType: '',
+  activeUser: '',
+  processor: '',
   cpuCores: 0,
   cpuLoadPercentage: 0,
   totalRamGB: 0,
   usedRamGB: 0,
   ramLoadPercentage: 0,
-  osEdition: 'Windows Host Environment',
-  osVersion: 'Awaiting Scan',
-  osBuild: '-',
-  architecture: 'x64',
+  osEdition: '',
+  osVersion: '',
+  osBuild: '',
+  architecture: '',
   uptimeHours: 0,
-  uptimeFormatted: '0h',
+  uptimeFormatted: '',
+  lastBootTime: '',
+  evidenceSource: '',
+  measuredAt: '',
   diskTotalGB: 0,
   diskUsedGB: 0,
   diskFreeGB: 0,
-  diskHealth: 'Awaiting Scan',
-  networkAdapter: 'Network Adapter',
+  diskHealth: '',
+  networkAdapter: '',
   networkSpeedMbps: 0,
-  ipAddress: '127.0.0.1',
-  defenderStatus: false,
-  firewallStatus: false,
+  ipAddress: '',
+  defenderStatus: null,
+  firewallStatus: null,
+  secureBootEnabled: null,
+  tpmAvailable: null,
+  tpmReady: null,
   healthScore: 0
 };
 
@@ -234,10 +245,12 @@ export const KnouxProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const result = await NativeClient.executeCapability<Record<string, unknown>>('m01_s01', 'm01.system.discover');
     setIsScanning(false);
     setScanProgress(0);
-    addLog('m01_s01', 'Smart System Audit', result.status === 'completed' ? 'completed' : 'failed', result.summaryEn);
-    if (result.status === 'completed' && result.data) {
-      setSystemSpecs(prev => ({ ...prev, ...result.data } as SystemSpecs));
+        const successful = result.status === 'completed' || result.status === 'completed_with_warnings';
+    addLog('m01_s01', 'Smart System Audit', successful ? 'completed' : 'failed', result.summaryEn);
+    if (successful && result.data) {
+      setSystemSpecs(prev => ({ ...prev, ...mapSystemDiscoveryToSpecs(result.data) }));
     }
+
   };
 
   const requestElevation = (opEn: string, opAr: string, reasonEn: string, reasonAr: string, risk: RiskLevel, onConfirm: () => void) => {

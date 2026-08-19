@@ -78,10 +78,19 @@ export const DashboardView: React.FC = () => {
   } = useKnoux();
 
   const [logoFailed, setLogoFailed] = useState(false);
-  const runtime = NativeClient.getRuntimeState();
+    const runtime = NativeClient.getRuntimeState();
   const hasTelemetry = runtime.available && (systemSpecs.totalRamGB > 0 || systemSpecs.diskTotalGB > 0 || systemSpecs.cpuCores > 0);
+  const deviceIdentity = [systemSpecs.manufacturer, systemSpecs.computerModel].filter(Boolean).join(' • ');
+  const securityEvidenceAvailable = [
+    systemSpecs.defenderStatus,
+    systemSpecs.firewallStatus,
+    systemSpecs.secureBootEnabled,
+    systemSpecs.tpmAvailable,
+  ].some(value => typeof value === 'boolean');
+  const protectionDetected = systemSpecs.defenderStatus === true && systemSpecs.firewallStatus === true;
 
   const capabilityCounts = useMemo(() => {
+
     const services = MODULES_CATALOG.flatMap(module => module.services);
     return services.reduce(
       (counts, service) => {
@@ -128,8 +137,9 @@ export const DashboardView: React.FC = () => {
     {
       icon: Monitor,
       label: t('Device workspace', 'مساحة الجهاز'),
-      value: runtime.available ? (hasTelemetry ? systemSpecs.osEdition : t('Not scanned', 'لم يُفحص')) : t('Web preview', 'معاينة الويب'),
-      detail: runtime.available ? (hasTelemetry ? systemSpecs.computerName : t('Run device discovery to identify this Windows host.', 'شغّل فحص الجهاز للتعرف على بيئة ويندوز.')) : t('Desktop operations remain safely disabled.', 'العمليات المحلية معطلة بأمان.'),
+            value: runtime.available ? (hasTelemetry ? systemSpecs.computerName : t('Not scanned', 'لم يُفحص')) : t('Web preview', 'معاينة الويب'),
+      detail: runtime.available ? (hasTelemetry ? (deviceIdentity || systemSpecs.osEdition) : t('Run device discovery to identify this Windows host.', 'شغّل فحص الجهاز للتعرف على بيئة ويندوز.')) : t('Desktop operations remain safely disabled.', 'العمليات المحلية معطلة بأمان.'),
+
       accent: 'violet',
       state: hasTelemetry ? 'ready' : 'warning',
     },
@@ -154,10 +164,11 @@ export const DashboardView: React.FC = () => {
     {
       icon: ShieldCheck,
       label: t('Windows security', 'أمان ويندوز'),
-      value: hasTelemetry ? (systemSpecs.defenderStatus && systemSpecs.firewallStatus ? t('Protection detected', 'تم رصد الحماية') : t('Needs review', 'تحتاج مراجعة')) : t('Not evaluated', 'لم تُقيّم'),
-      detail: hasTelemetry ? t('Based on the latest local reading.', 'بناءً على آخر قراءة محلية.') : t('Security status appears only after a real device scan.', 'تظهر حالة الأمان بعد فحص حقيقي للجهاز.'),
+            value: securityEvidenceAvailable ? (protectionDetected ? t('Protection detected', 'تم رصد الحماية') : t('Needs review', 'تحتاج مراجعة')) : t('Not evaluated', 'لم تُقيّم'),
+      detail: securityEvidenceAvailable ? t('Defender and firewall evidence comes from the latest local scan.', 'تأتي أدلة Defender وجدار الحماية من آخر فحص محلي.') : t('Security status appears only after a real device scan.', 'تظهر حالة الأمان بعد فحص حقيقي للجهاز.'),
       accent: 'emerald',
-      state: hasTelemetry && systemSpecs.defenderStatus && systemSpecs.firewallStatus ? 'ready' : hasTelemetry ? 'warning' : 'muted',
+      state: protectionDetected ? 'ready' : securityEvidenceAvailable ? 'warning' : 'muted',
+
     },
     {
       icon: PackageCheck,
@@ -193,7 +204,10 @@ export const DashboardView: React.FC = () => {
               <span>{t('Windows intelligence workspace', 'مساحة عمل ذكاء ويندوز')}</span>
             </div>
             <h1 className="mt-4 max-w-4xl text-[clamp(2rem,4vw,3.5rem)] font-black leading-[1.08] tracking-[-.045em] text-[var(--knoux-text)]">
-              {t('Welcome back, Eng. Sadek', 'مرحبًا بك يا مهندس صادق')}
+                            {hasTelemetry
+                ? t(`Windows workspace: ${systemSpecs.computerName}`, `مساحة عمل ويندوز: ${systemSpecs.computerName}`)
+                : t('Your Windows workspace', 'مساحة عمل ويندوز الخاصة بك')}
+
             </h1>
             <p className="mt-4 max-w-3xl text-[15px] font-medium leading-7 text-[var(--knoux-text-secondary)]">
               {t('Inspect, configure, protect, and maintain this Windows device through organized professional workspaces—not a random list of tools.', 'افحص جهاز ويندوز وجهّزه واحمه وصنه من خلال مساحات عمل احترافية منظمة، وليس قائمة عشوائية من الأدوات.')}
@@ -201,8 +215,9 @@ export const DashboardView: React.FC = () => {
 
             <div className="mt-5 flex flex-wrap gap-2">
               <span className="knoux-chip knoux-chip--accent"><Monitor className="h-3.5 w-3.5" />{runtime.available ? t('Desktop connected', 'سطح المكتب متصل') : t('Web preview', 'معاينة الويب')}</span>
-              <span className="knoux-chip"><Layers3 className="h-3.5 w-3.5" />19 {t('workspaces', 'مساحة عمل')}</span>
-              <span className="knoux-chip"><TerminalSquare className="h-3.5 w-3.5" />190 {t('registered services', 'خدمة مسجلة')}</span>
+                            <span className="knoux-chip"><Layers3 className="h-3.5 w-3.5" />19 {t('workspaces', 'مساحة عمل')}</span>
+              <span className="knoux-chip"><TerminalSquare className="h-3.5 w-3.5" />{capabilityCounts.implemented} {t('native-linked services', 'خدمة مرتبطة بطبقة محلية')}</span>
+
             </div>
 
             <div className="mt-7 flex flex-wrap gap-3">
@@ -322,9 +337,10 @@ export const DashboardView: React.FC = () => {
           {hasTelemetry ? (
             <div className="mt-6 grid gap-4 sm:grid-cols-3">
               {[
-                { label: t('CPU load', 'استهلاك المعالج'), value: `${systemSpecs.cpuLoadPercentage}%`, color: 'var(--knoux-primary)' },
-                { label: t('Memory load', 'استهلاك الذاكرة'), value: `${systemSpecs.ramLoadPercentage}%`, color: 'var(--knoux-accent-blue)' },
-                { label: t('Free storage', 'المساحة المتاحة'), value: `${systemSpecs.diskFreeGB.toFixed(0)} GB`, color: 'var(--knoux-success)' },
+                                { label: t('Device uptime', 'مدة تشغيل الجهاز'), value: systemSpecs.uptimeFormatted || '—', color: 'var(--knoux-primary)' },
+                { label: t('Memory load', 'استهلاك الذاكرة'), value: systemSpecs.totalRamGB > 0 ? `${systemSpecs.ramLoadPercentage.toFixed(0)}%` : '—', color: 'var(--knoux-accent-blue)' },
+                { label: t('Free storage', 'المساحة المتاحة'), value: systemSpecs.diskTotalGB > 0 ? `${systemSpecs.diskFreeGB.toFixed(0)} GB` : '—', color: 'var(--knoux-success)' },
+
               ].map(metric => (
                 <div key={metric.label} className="rounded-2xl border border-[var(--knoux-border)] bg-[var(--knoux-surface-muted)] p-5">
                   <p className="text-[12px] font-bold text-[var(--knoux-text-muted)]">{metric.label}</p>
