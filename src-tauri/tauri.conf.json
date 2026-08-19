@@ -29,13 +29,11 @@
     "active": true,
     "createUpdaterArtifacts": true,
     "targets": ["nsis", "msi"],
-    "icon": [
-      "icons/icon.ico"
-    ]
+    "icon": ["icons/icon.ico"]
   },
   "plugins": {
     "updater": {
-      "pubkey": "PLACEHOLDER_OWNER_MUST_GENERATE_KEY",
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDM0NjQ4QzA2NDZBQzU0QzgKUldUSVZLeEdCb3hrTkUzUWhIYWNMSlBYcXljck4xdWxKVGFrZzRpb0thNnNVKzk1QUN0amN2VUIK",
       "endpoints": [
         "https://github.com/daynightae-cmyk/KNOUX-ONE/releases/latest/download/latest.json"
       ],
