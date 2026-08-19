@@ -662,9 +662,29 @@ pub fn m07_windows_update_manage(
                     created_at: Utc::now().to_rfc3339(),
                     restored_at: None,
                 });
-                let _ = save_update_history(&app, &history);
-                if let Some(data) = result.data.as_mut() {
-                    data.update_backups = history;
+                match save_update_history(&app, &history) {
+                    Ok(()) => {
+                        if let Some(data) = result.data.as_mut() {
+                            data.update_backups = history;
+                        }
+                    }
+                    Err(save_err) => {
+                        // The OS operation succeeded but the restore journal could not be
+                        // persisted. Downgrade the result to a warning so the caller knows
+                        // that the backup exists on disk but cannot be found by the restore
+                        // command after a restart.
+                        result.status = "completed_with_warnings".into();
+                        result.warnings.push(format!(
+                            "Backup folders were created on disk but the restore journal \
+                             could not be saved: {save_err}. \
+                             Record the backup paths manually before restarting."
+                        ));
+                        result.warnings.push(format!(
+                            "تم إنشاء مجلدات النسخ الاحتياطي على القرص لكن تعذّر حفظ \
+                             سجل الاستعادة: {save_err}. \
+                             سجّل مسارات النسخ الاحتياطي يدويًا قبل إعادة التشغيل."
+                        ));
+                    }
                 }
             }
             result
@@ -717,7 +737,7 @@ pub fn m07_windows_update_manage(
                 restore_lines.push(format!("if(Test-Path {original}){{Rename-Item -LiteralPath {original} -NewName {current_name}}}; if(Test-Path {backup}){{Rename-Item -LiteralPath {backup} -NewName 'catroot2'}}", original=ps_quote(&catroot2.to_string_lossy()), current_name=ps_quote(catroot_current.file_name().and_then(|item| item.to_str()).unwrap_or("")), backup=ps_quote(path)));
             }
             restore_lines.push("foreach($n in @('cryptsvc','bits','wuauserv')){Start-Service -Name $n -ErrorAction SilentlyContinue}".into());
-            let result = execute_steps(
+            let mut result = execute_steps(
                 &app,
                 "m07_s05",
                 "m07.update.manage",
@@ -734,7 +754,20 @@ pub fn m07_windows_update_manage(
             );
             if result.status != "failed" {
                 history[index].restored_at = Some(Utc::now().to_rfc3339());
-                let _ = save_update_history(&app, &history);
+                if let Err(save_err) = save_update_history(&app, &history) {
+                    // The OS restore succeeded but the journal update failed.
+                    // Surface this as a warning so the operator knows the
+                    // restored_at timestamp was not persisted.
+                    result.status = "completed_with_warnings".into();
+                    result.warnings.push(format!(
+                        "Restore completed on disk but the restore journal could not be \
+                         updated: {save_err}. The backup entry will still appear as \
+                         available until the journal is repaired."
+                    ));
+                    result.warnings.push(format!(
+                        "تمت الاستعادة على القرص لكن تعذّر تحديث سجل الاستعادة: {save_err}."
+                    ));
+                }
             }
             result
         }
