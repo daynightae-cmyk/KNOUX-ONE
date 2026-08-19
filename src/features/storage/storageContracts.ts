@@ -95,7 +95,7 @@ export interface StorageSpaceCheckResult {
 
 export interface StorageReportExportResult {
   scanId: string;
-  format: 'json' | 'pdf+json';
+  format: 'json';
   path: string;
   byteCount: number;
   jsonEvidencePath?: string;

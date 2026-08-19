@@ -1,4 +1,5 @@
 {
+  "exclude": ["src-tauri/target", "node_modules"],
   "compilerOptions": {
     "target": "ES2022",
     "experimentalDecorators": true,

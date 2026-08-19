@@ -114,8 +114,8 @@ const m03: Array<[number, string, string, string, Partial<KnouxCapability>?]> = 
 for (const [number, handler, en, ar, options] of m03) implemented('m03', number, handler, en, ar, options);
 
 setModule('m04', 'Storage Usage', 'معرفة ما يستهلك مساحة الجهاز',
-  'Measure real paths and access timestamps, inspect logical and physical storage, monitor free space and export PDF plus JSON evidence.',
-  'قياس المسارات وأوقات الوصول الحقيقية وفحص التخزين المنطقي والفعلي ومراقبة المساحة وتصدير PDF مع أدلة JSON.');
+  'Measure real paths and access timestamps, inspect logical and physical storage, monitor free space and export a JSON evidence report.',
+  'قياس المسارات وأوقات الوصول الحقيقية وفحص التخزين المنطقي والفعلي ومراقبة المساحة وتصدير تقرير أدلة JSON.');
 const m04: Array<[number, string, string, string, Partial<KnouxCapability>?]> = [
   [1, 'm04.storage.scan', 'Recursive real-file measurement now includes explicit access-time or labeled modification-time fallback evidence.', 'يشمل القياس الحقيقي المتكرر دليل وقت الوصول أو بديل تاريخ التعديل المسمى بوضوح.', { supportsCancel: true }],
   [2, 'm04.files.largest', 'Largest-file ranking is calculated from the measured path.', 'يتم حساب ترتيب أكبر الملفات من المسار المقاس.', { supportsCancel: true }],
@@ -126,7 +126,7 @@ const m04: Array<[number, string, string, string, Partial<KnouxCapability>?]> = 
   [7, 'm04.appdata.analyze', 'The real LocalAppData directory is measured read-only with access-time evidence.', 'يتم قياس LocalAppData للقراءة فقط مع دليل وقت الوصول.', { supportsCancel: true }],
   [8, 'm04.drives.external', 'Windows logical volumes and Get-PhysicalDisk media, bus, health, serial and capacity evidence are connected.', 'تم ربط وحدات التخزين المنطقية وأدلة Get-PhysicalDisk للنوع والناقل والصحة والرقم والسعة.'],
   [9, 'm04.space.check', 'Threshold configuration is persisted and an in-process monitor emits Tauri events and Windows toast alerts.', 'يتم حفظ إعداد الحد وتشغيل مراقب خلفي يرسل أحداث Tauri وتنبيهات Windows Toast.'],
-  [10, 'm04.report.export', 'A valid PDF report and JSON evidence sidecar are exported from the measured native snapshot.', 'يتم تصدير تقرير PDF صالح وملف أدلة JSON من المعاينة المحلية المقاسة.'],
+  [10, 'm04.report.export', 'A JSON evidence report is exported from the measured native snapshot. PDF export is not yet implemented.', 'يتم تصدير تقرير أدلة JSON من المعاينة المحلية المقاسة. تصدير PDF غير منفذ بعد.'],
 ];
 for (const [number, handler, en, ar, options] of m04) implemented('m04', number, handler, en, ar, options);
 
