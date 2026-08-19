@@ -92,8 +92,10 @@ jobs:
         working-directory: src-tauri
         run: cargo test --locked --all-features
 
-      - name: Smoke-build Windows Tauri bundle
-        run: bun run desktop:build -- --debug --bundles nsis
+      - name: Smoke-build unsigned Windows Tauri bundle
+        # Signed updater artifacts are intentionally generated only by release.yml,
+        # which requires the protected owner-managed signing key.
+        run: bun run desktop:build -- --debug --bundles nsis --config '{"bundle":{"createUpdaterArtifacts":false}}'
 
   dependency-integrity:
     name: Dependency integrity and secret scan
