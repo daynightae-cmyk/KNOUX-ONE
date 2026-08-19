@@ -6,3 +6,18 @@ coverage/
 *.log
 .env*
 !.env.example
+
+# Tauri build and generated assets
+src-tauri/target/
+src-tauri/gen/
+
+# Local signing materials and private credentials
+*.pfx
+*.p12
+*.key
+*.pem
+*.cer
+*.crt
+relic.conf
+signing/
+release-output/
