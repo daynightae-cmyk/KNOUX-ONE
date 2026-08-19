@@ -1,0 +1,100 @@
+# متطلبات الإصدار المحجوبة وإجراءات المالك
+
+**الحالة:** محكوم ومقصود أن يكون محجوباً حتى يوفّر المالك مواد الثقة الحقيقية.
+**النطاق:** أول إصدار Windows عام لـ **KNOUX ONE** وقناتا التحديث `beta` و`stable`.
+
+هذا المستند ليس خطة شكلية. مسار الإصدار في [`.github/workflows/release.yml`](../.github/workflows/release.yml) يتوقف عمداً قبل البناء إذا كانت أي مادة ثقة إلزامية غائبة أو إذا بقيت قيمة المفتاح العام المؤقتة. لا توجد شهادة ذاتية التوقيع، ولا ملف `.pfx` في Git، ولا توقيع وهمي، ولا نشر `latest.json` قبل استكمال بوابات التوقيع والتحقق.
+
+> يتطلب updater في Tauri توقيعاً لا يمكن تعطيله؛ ويجب أن يتحقق التطبيق من artifact باستخدام المفتاح العام المقابل للمفتاح الخاص الذي وقّعه. [1]
+
+| المعرّف         | الحالة | المالك                              | المانع الفعلي                               | نتيجة الغياب                                                     |
+| --------------- | ------ | ----------------------------------- | ------------------------------------------- | ---------------------------------------------------------------- |
+| **BLOCKED-001** | محجوب  | مالك المنتج / مسؤول الهوية المؤسسية | هوية Authenticode صالحة لـWindows           | لا يُبنى إصدار عام ولا تُنشر حزم غير موقعة.                      |
+| **BLOCKED-002** | محجوب  | مالك المنتج / أمين الأسرار          | مفتاح Tauri الخاص لتوقيع updater            | لا تُنشأ ملفات `.sig` ولا manifest صالح.                         |
+| **BLOCKED-003** | محجوب  | مالك المستودع                       | بيئتا GitHub المحميتان `beta` و`production` | لا توجد موافقة/فصل صلاحيات لقناتي النشر.                         |
+| **BLOCKED-004** | محجوب  | مالك المنتج / أمين الأسرار          | المفتاح العام الحقيقي في `tauri.conf.json`  | يرفض workflow قيمة placeholder ولا يمكن للعملاء الوثوق بالتحديث. |
+
+## BLOCKED-001 — هوية Authenticode موقّتة وصالحة
+
+يجب على المالك اختيار **مسار واحد فقط**. يمنع workflow خلط مسار شهادة PFX مع Azure Trusted Signing في التشغيل نفسه. يجب ألا توضع أي شهادة أو كلمة مرور في ملفات المستودع أو في مخرجات السجل.
+
+| المسار                    | ما يضيفه المالك                                                                                                | أين يضاف                                   | ملاحظات أمنية                                                                                                       |
+| ------------------------- | -------------------------------------------------------------------------------------------------------------- | ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------- |
+| **PFX / OV أو EV**        | `WINDOWS_CERTIFICATE`: ترميز Base64 لملف PFX، و`WINDOWS_CERTIFICATE_PASSWORD`                                  | أسرار GitHub للبيئتين `beta` و`production` | أضف متغير البيئة `WINDOWS_TIMESTAMP_URL` كرابط **HTTPS** لخدمة timestamp موثوقة صادرة عن جهة الشهادة أو مزود موثوق. |
+| **Azure Trusted Signing** | `AZURE_CLIENT_ID`، `AZURE_CLIENT_SECRET`، `AZURE_TENANT_ID`                                                    | أسرار GitHub للبيئتين                      | استخدم تسجيل تطبيق بصلاحيات أقل ما يمكن.                                                                            |
+| **Azure Trusted Signing** | `AZURE_TRUSTED_SIGNING_ENDPOINT`، `AZURE_TRUSTED_SIGNING_ACCOUNT`، `AZURE_TRUSTED_SIGNING_CERTIFICATE_PROFILE` | متغيرات GitHub للبيئتين                    | يجب أن يكون endpoint من نوع HTTPS.                                                                                  |
+
+يعتمد مسار PFX على استيراد الشهادة في مخزن مستخدم runner ثم يمرر thumbprint إلى Tauri؛ كما أن توثيق Tauri يحدد `certificateThumbprint` و`digestAlgorithm` و`timestampUrl` كحقول ضبط التوقيع على Windows. [2] أمّا المسار البديل في Azure فيستخدم `artifact-signing-cli` من داخل `signCommand` الخاص بـTauri، وليس توقيعاً لاحقاً عشوائياً للحزمة. [2]
+
+**إجراء المالك:** اشتر شهادة code-signing مؤسسية مناسبة، أو جهّز Azure Artifact/Trusted Signing مع حساب وتفويض تطبيق مقيد. بعد إدخال القيم في البيئة، لا تشغّل workflow من زر يدوي على فرع؛ أنشئ أولاً tag متطابقاً مع الإصدار مثل `v1.0.0` ثم ادفعه. يتحقق workflow من أن نسخة `package.json` و`Cargo.toml` و`tauri.conf.json` والـtag متطابقة.
+
+## BLOCKED-002 — مفتاح توقيع updater الخاص
+
+ينبغي للمالك إنشاء زوج مفاتيح Tauri مرة واحدة **خارج المستودع**، وحفظ المفتاح الخاص في vault قابل للاسترجاع مع نسخة احتياطية محكومة. توثيق Tauri يوصي بالأمر التالي لإنشاء زوج المفاتيح ويشدد على أن فقد المفتاح الخاص يمنع إصدار تحديثات موثوقة للمستخدمين الذين ثبتوا التطبيق بالفعل. [1]
+
+```powershell
+bunx tauri signer generate -w "$env:USERPROFILE\.tauri\knoux-one-updater.key"
+```
+
+بعد الإنشاء، أضف محتوى المفتاح الخاص أو مساره الآمن إلى السر `TAURI_SIGNING_PRIVATE_KEY` في بيئتي GitHub. إذا عيّن المالك كلمة مرور للمفتاح، تضاف في `TAURI_SIGNING_PRIVATE_KEY_PASSWORD`. لا تضف ملف المفتاح، أو كلمة مروره، أو نسخة منه إلى Git أو Issues أو logs.
+
+> **لا تدوّر المفتاح بخفة.** المفتاح العام يصبح مضمناً في العميل المثبت؛ تغيير المفتاح الخاص من دون خطة انتقال موقعة يقطع سلسلة التحديث للمستخدمين الحاليين. [1]
+
+## BLOCKED-003 — بيئات GitHub المحمية
+
+أنشئ بيئتين باسم **`beta`** و**`production`** في المستودع. يختار workflow البيئة تلقائياً من نوع النسخة: `X.Y.Z-beta.N` يستخدم `beta`، و`X.Y.Z` يستخدم `production`. اربط الأسرار والمتغيرات أعلاه بكلا البيئتين، وضع حماية موافقة مناسبة على `production` على الأقل.
+
+| البيئة       | النسخ المقبولة     | الحماية المقترحة                                         | أثرها في workflow                                                         |
+| ------------ | ------------------ | -------------------------------------------------------- | ------------------------------------------------------------------------- |
+| `beta`       | `X.Y.Z-beta.N` فقط | مراجع داخلي واحد على الأقل                               | ينشئ/يحدّث manifest في GitHub Release باسم `beta` بعد اكتمال كل البوابات. |
+| `production` | `X.Y.Z` فقط        | مراجعين مفوضين، ومنع self-approval إن كانت السياسة متاحة | ينشر `latest.json` على Release الإصدار النهائي كآخر أصل يُرفع.            |
+
+لا يمنح إنشاء البيئة وحده صلاحية لنشر إصدار. يظل التشغيل مقيداً بوسم يبدأ بـ`v` في المستودع الرسمي `daynightae-cmyk/KNOUX-ONE`، ويرفض أي تشغيل من PR أو fork أو فرع عادي.
+
+## BLOCKED-004 — تثبيت المفتاح العام في العميل
+
+بعد تنفيذ BLOCKED-002، انسخ **المفتاح العام فقط** الناتج من أمر Tauri واستبدل القيمة التالية في [`src-tauri/tauri.conf.json`](../src-tauri/tauri.conf.json):
+
+```json
+"pubkey": "PLACEHOLDER_OWNER_MUST_GENERATE_KEY"
+```
+
+يجب أن تصبح القيمة محتوى المفتاح العام الفعلي، لا مسار ملف. المفتاح العام قابل للمشاركة ويستخدمه العميل للتحقق من توقيع التحديث؛ توثيق Tauri ينص صراحةً على أن `pubkey` ليس مساراً محلياً. [1]
+
+## تسلسل الإصدار الآمن بعد إزالة الحواجز
+
+1. يرفع فريق الإصدار رقم النسخة مع التزامن بين ملفات النسخ، ثم ينشئ tag مطابقاً تماماً لـ`v<version>`.
+2. يتحقق workflow من القناة، وسياسة **patch أعلى فقط**، وإغلاق قفل Bun وCargo، واختبارات TypeScript وRust وClippy.
+3. يضبط Tauri توقيع Windows داخل عملية bundling، ثم ينتج NSIS وMSI وملفات updater `.sig`. لا ينبغي توقيع installer بعد إنشاء `.sig` لأن artifact الذي يتحقق منه updater يجب أن يبقى بايتياً كما وُقع.
+4. تفحص البوابة `verify-windows-signatures.ps1` حالة Authenticode لكل `.exe` و`.msi` وتولد `SHA256SUMS.txt`.
+5. يولد workflow SBOM بصيغة SPDX وattestations منفصلة لـprovenance وSBOM. يدعم GitHub ذلك عبر `actions/attest` مع صلاحيات `id-token: write` و`attestations: write`. [3]
+6. ينشئ workflow Release مسودة، ويرفع الحزم والتواقيع وSHA-256 وSBOM أولاً. بعد ذلك فقط يولد `latest.json` حتمياً من ملف `.sig` الفعلي الخاص بـNSIS.
+7. يُنشر manifest في النهاية: `latest.json` في Release stable، أو ملف القناة المتحرك في Release `beta`. لا يوجد manifest يشير إلى installer غير موقّع أو غير مفحوص.
+
+> ملف static manifest في Tauri يحتاج، على الأقل، نسخة ورابط artifact وتوقيعه؛ حقل `signature` هو **محتوى** ملف `.sig` وليس URL أو مساراً إليه. [1]
+
+## سياسة التراجع والتشغيل اليدوي
+
+لا يسمح workflow بـsilent downgrade. يجب أن يبقى كل إصدار stable في خط `major.minor` نفسه برقم patch أكبر من آخر stable منشور. وتُلزم beta بترتيب `beta.N` صاعد لنفس خط patch. عند اكتشاف عيب في إصدار منشور، أنشئ patch أعلى يحتوي الإصلاح، لا تعِد توجيه manifest إلى رقم أقل.
+
+لا تستخدم `workflow_dispatch` وحده لتجاوز التحقق؛ الشرط الموضوعي يتطلب tag مرجعي. يُسمح بتشغيله يدوياً فقط عندما يكون التنفيذ على tag مناسب وموجود، وهو ما يحافظ على إمكان إعادة التنفيذ دون السماح بنشر من HEAD متغير.
+
+## معيار الإغلاق
+
+تغلق هذه الحواجز فقط عندما ينجح تشغيل tag فعلي في البيئة المناسبة، ويثبت الدليل التالي أن سلسلة الثقة كاملة:
+
+| الدليل المطلوب                                     | مصدره                                                           |
+| -------------------------------------------------- | --------------------------------------------------------------- |
+| NSIS وMSI بحالة `Valid` في Authenticode            | مخرجات بوابة التوقيع في workflow                                |
+| ملفا `.sig` المقابلان للحزم                        | مخرجات Tauri بعد تهيئة `TAURI_SIGNING_PRIVATE_KEY`              |
+| `SHA256SUMS.txt`                                   | `scripts/verify-windows-signatures.ps1`                         |
+| `KNOUX-ONE.spdx.json`                              | خطوة SBOM في workflow                                           |
+| provenance وSBOM attestations قابلة للتحقق         | GitHub Actions و`gh attestation verify` [3]                     |
+| `latest.json` يشير إلى NSIS المنشور وتوقيعه الفعلي | أصل Release المنشور أخيراً                                      |
+| اختبار تحديث على Windows مثبت فعلياً               | دليل تشغيل يدوي لا يرفع حالة الخدمة إلى `RUNTIME_VERIFIED` قبله |
+
+## المراجع
+
+[1]: https://v2.tauri.app/plugin/updater/ "Tauri v2 Updater Documentation"
+[2]: https://v2.tauri.app/distribute/sign/windows/ "Tauri Windows Code Signing"
+[3]: https://docs.github.com/actions/security-for-github-actions/using-artifact-attestations/using-artifact-attestations-to-establish-provenance-for-builds "GitHub: Artifact attestations and SBOM attestations"
