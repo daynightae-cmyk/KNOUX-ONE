@@ -1,7 +1,7 @@
 # تقرير جاهزية إصدار KNOUX ONE على Windows
 
 **تاريخ التحقق:** 19 أغسطس 2026
-**المرجع المعتمد:** `88ce65e3a45674a11d7f27b41c2422387247d97a` على `main`
+**المرجع المعتمد:** `1d9d057c098a200dbcd4ca5b36d38926b0fd4bf4` على `main`
 **الحكم:** **NOT RELEASEABLE YET — محكوم أمنياً بمتطلبات مالك موثقة.**
 
 هذا حكم إنتاجي صادق. أصبح المستودع يملك مسار بناء وحزم وتحديث وإصدار قابل للمراجعة، ومفتاح Tauri محفوظاً خارج Git ومضمناً مفتاحه العام في العميل، وبيئة `beta` مقيدة بوسوم الإصدار. لكن لا توجد حتى الآن مادة توقيع Authenticode، ولا مراجعات بيئية مفوضة، ولا إصدار منشور أو اختبار runtime. لذلك لا يجوز وصف أي installer حالي بأنه صالح للتوزيع العام، ولا يجوز نشر `latest.json`، ولا يجوز رفع حالة مركز الإصدارات إلى تحقق runtime.
@@ -48,7 +48,7 @@
 
 ### التحقق البعيد
 
-تشغيل GitHub Actions [`32267787041`](https://github.com/daynightae-cmyk/KNOUX-ONE/actions/runs/32267787041) للـcommit المرجعي انتهى **success**. اجتازت وظائف **Web quality** و**Windows native quality** و**Dependency integrity and secret scan**؛ وتضمنت الأخيرة تدقيق Bun وفحص الأسرار، بينما تضمنت وظيفة Windows Rust format/check/Clippy/tests وsmoke-build للحزمة غير الموقعة.
+تشغيل GitHub Actions الأخير [`32271721029`](https://github.com/daynightae-cmyk/KNOUX-ONE/actions/runs/32271721029) للـcommit المرجعي انتهى **success**. اجتازت وظائف **Web quality** و**Windows native quality** و**Dependency integrity and secret scan**؛ وتضمنت الأخيرة تدقيق Bun وفحص الأسرار، بينما تضمنت وظيفة Windows Rust format/check/Clippy/tests وsmoke-build للحزمة غير الموقعة. تبقى ملاحظات GitHub عن انتهاء دعم Node 20 في بعض actions خارج منطق المنتج؛ أجبرها runner على Node 24 ولم تفشل أي بوابة.
 
 ## ما نُفذ فعلياً
 
@@ -61,6 +61,7 @@
 | workflow الإصدار                     | Tag فقط، بيئات، توقيع PFX/Azure مشروط، SBOM، attestation، نشر manifest أخيراً                                   | `49c8995`            |
 | وثيقة الحواجز                        | خطوات المالك ومصدرها ومقياس الإغلاق                                                                             | `cac35e7`            |
 | إصلاح CI بعد تفعيل updater artifacts | smoke-build غير موقّع منفصل؛ التوقيع يبقى لــrelease workflow                                                   | `88ce65e`            |
+| ثقة updater المحمية                  | مفتاح Tauri محمي بكلمة مرور خارج Git، سران في البيئتين، `pubkey` فعلي، وملفا `.sig` debug                       | `1d9d057`            |
 
 ## حالة مواد الثقة وGitHub
 
@@ -97,7 +98,7 @@
 
 ## القرار
 
-المستودع الآن **مهيأ تقنياً لتوقيع updater وقناتي الإصدار، لكنه ليس بعد منتجاً قابلاً للتوزيع العام**. قبل أول tag عام، يلزم فقط استكمال هوية Authenticode حقيقية وتعيين مراجعين مفوضين للبيئات ثم تنفيذ إصدار tag والتحقق من artifacts والتحديث runtime. راجع [متطلبات المالك المحجوبة](./RELEASE_BLOCKED_REQUIREMENTS.md) لإغلاق البنود بالترتيب الصحيح.
+المستودع الآن **مهيأ تقنياً لتوقيع updater وقناتي الإصدار، لكنه ليس بعد منتجاً قابلاً للتوزيع العام**. لم يُنشأ tag أو GitHub Release عمداً، لأن بوابة Authenticode ما زالت بلا شهادة/مسار Azure و`signtool.exe`، ولأن البيئتين بلا مراجعين مفوضين. قبل أول tag عام، يلزم استكمال هذين البندين ثم تنفيذ إصدار tag والتحقق من artifacts والتحديث runtime. راجع [متطلبات المالك المحجوبة](./RELEASE_BLOCKED_REQUIREMENTS.md) لإغلاق البنود بالترتيب الصحيح.
 
 ## المراجع
 
