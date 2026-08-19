@@ -12,6 +12,8 @@
     "typecheck": "tsc --noEmit",
     "lint": "tsc --noEmit",
     "test": "vitest run",
+    "services:generate": "bun scripts/generate-service-reality.ts",
+    "services:check": "bun scripts/generate-service-reality.ts --check",
     "tauri": "tauri",
     "desktop:dev": "tauri dev",
     "desktop:build": "tauri build"
