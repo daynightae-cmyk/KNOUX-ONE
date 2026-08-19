@@ -85,9 +85,10 @@ export const WindowsSetupWorkspace: React.FC = () => {
     setMessage('');
     addLog('m01_s05', t('Application installation', 'تثبيت البرنامج'), 'in_progress', selectedPackage);
     const result = await setupClient.install(selectedPackage);
+    const successful = result.status === 'completed' || result.status === 'completed_with_warnings';
     setBusy(null);
     setMessage(language === 'ar' ? result.summaryAr : result.summaryEn);
-    addLog('m01_s05', t('Application installation', 'تثبيت البرنامج'), result.status === 'completed' ? 'completed' : 'failed', language === 'ar' ? result.summaryAr : result.summaryEn);
+    addLog('m01_s05', t('Application installation', 'تثبيت البرنامج'), successful ? 'completed' : 'failed', language === 'ar' ? result.summaryAr : result.summaryEn);
     await loadQueue();
   };
 
@@ -142,7 +143,7 @@ export const WindowsSetupWorkspace: React.FC = () => {
         {hardware && <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
           <Evidence label={t('Computer', 'الجهاز')} value={`${hardware.manufacturer} ${hardware.computerModel}`} />
           <Evidence label={t('Windows', 'ويندوز')} value={`${hardware.osProductName} ${hardware.osVersion}`} />
-          <Evidence label={t('Memory', 'الذاكرة')} value={hardware.totalRamGb == null ? '—' : `${hardware.totalRamGb} GB`} />
+          <Evidence label={t('Memory', 'الذاكرة')} value={hardware.totalRamGB == null ? '—' : `${hardware.totalRamGB} GB`} />
           <Evidence label={t('Secure Boot / TPM', 'Secure Boot / TPM')} value={`${hardware.secureBootEnabled === true ? 'On' : hardware.secureBootEnabled === false ? 'Off' : 'N/A'} / ${hardware.tpmReady === true ? 'Ready' : hardware.tpmAvailable === true ? 'Present' : 'N/A'}`} />
           <Evidence label={t('Graphics', 'بطاقات العرض')} value={hardware.gpus.map(item => item.name).join(', ') || '—'} />
           <Evidence label={t('Storage', 'التخزين')} value={hardware.disks.map(item => item.model).join(', ') || '—'} />
@@ -155,7 +156,7 @@ export const WindowsSetupWorkspace: React.FC = () => {
         <div className="grid gap-4 lg:grid-cols-[1fr_auto_auto] lg:items-end">
           <label className="block"><span className="text-xs font-black text-[var(--knoux-text)]">{t('Approved application', 'البرنامج المعتمد')}</span><select value={selectedPackage} onChange={event => setSelectedPackage(event.target.value as typeof selectedPackage)} disabled={Boolean(busy)} className="mt-2 w-full rounded-xl border border-[var(--knoux-border)] bg-[var(--knoux-surface)] px-4 py-3 text-[var(--knoux-text)]">{PACKAGES.map(([id, name]) => <option key={id} value={id}>{name} — {id}</option>)}</select></label>
           <button type="button" onClick={verifyWinget} disabled={!runtime.available || Boolean(busy)} className="knoux-card-action disabled:opacity-50">{busy === 'verify' ? <RefreshCw className="h-4 w-4 animate-spin" /> : <CheckCircle2 className="h-4 w-4" />}{t('Verify Winget', 'التحقق من Winget')}</button>
-          <button type="button" onClick={install} disabled={!runtime.available || Boolean(busy)} className="knoux-card-action knoux-card-action--primary disabled:opacity-50">{busy === 'install' ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}{t('Install selected', 'تثبيت المحدد')}</button>
+          <button type="button" onClick={install} disabled={!runtime.available || !wingetStatus || Boolean(busy)} className="knoux-card-action knoux-card-action--primary disabled:opacity-50">{busy === 'install' ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}{t('Install selected', 'تثبيت المحدد')}</button>
         </div>
         {wingetStatus && <p className="mt-3 break-all font-mono text-xs text-[var(--knoux-text-muted)]">{wingetStatus}</p>}
       </section>

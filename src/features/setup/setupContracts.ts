@@ -16,6 +16,14 @@ export interface DiskItem {
   status: string;
 }
 
+export interface LogicalVolume {
+  deviceId: string;
+  name: string;
+  sizeBytes?: number | null;
+  freeSpaceBytes?: number | null;
+  status: string;
+}
+
 export interface GpuItem {
   name: string;
   driverVersion: string;
@@ -35,8 +43,8 @@ export interface SystemDiscoveryData {
   architecture: string;
   installDate: string;
   lastBootTime: string;
-  totalRamGb?: number | null;
-  availableRamGb?: number | null;
+  totalRamGB?: number | null;
+  availableRamGB?: number | null;
   cpuModel: string;
   cpuCores?: number | null;
   cpuLogicalProcessors?: number | null;
@@ -47,8 +55,11 @@ export interface SystemDiscoveryData {
   bios: HardwareItem[];
   baseboards: HardwareItem[];
   disks: DiskItem[];
+  logicalVolumes: LogicalVolume[];
   gpus: GpuItem[];
   batteries: HardwareItem[];
+  defenderEnabled?: boolean | null;
+  firewallEnabled?: boolean | null;
   evidenceSource: string;
   measuredAt: string;
 }
