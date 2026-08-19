@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { useKnoux } from '../../context/KnouxContext';
 import { OFFICIAL_KNOUX_ASSETS, getOfficialKnouxLogo } from '../../data/officialBrand';
+import { UpdateCenter } from './UpdateCenter';
 
 export const SettingsView: React.FC = () => {
   const { theme, setTheme, language, setLanguage, setCurrentRoute, t } = useKnoux();
@@ -63,6 +64,8 @@ export const SettingsView: React.FC = () => {
           <article className="knoux-glass-panel p-6">
             <div className="flex items-center gap-3 rtl:flex-row-reverse"><div className="knoux-icon-plate"><Accessibility className="h-[21px] w-[21px]" /></div><div><h2 className="text-[19px] font-black text-[var(--knoux-text)]">{t('Accessibility foundation', 'أساس إمكانية الوصول')}</h2><p className="mt-1 text-[12px] text-[var(--knoux-text-muted)]">{t('The workspace supports visible focus, reduced motion, scalable text, and status labels beyond color.', 'تدعم مساحة العمل التركيز المرئي وتقليل الحركة وتكبير النص وحالات لا تعتمد على اللون وحده.')}</p></div></div>
           </article>
+
+          <UpdateCenter />
         </div>
 
         

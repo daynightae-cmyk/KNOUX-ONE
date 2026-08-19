@@ -29,6 +29,8 @@ image = { version = "0.25", default-features = false, features = ["png", "jpeg",
 filetime = "0.2"
 hex = "0.4"
 windows-sys = { version = "0.59", features = ["Win32_Foundation", "Win32_Storage_FileSystem", "Win32_Security"] }
+tauri-plugin-updater = "2.10.1"
+tauri-plugin-process = "2.3.1"
 
 [dev-dependencies]
 tempfile = "3"
