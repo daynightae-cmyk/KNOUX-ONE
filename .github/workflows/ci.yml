@@ -1,0 +1,140 @@
+name: KNOUX ONE CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: knoux-ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  web-quality:
+    name: Web quality
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.14
+
+      - name: Install locked frontend dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Verify service reality baseline
+        run: bun run services:check
+
+      - name: Verify release version parity
+        run: bun run release:verify-version
+
+      - name: Typecheck
+        run: bun run typecheck
+
+      - name: Unit tests
+        run: bun run test
+
+      - name: Production web build
+        run: bun run build
+
+  windows-native-quality:
+    name: Windows native quality
+    runs-on: windows-latest
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.14
+
+      - name: Install locked frontend dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Build frontend assets for Tauri context
+        run: bun run build
+
+      - name: Install stable Rust with required components
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - name: Cache Rust dependencies
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+
+      - name: Verify Rust formatting
+        working-directory: src-tauri
+        run: cargo fmt --check
+
+      - name: Check native code with locked dependencies
+        working-directory: src-tauri
+        run: cargo check --locked --all-targets --all-features
+
+      - name: Enforce Clippy
+        working-directory: src-tauri
+        run: cargo clippy --locked --all-targets --all-features -- -D warnings
+
+      - name: Run native tests
+        working-directory: src-tauri
+        run: cargo test --locked --all-features
+
+      - name: Smoke-build Windows Tauri bundle
+        run: bun run desktop:build -- --debug --bundles nsis
+
+  dependency-integrity:
+    name: Dependency integrity and secret scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout full history for secret scan
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.14
+
+      - name: Install locked frontend dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Verify one canonical frontend lockfile
+        shell: bash
+        run: |
+          test -f bun.lock
+          test ! -f package-lock.json
+          test ! -f pnpm-lock.yaml
+          test ! -f yarn.lock
+
+      - name: Verify Cargo lockfile is tracked
+        shell: bash
+        run: |
+          test -f src-tauri/Cargo.lock
+          git ls-files --error-unmatch src-tauri/Cargo.lock
+
+      - name: Verify release version parity
+        run: bun run release:verify-version
+
+      - name: Audit Bun dependencies
+        run: bun audit
+
+      - name: Scan tracked source for credentials
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
