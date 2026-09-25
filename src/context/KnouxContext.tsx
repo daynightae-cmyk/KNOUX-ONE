@@ -59,6 +59,12 @@ interface KnouxContextType {
   runSmartScan: () => void;
   commandPaletteOpen: boolean;
   setCommandPaletteOpen: (open: boolean) => void;
+  selectedServiceId: string | null;
+  setSelectedServiceId: (id: string | null) => void;
+  inspectorOpen: boolean;
+  setInspectorOpen: (open: boolean) => void;
+  operationDrawerOpen: boolean;
+  setOperationDrawerOpen: (open: boolean) => void;
   elevationRequest: ElevationRequest;
   requestElevation: (opEn: string, opAr: string, reasonEn: string, reasonAr: string, risk: RiskLevel, onConfirm: () => void) => void;
   triggerElevation: (capId: string, reasonEn: string, onConfirm: () => void) => void;
@@ -129,6 +135,9 @@ export const KnouxProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [scanProgress, setScanProgress] = useState<number>(0);
   const [activeScanTitle, setActiveScanTitle] = useState<string>('');
   const [commandPaletteOpen, setCommandPaletteOpen] = useState<boolean>(false);
+  const [selectedServiceId, setSelectedServiceId] = useState<string | null>(null);
+  const [inspectorOpen, setInspectorOpen] = useState<boolean>(true);
+  const [operationDrawerOpen, setOperationDrawerOpen] = useState<boolean>(false);
   const [isFirstRunWizardCompleted, setIsFirstRunWizardCompleted] = useState<boolean>(true);
   const [notificationCount, setNotificationCount] = useState<number>(0);
 
@@ -273,7 +282,7 @@ export const KnouxProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const clearNotifications = () => setNotificationCount(0);
 
   return (
-    <KnouxContext.Provider value={{ theme, setTheme, language, setLanguage, currentRoute, setCurrentRoute, runtimeMode, setRuntimeMode, systemSpecs, essentialApps, toggleAppInstall, cleanupCategories, toggleCategorySelect, executeCleanup, duplicateGroups, toggleKeepDuplicateItem, quarantineDuplicates, quarantineItems, restoreQuarantineItem, permanentDeleteQuarantineItem, actionLogs, addLog, isScanning, scanProgress, activeScanTitle, runSmartScan, commandPaletteOpen, setCommandPaletteOpen, elevationRequest, requestElevation, triggerElevation, closeElevationModal, supportTickets, addSupportTicket, isFirstRunWizardCompleted, completeFirstRunWizard, notificationCount, clearNotifications, t }}>
+    <KnouxContext.Provider value={{ theme, setTheme, language, setLanguage, currentRoute, setCurrentRoute, runtimeMode, setRuntimeMode, systemSpecs, essentialApps, toggleAppInstall, cleanupCategories, toggleCategorySelect, executeCleanup, duplicateGroups, toggleKeepDuplicateItem, quarantineDuplicates, quarantineItems, restoreQuarantineItem, permanentDeleteQuarantineItem, actionLogs, addLog, isScanning, scanProgress, activeScanTitle, runSmartScan, commandPaletteOpen, setCommandPaletteOpen, selectedServiceId, setSelectedServiceId, inspectorOpen, setInspectorOpen, operationDrawerOpen, setOperationDrawerOpen, elevationRequest, requestElevation, triggerElevation, closeElevationModal, supportTickets, addSupportTicket, isFirstRunWizardCompleted, completeFirstRunWizard, notificationCount, clearNotifications, t }}>
       {children}
     </KnouxContext.Provider>
   );

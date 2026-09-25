@@ -2,11 +2,13 @@
  * KNOUX ONE — Premium Application Workspace & Router
  */
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { KnouxProvider, useKnoux } from './context/KnouxContext';
 import { Header } from './components/layout/Header';
 import { Sidebar } from './components/layout/Sidebar';
 import { CommandPalette } from './components/layout/CommandPalette';
+import { InspectorPanel } from './components/layout/InspectorPanel';
+import { OperationDrawer } from './components/layout/OperationDrawer';
 import { ElevationModal } from './components/common/ElevationModal';
 
 import { DashboardView } from './components/views/DashboardView';
@@ -36,9 +38,15 @@ import { SupportPortalView } from './components/views/SupportPortalView';
 import { SettingsView } from './components/views/SettingsView';
 import { AboutView } from './components/views/AboutView';
 import { BrandGalleryView } from './components/views/BrandGalleryView';
+import { SERVICE_PRESENTATIONS } from './services/servicePresentation';
 
 const AppContent: React.FC = () => {
-  const { currentRoute } = useKnoux();
+  const { currentRoute, selectedServiceId, setSelectedServiceId } = useKnoux();
+
+  useEffect(() => {
+    const selected = SERVICE_PRESENTATIONS.find(service => service.id === selectedServiceId);
+    if (selected && selected.route !== currentRoute) setSelectedServiceId(null);
+  }, [currentRoute, selectedServiceId, setSelectedServiceId]);
 
   const renderRoute = () => {
     switch (currentRoute) {
@@ -86,7 +94,10 @@ const AppContent: React.FC = () => {
           <main className="knoux-content-shell flex-1 custom-scrollbar">
             {renderRoute()}
           </main>
+          <InspectorPanel />
         </div>
+
+        <OperationDrawer />
 
         <CommandPalette />
         <ElevationModal />

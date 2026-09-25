@@ -26,6 +26,7 @@ import {
 import { useKnoux } from '../../context/KnouxContext';
 import type { KnouxCapability, OperationResult } from '../../types';
 import { OperationService } from '../../services/operationService';
+import { getServiceEvidenceState } from '../../services/servicePresentation';
 import {
   MODULE_ACCENTS,
   MODULE_ICONS,
@@ -67,11 +68,11 @@ export const UniversalServiceWorkspace: React.FC<UniversalServiceWorkspaceProps>
   descriptionAr,
   capabilities,
 }) => {
-  const { t, triggerElevation, language, actionLogs } = useKnoux();
+  const { t, triggerElevation, language, actionLogs, addLog, setSelectedServiceId, setInspectorOpen } = useKnoux();
   const [tab, setTab] = useState<WorkspaceTab>('overview');
   const [selectedCap, setSelectedCap] = useState<KnouxCapability | null>(null);
   const [isExecuting, setIsExecuting] = useState(false);
-  const [executionProgress, setExecutionProgress] = useState(0);
+  const [executionProgress, setExecutionProgress] = useState<number | null>(null);
   const [executionLog, setExecutionLog] = useState('');
   const [lastResult, setLastResult] = useState<OperationResult | null>(null);
   
@@ -84,7 +85,7 @@ export const UniversalServiceWorkspace: React.FC<UniversalServiceWorkspaceProps>
 
   const counts = useMemo(() => capabilities.reduce(
     (result, capability) => {
-      const state = capability.implementationState ?? 'planned';
+      const state = getServiceEvidenceState(capability);
       result[state] += 1;
       if (capability.requiresAdmin) result.admin += 1;
       return result;
@@ -105,9 +106,11 @@ export const UniversalServiceWorkspace: React.FC<UniversalServiceWorkspaceProps>
 
   const openService = (capability: KnouxCapability) => {
     setSelectedCap(capability);
+    setSelectedServiceId(capability.id);
+    setInspectorOpen(true);
     setLastResult(null);
     setExecutionLog('');
-    setExecutionProgress(0);
+    setExecutionProgress(null);
   };
 
   const executeCapability = async (capability: KnouxCapability) => {
@@ -131,16 +134,20 @@ export const UniversalServiceWorkspace: React.FC<UniversalServiceWorkspaceProps>
   const runExecution = async (capability: KnouxCapability) => {
     setSelectedCap(capability);
     setIsExecuting(true);
-    setExecutionProgress(0);
+    setExecutionProgress(null);
     setLastResult(null);
     setExecutionLog(`${t('Starting', 'بدء')} ${t(capability.nameEn, capability.nameAr)}…\n`);
 
     try {
       const result = await OperationService.executeCapability(capability, (progress, message) => {
-        setExecutionProgress(progress);
-        setExecutionLog(previous => `${previous}[\n${new Date().toLocaleTimeString()}] ${message}\n`);
+        setExecutionProgress(progress >= 0 ? progress : null);
+        setExecutionLog(previous => `${previous}[${new Date().toLocaleTimeString()}] ${message}\n`);
       });
       setLastResult(result);
+      const logStatus = result.status === 'completed' || result.status === 'completed_with_warnings'
+        ? 'completed'
+        : result.status === 'cancelled' ? 'cancelled' : 'failed';
+      addLog(capability.id, capability.nameEn, logStatus, result.summaryEn);
     } catch (err: any) {
       const message = err?.message || 'Operation failed exceptionally.';
       setLastResult({
@@ -165,15 +172,16 @@ export const UniversalServiceWorkspace: React.FC<UniversalServiceWorkspaceProps>
 
   const renderServiceCard = (capability: KnouxCapability, featuredCard = false) => {
     const Icon = getServiceIcon(capability);
-    const StateIcon = getImplementationIcon(capability.implementationState);
+    const evidenceState = getServiceEvidenceState(capability);
+    const StateIcon = getImplementationIcon(evidenceState);
     const executable = capability.implementationState === 'implemented' && capability.status === 'available' && Boolean(capability.handlerId);
 
     return (
       <article key={capability.id} className={`knoux-service-card group flex flex-col p-5 ${featuredCard ? 'min-h-[290px]' : 'min-h-[245px]'}`} data-accent={accent}>
         <div className="flex items-start justify-between gap-3">
           <div className="knoux-icon-plate"><Icon className="h-[23px] w-[23px]" /></div>
-          <span className={`knoux-chip ${capability.implementationState === 'implemented' ? 'knoux-chip--success' : capability.implementationState === 'partial' ? 'knoux-chip--accent' : capability.implementationState === 'requires_configuration' ? 'knoux-chip--warning' : 'knoux-chip--muted'}`}>
-            <StateIcon className="h-3.5 w-3.5" />{getImplementationLabel(capability.implementationState, language)}
+          <span className={`knoux-chip ${evidenceState === 'implemented' ? 'knoux-chip--success' : evidenceState === 'partial' ? 'knoux-chip--accent' : evidenceState === 'requires_configuration' ? 'knoux-chip--warning' : 'knoux-chip--muted'}`}>
+            <StateIcon className="h-3.5 w-3.5" />{getImplementationLabel(evidenceState, language)}
           </span>
         </div>
         <div className="mt-5 flex-1">
@@ -287,9 +295,9 @@ export const UniversalServiceWorkspace: React.FC<UniversalServiceWorkspaceProps>
                     <div key={i} className="flex items-center justify-between gap-4 rounded-xl border border-[var(--knoux-border)] bg-[var(--knoux-surface-muted)] p-4 rtl:flex-row-reverse">
                       <div className="flex items-center gap-3 rtl:flex-row-reverse">
                         {log.status === 'completed' ? <CheckCircle2 className="h-5 w-5 text-emerald-400" /> : log.status === 'failed' ? <CircleAlert className="h-5 w-5 text-red-400" /> : <History className="h-5 w-5 text-[var(--knoux-text-muted)]" />}
-                        <div><p className="text-[13px] font-extrabold text-[var(--knoux-text)]">{t(log.summaryEn, log.summaryAr)}</p><p className="text-[11px] font-medium text-[var(--knoux-text-muted)]">{new Date(log.timestamp).toLocaleString(language === 'ar' ? 'ar-EG' : 'en-US')}</p></div>
+                        <div><p className="text-[13px] font-extrabold text-[var(--knoux-text)]">{log.details}</p><p className="text-[11px] font-medium text-[var(--knoux-text-muted)]">{new Date(log.timestamp).toLocaleString(language === 'ar' ? 'ar-EG' : 'en-US')}</p></div>
                       </div>
-                      <span className="knoux-chip">{log.handlerId}</span>
+                      <span className="knoux-chip">{log.capabilityId}</span>
                     </div>
                   ))}
                 </div>
@@ -301,8 +309,8 @@ export const UniversalServiceWorkspace: React.FC<UniversalServiceWorkspaceProps>
 
           {tab === 'help' && (
             <section className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-              <article className="knoux-glass-panel p-5"><div className="knoux-icon-plate"><ShieldAlert className="h-5 w-5" /></div><h2 className="mt-4 text-[16px] font-black text-[var(--knoux-text)]">{t('Safety boundaries', 'حدود الأمان')}</h2><p className="mt-2 text-[13px] font-medium leading-6 text-[var(--knoux-text-secondary)]">{t('Actions modifying the OS require explicit UAC elevation. Dry-runs are supported for simulated previews.', 'العمليات التي تغير النظام تتطلب رفع صلاحية (UAC) صريح. يتم دعم وضع المحاكاة للمعاينة.')}</p></article>
-              <article className="knoux-glass-panel p-5"><div className="knoux-icon-plate"><Activity className="h-5 w-5" /></div><h2 className="mt-4 text-[16px] font-black text-[var(--knoux-text)]">{t('Event tracing', 'تتبع الأحداث')}</h2><p className="mt-2 text-[13px] font-medium leading-6 text-[var(--knoux-text-secondary)]">{t('All actions are logged to local memory. Complex procedures will stream output automatically.', 'يتم تسجيل جميع العمليات في الذاكرة. الإجراءات المعقدة تبث المخرجات في الوقت الفعلي.')}</p></article>
+              <article className="knoux-glass-panel p-5"><div className="knoux-icon-plate"><ShieldAlert className="h-5 w-5" /></div><h2 className="mt-4 text-[16px] font-black text-[var(--knoux-text)]">{t('Safety boundaries', 'حدود الأمان')}</h2><p className="mt-2 text-[13px] font-medium leading-6 text-[var(--knoux-text-secondary)]">{t('Actions modifying the OS retain their native confirmation and UAC requirements. Planned services remain non-executable.', 'تحتفظ عمليات تعديل النظام بمتطلبات التأكيد وUAC المحلية، وتظل الخدمات المخططة غير قابلة للتنفيذ.')}</p></article>
+              <article className="knoux-glass-panel p-5"><div className="knoux-icon-plate"><Activity className="h-5 w-5" /></div><h2 className="mt-4 text-[16px] font-black text-[var(--knoux-text)]">{t('Event tracing', 'تتبع الأحداث')}</h2><p className="mt-2 text-[13px] font-medium leading-6 text-[var(--knoux-text-secondary)]">{t('Results recorded by this workspace appear in the session operation drawer with their native status.', 'تظهر النتائج التي تسجلها مساحة العمل في درج عمليات الجلسة بحالتها المحلية.')}</p></article>
               <article className="knoux-glass-panel p-5"><div className="knoux-icon-plate"><FileText className="h-5 w-5" /></div><h2 className="mt-4 text-[16px] font-black text-[var(--knoux-text)]">{t('Read-only execution', 'التنفيذ للقراءة فقط')}</h2><p className="mt-2 text-[13px] font-medium leading-6 text-[var(--knoux-text-secondary)]">{t('Discovery scans do not alter settings. Check the "What it changes" tab before execution.', 'عمليات الفحص لا تغير الإعدادات. راجع نافذة "ما الذي ستغيره" قبل التنفيذ.')}</p></article>
             </section>
           )}
@@ -322,7 +330,7 @@ export const UniversalServiceWorkspace: React.FC<UniversalServiceWorkspaceProps>
             </button>
             <div>
               <div className="text-[12px] font-extrabold text-[var(--knoux-primary-bright)] uppercase tracking-wider">{t(moduleNameEn, moduleNameAr)}</div>
-              <h2 className="text-[24px] font-black text-white">{t('Execution Preview Studio', 'استوديو المعاينة والتنفيذ الفعلي')}</h2>
+              <h2 className="text-[24px] font-black text-white">{t('Service detail', 'تفاصيل الخدمة')}</h2>
             </div>
           </div>
           
@@ -335,7 +343,8 @@ export const UniversalServiceWorkspace: React.FC<UniversalServiceWorkspaceProps>
                    {capabilities.map(cap => {
                      const CapIcon = getServiceIcon(cap);
                      const isSelected = selectedCap.id === cap.id;
-                     const StateIcon = getImplementationIcon(cap.implementationState);
+                     const evidenceState = getServiceEvidenceState(cap);
+                     const StateIcon = getImplementationIcon(evidenceState);
                      return (
                        <button 
                          key={cap.id}
@@ -347,7 +356,7 @@ export const UniversalServiceWorkspace: React.FC<UniversalServiceWorkspaceProps>
                            <div className="flex items-center gap-2">
                              <div className={`text-[13px] font-bold ${isSelected ? 'text-white' : 'text-gray-300'}`}>{t(cap.nameEn, cap.nameAr)}</div>
                            </div>
-                           <div className="text-[10px] text-gray-500 mt-1 flex items-center gap-1"><StateIcon className="h-3 w-3" /> {getImplementationLabel(cap.implementationState, language)}</div>
+                           <div className="text-[10px] text-gray-500 mt-1 flex items-center gap-1"><StateIcon className="h-3 w-3" /> {getImplementationLabel(evidenceState, language)}</div>
                          </div>
                        </button>
                      );
@@ -433,10 +442,10 @@ export const UniversalServiceWorkspace: React.FC<UniversalServiceWorkspaceProps>
                         <div className="mb-4">
                            <div className="flex items-center justify-between mb-2">
                              <span className="text-[12px] font-bold text-[var(--knoux-primary-bright)]">{t('Executing in real-time...', 'جاري التنفيذ المباشر...')}</span>
-                             <span className="text-[12px] font-mono font-bold text-white">{executionProgress}%</span>
+                             <span className="text-[12px] font-mono font-bold text-white">{executionProgress === null ? t('Indeterminate', 'غير محدد') : `${executionProgress}%`}</span>
                            </div>
                            <div className="h-2 w-full bg-white/10 rounded-full overflow-hidden">
-                              <div className="h-full bg-[var(--knoux-primary-bright)] rounded-full transition-all duration-300 relative shadow-[0_0_10px_var(--knoux-primary-bright)]" style={{ width: `${executionProgress}%` }} />
+                              <div className={`h-full bg-[var(--knoux-primary-bright)] rounded-full relative shadow-[0_0_10px_var(--knoux-primary-bright)] ${executionProgress === null ? 'w-1/3 animate-pulse' : 'transition-all duration-300'}`} style={executionProgress === null ? undefined : { width: `${executionProgress}%` }} />
                            </div>
                         </div>
                       )}

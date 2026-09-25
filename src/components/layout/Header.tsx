@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import {
+  Activity,
   Bell,
   Command,
   Languages,
@@ -12,6 +13,7 @@ import {
 } from 'lucide-react';
 import { useKnoux } from '../../context/KnouxContext';
 import { NativeClient } from '../../services/nativeClient';
+import { WORKSPACE_BY_ROUTE } from '../../shell/workspaceRegistry';
 
 const ROUTE_TITLES: Record<string, { en: string; ar: string }> = {
   dashboard: { en: 'Dashboard', ar: 'لوحة التحكم' },
@@ -52,12 +54,16 @@ export const Header: React.FC = () => {
     isScanning,
     notificationCount,
     clearNotifications,
+    actionLogs,
+    operationDrawerOpen,
+    setOperationDrawerOpen,
     systemSpecs,
     t,
   } = useKnoux();
 
   const runtime = NativeClient.getRuntimeState();
-  const routeTitle = ROUTE_TITLES[currentRoute] ?? ROUTE_TITLES.dashboard;
+  const workspace = WORKSPACE_BY_ROUTE.get(currentRoute);
+  const routeTitle = workspace ? { en: workspace.titleEn, ar: workspace.titleAr } : ROUTE_TITLES[currentRoute] ?? ROUTE_TITLES.dashboard;
   const deviceLabel = useMemo(() => {
     if (!runtime.available) return t('Web preview workspace', 'مساحة معاينة الويب');
     return systemSpecs.computerName || t('Windows device', 'جهاز ويندوز');
@@ -94,6 +100,17 @@ export const Header: React.FC = () => {
       </button>
 
       <div className="ms-auto flex shrink-0 items-center gap-2 rtl:me-auto rtl:ms-0 rtl:flex-row-reverse">
+        <button
+          type="button"
+          onClick={() => setOperationDrawerOpen(!operationDrawerOpen)}
+          className="relative grid h-10 w-10 place-items-center rounded-xl border border-[var(--knoux-border)] bg-[var(--knoux-surface-muted)] text-[var(--knoux-text-secondary)] transition hover:border-[var(--knoux-primary)]/35 hover:text-[var(--knoux-primary-bright)]"
+          title={t('Operations', 'العمليات')}
+          aria-expanded={operationDrawerOpen}
+        >
+          <Activity className="h-[18px] w-[18px]" />
+          {actionLogs.length > 0 && <span className="absolute -end-1 -top-1 grid h-[17px] min-w-[17px] place-items-center rounded-full bg-[var(--knoux-primary)] px-1 text-[9px] font-black text-white">{actionLogs.length}</span>}
+        </button>
+
         <button
           type="button"
           onClick={runSmartScan}
@@ -139,13 +156,6 @@ export const Header: React.FC = () => {
           )}
         </button>
 
-        <div className="hidden items-center gap-2.5 rounded-xl border border-[var(--knoux-border)] bg-[var(--knoux-surface-muted)] p-1.5 pe-3 2xl:flex rtl:flex-row-reverse rtl:ps-3 rtl:pe-1.5">
-          <div className="grid h-8 w-8 place-items-center rounded-[10px] bg-[linear-gradient(135deg,var(--knoux-primary),var(--knoux-accent-blue))] text-[11px] font-black text-white">SE</div>
-          <div className="min-w-0 leading-tight">
-            <p className="truncate text-[11px] font-extrabold text-[var(--knoux-text)]">Eng. Sadek Elgazar</p>
-            <p className="truncate text-[9px] font-bold text-[var(--knoux-primary-bright)]">Knoux Founder</p>
-          </div>
-        </div>
       </div>
     </header>
   );

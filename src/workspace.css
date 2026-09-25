@@ -110,6 +110,159 @@
   box-shadow: inset 0 1px 0 rgba(255,255,255,.035);
 }
 
+.knoux-icon-button {
+  display: inline-grid;
+  min-width: 34px;
+  height: 34px;
+  place-items: center;
+  border: 1px solid var(--knoux-border);
+  border-radius: 10px;
+  color: var(--knoux-text-muted);
+  background: var(--knoux-surface-muted);
+  transition: color 150ms ease, border-color 150ms ease;
+}
+
+.knoux-icon-button:hover,
+.knoux-icon-button:focus-visible {
+  color: var(--knoux-primary-bright);
+  border-color: color-mix(in srgb, var(--knoux-primary) 45%, var(--knoux-border));
+}
+
+.knoux-inspector-shell {
+  display: flex;
+  width: 276px;
+  min-height: 0;
+  flex: 0 0 276px;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--knoux-border);
+  border-radius: 20px;
+  background: color-mix(in srgb, var(--knoux-sidebar) 94%, transparent);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.05), var(--workspace-soft-shadow);
+}
+
+.knoux-inspector-toggle {
+  display: grid;
+  width: 38px;
+  height: 100%;
+  flex: 0 0 38px;
+  place-items: center;
+  border: 1px solid var(--knoux-border);
+  border-radius: 14px;
+  color: var(--knoux-primary-bright);
+  background: var(--knoux-sidebar);
+}
+
+.knoux-inspector-row {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px;
+  border: 1px solid var(--knoux-border);
+  border-radius: 11px;
+  background: var(--knoux-surface-muted);
+}
+
+.knoux-inspector-row dt { color: var(--knoux-text-muted); }
+.knoux-inspector-row dd { max-width: 145px; overflow-wrap: anywhere; text-align: end; color: var(--knoux-text); font-weight: 700; }
+
+.knoux-inspector-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  padding: 11px;
+  border: 1px solid var(--knoux-border);
+  border-radius: 12px;
+  color: var(--knoux-text-secondary);
+  background: var(--knoux-surface-muted);
+  font-size: 11px;
+  line-height: 1.55;
+}
+
+.knoux-operation-drawer {
+  display: flex;
+  min-height: 42px;
+  margin: 0 10px 10px;
+  flex: 0 0 42px;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--knoux-border);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--knoux-sidebar) 96%, transparent);
+  transition: flex-basis 180ms ease;
+}
+
+.knoux-operation-drawer.is-open { flex-basis: min(190px, 28vh); }
+
+.knoux-operation-statusbar {
+  display: flex;
+  min-height: 40px;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 0 14px;
+  border-bottom: 1px solid transparent;
+  text-align: start;
+}
+
+.knoux-operation-drawer.is-open .knoux-operation-statusbar { border-bottom-color: var(--knoux-border); }
+
+.knoux-operation-record {
+  display: flex;
+  min-height: 82px;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--knoux-border);
+  border-radius: 12px;
+  background: var(--knoux-surface-muted);
+}
+
+.knoux-command-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: min(9vh, 72px) 16px 16px;
+  background: rgba(3, 5, 12, .72);
+  backdrop-filter: blur(12px);
+}
+
+.knoux-command-dialog {
+  display: flex;
+  width: min(780px, 100%);
+  max-height: min(720px, 82vh);
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--knoux-glass-border-strong);
+  border-radius: 20px;
+  background: color-mix(in srgb, var(--knoux-canvas) 96%, transparent);
+  box-shadow: 0 36px 100px rgba(0,0,0,.48);
+}
+
+.knoux-command-result {
+  display: flex;
+  min-height: 48px;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 11px;
+  border: 1px solid transparent;
+  border-radius: 11px;
+  color: var(--knoux-text-secondary);
+  background: transparent;
+}
+
+.knoux-command-result:hover,
+.knoux-command-result:focus-visible {
+  border-color: var(--knoux-border);
+  background: var(--knoux-surface-muted);
+  outline: none;
+}
+
 .knoux-page-container {
   width: min(100%, 1560px);
   margin-inline: auto;
@@ -411,6 +564,12 @@
   to { transform: rotate(360deg); }
 }
 
+@media (max-width: 1400px) {
+  .knoux-inspector-shell { display: none; }
+
+  .knoux-inspector-toggle { height: 100%; }
+}
+
 @media (max-width: 1180px) {
   .knoux-workspace-frame {
     width: calc(100vw - 12px);
@@ -422,6 +581,7 @@
   .knoux-page-container {
     padding: 20px;
   }
+
 }
 
 @media (max-width: 760px) {

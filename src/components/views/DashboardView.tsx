@@ -22,6 +22,7 @@ import { useKnoux } from '../../context/KnouxContext';
 import { MODULES_CATALOG } from '../../data/capabilitiesCatalog';
 import { getOfficialKnouxLogo } from '../../data/officialBrand';
 import { NativeClient } from '../../services/nativeClient';
+import { getServiceEvidenceState } from '../../services/servicePresentation';
 import {
   MODULE_ACCENTS,
   MODULE_ICONS,
@@ -94,7 +95,7 @@ export const DashboardView: React.FC = () => {
     const services = MODULES_CATALOG.flatMap(module => module.services);
     return services.reduce(
       (counts, service) => {
-        const state = service.implementationState ?? 'planned';
+        const state = getServiceEvidenceState(service);
         counts[state] += 1;
         return counts;
       },
@@ -216,7 +217,7 @@ export const DashboardView: React.FC = () => {
             <div className="mt-5 flex flex-wrap gap-2">
               <span className="knoux-chip knoux-chip--accent"><Monitor className="h-3.5 w-3.5" />{runtime.available ? t('Desktop connected', 'سطح المكتب متصل') : t('Web preview', 'معاينة الويب')}</span>
                             <span className="knoux-chip"><Layers3 className="h-3.5 w-3.5" />19 {t('workspaces', 'مساحة عمل')}</span>
-              <span className="knoux-chip"><TerminalSquare className="h-3.5 w-3.5" />{capabilityCounts.implemented} {t('native-linked services', 'خدمة مرتبطة بطبقة محلية')}</span>
+              <span className="knoux-chip"><TerminalSquare className="h-3.5 w-3.5" />{capabilityCounts.implemented} {t('statically verified services', 'خدمة موثقة ساكنًا')}</span>
 
             </div>
 
@@ -248,7 +249,7 @@ export const DashboardView: React.FC = () => {
         </div>
       </section>
 
-      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+      <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-5">
         {statusCards.map(card => <StatusCard key={card.label} {...card} />)}
       </section>
 
@@ -272,7 +273,7 @@ export const DashboardView: React.FC = () => {
               <button key={service.id} type="button" onClick={() => setCurrentRoute(moduleRoute)} className="knoux-service-card group min-h-[178px] p-5 text-start" data-accent={moduleAccent}>
                 <div className="flex items-start justify-between gap-3">
                   <div className="knoux-icon-plate"><Icon className="h-[22px] w-[22px]" /></div>
-                  <span className="knoux-chip knoux-chip--muted">{getImplementationLabel(service.implementationState, language)}</span>
+                  <span className="knoux-chip knoux-chip--muted">{getImplementationLabel(getServiceEvidenceState(service), language)}</span>
                 </div>
                 <h3 className="mt-5 text-[16px] font-extrabold tracking-[-.015em] text-[var(--knoux-text)] transition group-hover:text-[var(--card-accent)]">{t(service.nameEn, service.nameAr)}</h3>
                 <p className="mt-2 line-clamp-2 text-[13px] font-medium leading-6 text-[var(--knoux-text-muted)]">{t(service.descriptionEn, service.descriptionAr)}</p>
