@@ -564,7 +564,9 @@ fn media_fingerprint(path: &Path, kind: &str) -> Result<(String, String), String
     let fingerprint = if kind == "audio" {
         let samples = output
             .stdout
-            .chunks_exact(2)
+            .as_chunks::<2>()
+            .0
+            .iter()
             .map(|b| i16::from_le_bytes([b[0], b[1]]) as f64)
             .collect::<Vec<_>>();
         let chunk = 8000usize;
