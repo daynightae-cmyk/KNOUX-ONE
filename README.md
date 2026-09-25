@@ -7,60 +7,24 @@ KNOUX ONE is a Windows desktop workspace built with **Tauri 2, Rust, React 19, a
 
 ## Current verified implementation matrix
 
-### Module 01 — First Run & Post-Format Setup
+The generated service-reality baseline is the detailed evidence authority. Run `bun run services:check` to verify it has not drifted.
 
-| Service | State | Notes |
-|---|---|---|
-| Windows and hardware discovery | Partial | Reads real Windows CIM information; unavailable fields remain optional |
-| Winget availability verification | Implemented | Resolves the real executable and version |
-| Verified package installation | Partial | Allowlisted Winget install with post-install verification; full persistent queue is not complete |
-| Remaining Module 01 services | Planned | No executable handler is exposed |
+| Evidence state | Count |
+|---|---:|
+| Modules | 19 |
+| Services | 190 |
+| Statically verified native paths | 74 |
+| Partial native paths with documented limits | 6 |
+| Planned, non-executable | 110 |
+| Runtime verified on Windows in repository evidence | 0 |
 
-### Module 03 — Duplicate Control Center
+The active catalog contains 80 native-linked services across M01–M08 and M15. Six are classified partial by the generated evidence baseline (four media/archive services in M03 and two evidence/export services in M04), leaving 74 statically verified. This is not a claim that 80 services have been runtime-verified on Windows.
 
-| Service | State |
-|---|---|
-| Exact duplicate scan | Implemented |
-| Fast candidate scan | Implemented |
-| Similar image review | Partial |
-| Video duplicate review | Partial |
-| Audio duplicate review | Partial |
-| Document duplicate review | Implemented |
-| Archive duplicate review | Partial |
-| Folder comparison | Implemented |
-| Keeper rule planning | Implemented |
-| Verified quarantine and restore | Implemented |
+M09–M14 and M16–M19 remain planned and expose no handler. Browser preview never fabricates host readings or successful desktop operations. See [`REAL_IMPLEMENTATION_MATRIX.md`](REAL_IMPLEMENTATION_MATRIX.md) and the generated [`docs/services/service-reality-baseline.md`](docs/services/service-reality-baseline.md) for exact service evidence and limitations.
 
-Module 03 uses real local BLAKE3 verification, changed-file checks, hard-link awareness, SQLite scan history, explainable keeper planning, and checksum-verified quarantine/restore. Web preview never fabricates duplicate files or successful desktop operations.
+## Unified workspace shell
 
-See [`docs/M03_DUPLICATE_ENGINE.md`](docs/M03_DUPLICATE_ENGINE.md) for safety invariants and exact limitations.
-
-### Module 15 — KNOUX Developer Studio
-
-| Service | State |
-|---|---|
-| Workstation toolchain discovery | Implemented |
-| PATH diagnostics laboratory | Implemented |
-| Runtime and version-manager inspection | Implemented |
-| Secure Git configuration audit | Implemented |
-| Repository intelligence scanner | Implemented |
-| Ports and process control | Implemented |
-| Multi-ecosystem project health | Implemented |
-| Developer cache control | Implemented |
-| Local HTTP and API laboratory | Implemented |
-| Developer evidence report | Implemented |
-
-Developer Studio reads real Windows toolchains, PATH scopes, Git settings, repositories, listening endpoints, project manifests, and recognized caches through explicit allowlisted commands. Process termination requires `STOP <PID>`, cache cleanup requires `CLEAN`, protected processes and arbitrary cleanup paths are blocked, and browser preview remains non-executable.
-
-See [`docs/M15_DEVELOPER_STUDIO.md`](docs/M15_DEVELOPER_STUDIO.md) for the service matrix, safety controls, and operational boundaries.
-
-### Modules 02, 04–14, and 17–19
-
-Planned. They remain visible as product roadmap workspaces but expose no executable native handlers.
-
-### Module 16 — Project Engineering
-
-Planned as a separate independently verified phase. It exposes no executable native handlers.
+The renderer uses one registry-driven desktop shell for all 19 modules: canonical grouped navigation, global Arabic/English search, a safe navigation-only command palette, a contextual service inspector, and a session operation drawer. Dedicated native workspaces for setup, cleanup, duplicates, storage, startup, performance, repair, network, and Developer Studio remain intact inside the shell.
 
 ## Safety boundaries
 
