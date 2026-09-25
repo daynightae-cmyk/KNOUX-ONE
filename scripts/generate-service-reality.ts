@@ -3,20 +3,12 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { MODULES_CATALOG } from '../src/data/capabilitiesCatalog';
+import { PARTIAL_SERVICE_IDS } from '../src/data/serviceVerification';
 import { NATIVE_COMMANDS } from '../src/services/nativeCommandRegistry';
 
 const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const outputJson = resolve(projectRoot, 'docs/services/service-reality-baseline.json');
 const outputMarkdown = resolve(projectRoot, 'docs/services/service-reality-baseline.md');
-
-const PARTIAL_SERVICE_IDS = new Set([
-  'm03_s03',
-  'm03_s04',
-  'm03_s05',
-  'm03_s07',
-  'm04_s05',
-  'm04_s10',
-]);
 
 const STATE_ORDER = ['PLANNED', 'GUARDED', 'STATIC_VERIFIED', 'PARTIAL', 'RUNTIME_VERIFIED', 'BLOCKED'] as const;
 type ServiceState = (typeof STATE_ORDER)[number];

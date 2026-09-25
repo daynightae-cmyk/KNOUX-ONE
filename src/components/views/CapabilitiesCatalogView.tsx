@@ -18,6 +18,7 @@ import {
 import { useKnoux } from '../../context/KnouxContext';
 import { ALL_CAPABILITIES, MODULES_CATALOG } from '../../data/capabilitiesCatalog';
 import type { KnouxCapability } from '../../types';
+import { getServiceEvidenceState } from '../../services/servicePresentation';
 import { CapabilityCard } from '../common/CapabilityCard';
 import {
   MODULE_ACCENTS,
@@ -40,11 +41,13 @@ export const CapabilitiesCatalogView: React.FC = () => {
 
   const normalizedQuery = searchQuery.trim().toLowerCase();
   const selectedModule = MODULES_CATALOG.find(module => module.id === selectedModuleId) ?? null;
+  const selectedEvidenceState = selectedService ? getServiceEvidenceState(selectedService) : null;
 
   const matchesFilter = (service: KnouxCapability) => {
-    if (filter === 'ready') return service.implementationState === 'implemented';
-    if (filter === 'preview') return service.implementationState === 'partial';
-    if (filter === 'roadmap') return service.implementationState === 'planned';
+    const state = getServiceEvidenceState(service);
+    if (filter === 'ready') return state === 'implemented';
+    if (filter === 'preview') return state === 'partial';
+    if (filter === 'roadmap') return state === 'planned';
     if (filter === 'admin') return service.requiresAdmin;
     return true;
   };
@@ -75,7 +78,7 @@ export const CapabilitiesCatalogView: React.FC = () => {
   const globalCounts = useMemo(() => {
     return ALL_CAPABILITIES.reduce(
       (counts, service) => {
-        const state = service.implementationState ?? 'planned';
+        const state = getServiceEvidenceState(service);
         counts[state] += 1;
         if (service.requiresAdmin) counts.admin += 1;
         return counts;
@@ -164,7 +167,7 @@ export const CapabilitiesCatalogView: React.FC = () => {
               const accent = MODULE_ACCENTS[module.id] ?? 'violet';
               const stateCounts = module.services.reduce(
                 (counts, service) => {
-                  const state = service.implementationState ?? 'planned';
+                  const state = getServiceEvidenceState(service);
                   counts[state] += 1;
                   return counts;
                 },
@@ -287,9 +290,9 @@ export const CapabilitiesCatalogView: React.FC = () => {
 
             <div className="custom-scrollbar flex-1 space-y-5 overflow-y-auto p-5">
               <div className="flex flex-wrap gap-2">
-                <span className={`knoux-chip ${selectedService.implementationState === 'implemented' ? 'knoux-chip--success' : selectedService.implementationState === 'partial' ? 'knoux-chip--accent' : selectedService.implementationState === 'requires_configuration' ? 'knoux-chip--warning' : 'knoux-chip--muted'}`}>
-                  {React.createElement(getImplementationIcon(selectedService.implementationState), { className: 'h-3.5 w-3.5' })}
-                  {getImplementationLabel(selectedService.implementationState, language)}
+                <span className={`knoux-chip ${selectedEvidenceState === 'implemented' ? 'knoux-chip--success' : selectedEvidenceState === 'partial' ? 'knoux-chip--accent' : selectedEvidenceState === 'requires_configuration' ? 'knoux-chip--warning' : 'knoux-chip--muted'}`}>
+                  {React.createElement(getImplementationIcon(selectedEvidenceState ?? undefined), { className: 'h-3.5 w-3.5' })}
+                  {getImplementationLabel(selectedEvidenceState ?? undefined, language)}
                 </span>
                 <span className="knoux-chip"><Monitor className="h-3.5 w-3.5" />{selectedService.runtime === 'desktop_elevated' ? t('Desktop + Admin', 'سطح المكتب + مسؤول') : t('Desktop', 'سطح المكتب')}</span>
                 {selectedService.requiresAdmin && <span className="knoux-chip knoux-chip--warning"><ShieldAlert className="h-3.5 w-3.5" />{t('Administrator required', 'تتطلب صلاحية مسؤول')}</span>}
@@ -317,7 +320,7 @@ export const CapabilitiesCatalogView: React.FC = () => {
                 {selectedService.verificationStrategy && <p className="mt-3 border-t border-[var(--knoux-border)] pt-3 text-[12px] font-medium leading-5 text-[var(--knoux-text-secondary)]">{selectedService.verificationStrategy}</p>}
               </section>
 
-              {selectedService.implementationState !== 'implemented' && (
+              {selectedEvidenceState === 'planned' && (
                 <section className="flex items-start gap-3 rounded-2xl border border-[var(--knoux-warning)]/30 bg-[var(--knoux-warning)]/8 p-4 rtl:flex-row-reverse">
                   <CircleAlert className="mt-0.5 h-5 w-5 shrink-0 text-[var(--knoux-warning)]" />
                   <div>

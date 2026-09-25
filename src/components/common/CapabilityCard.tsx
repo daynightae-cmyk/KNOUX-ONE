@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import type { KnouxCapability } from '../../types';
 import { useKnoux } from '../../context/KnouxContext';
+import { getServiceEvidenceState } from '../../services/servicePresentation';
 import {
   MODULE_ACCENTS,
   getActionLabel,
@@ -29,7 +30,8 @@ export const CapabilityCard: React.FC<CapabilityCardProps> = ({ capability, onOp
   const { language, t } = useKnoux();
   const [expanded, setExpanded] = useState(false);
   const Icon = getServiceIcon(capability);
-  const StateIcon = getImplementationIcon(capability.implementationState);
+  const evidenceState = getServiceEvidenceState(capability);
+  const StateIcon = getImplementationIcon(evidenceState);
   const accent = MODULE_ACCENTS[capability.moduleId] ?? 'violet';
   const executable = capability.implementationState === 'implemented' && capability.status === 'available' && Boolean(capability.handlerId);
 
@@ -47,9 +49,9 @@ export const CapabilityCard: React.FC<CapabilityCardProps> = ({ capability, onOp
         <div className="knoux-icon-plate">
           <Icon className="h-[22px] w-[22px]" strokeWidth={1.9} />
         </div>
-        <span className={`knoux-chip ${capability.implementationState === 'implemented' ? 'knoux-chip--success' : capability.implementationState === 'requires_configuration' ? 'knoux-chip--warning' : capability.implementationState === 'partial' ? 'knoux-chip--accent' : 'knoux-chip--muted'}`}>
+        <span className={`knoux-chip ${evidenceState === 'implemented' ? 'knoux-chip--success' : evidenceState === 'requires_configuration' ? 'knoux-chip--warning' : evidenceState === 'partial' ? 'knoux-chip--accent' : 'knoux-chip--muted'}`}>
           <StateIcon className="h-3.5 w-3.5" />
-          {getImplementationLabel(capability.implementationState, language)}
+          {getImplementationLabel(evidenceState, language)}
         </span>
       </div>
 

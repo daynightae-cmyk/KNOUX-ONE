@@ -8,20 +8,20 @@ This file records implementation evidence. A service is not marked `implemented`
 |---|---:|
 | Modules | 19 |
 | Services | 190 |
-| Implemented services | 80 |
-| Partial services | 0 |
+| Statically verified services | 74 |
+| Partial services with native paths and documented limits | 6 |
 | Planned services | 110 |
 
-The 110 planned services remain non-executable and do not carry fabricated handlers.
+The active catalog has 80 native-linked services. The generated evidence baseline classifies six of them as partial, so native-linked must not be confused with runtime verified. The 110 planned services remain non-executable and do not carry fabricated handlers.
 
 ## Module matrix
 
-| Module | User-facing name | Implemented | Partial | Planned | Evidence |
+| Module | User-facing name | Static | Partial | Planned | Evidence |
 |---|---|---:|---:|---:|---|
 | M01 | تجهيز الجهاز بعد تثبيت Windows | 3 | 0 | 7 | Windows CIM/firmware/security evidence and persistent resumable Winget queue |
 | M02 | تنظيف الملفات غير الضرورية | 7 | 0 | 3 | Verified scan snapshots, signed UAC manifest, bounded log discovery, reversible Downloads quarantine |
-| M03 | البحث عن الملفات المكررة | 10 | 0 | 0 | Exact BLAKE3, multi-signal images, decoded video/audio fingerprints, safe archive manifests, quarantine |
-| M04 | معرفة ما يستهلك مساحة الجهاز | 10 | 0 | 0 | Access-time evidence, logical/physical drives, persisted background monitor, PDF + JSON report |
+| M03 | البحث عن الملفات المكررة | 6 | 4 | 0 | Exact BLAKE3 and quarantine are statically verified; similar image, decoded video/audio, and archive scopes retain documented limits |
+| M04 | معرفة ما يستهلك مساحة الجهاز | 8 | 2 | 0 | Access-time fallback and JSON-only export retain documented limits; logical/physical drives and background monitor are statically verified |
 | M05 | التحكم في برامج بدء التشغيل والخدمات | 10 | 0 | 0 | Registry and Startup-folder evidence, scheduled tasks, signed services, reversible user mutations, delays, profiles and Event 100 history |
 | M06 | تسريع الجهاز وتحسين الأداء | 10 | 0 | 0 | Windows CPU/RAM/disk/network/process evidence, reversible priority and power-plan changes, transparent profiles and bounded benchmark |
 | M07 | إصلاح مشاكل Windows | 10 | 0 | 0 | Official SFC/DISM, reversible Windows Update reset, cache, WMI, MSI, VSS and Store repair evidence |
