@@ -1,14 +1,17 @@
 pub mod contracts;
 mod errors;
 mod folder_digest;
-mod hashing;
-mod image_similarity;
-mod jobs;
+pub mod hashing;
+pub mod image_similarity;
+/// Exposed so the completion-tier media services register the *same* job controls the
+/// existing `m03_job_pause` / `m03_job_resume` / `m03_job_cancel` commands operate on.
+/// Without this, the interface could not pause or cancel those scans.
+pub mod jobs;
 mod keeper;
 mod persistence;
 mod quarantine;
-mod scanner;
-mod traversal;
+pub mod scanner;
+pub mod traversal;
 
 use crate::{
     contracts::OperationResult,

@@ -56,6 +56,7 @@ fn build_file_item(
         hard_link_count: candidate.hard_link_count,
         is_hard_link_alias: identity_is_alias,
         protected_path: candidate.protected_path,
+        evidence: Vec::new(),
     }
 }
 
@@ -209,6 +210,7 @@ pub fn scan_exact(
                 actionable: false,
                 warnings: vec!["Full verification is required before quarantine.".into()],
                 files,
+                signals: Vec::new(),
             });
         }
         let duplicate_files = groups.iter().map(|group| group.files.len() as u64).sum();
@@ -230,6 +232,9 @@ pub fn scan_exact(
                 error_count: errors.len() as u64,
             },
             warnings: errors,
+            // The exact-hash lane produces no per-signal breakdown: a full BLAKE3 match
+            // is a single proof, not a score assembled from parts.
+            evidence: None,
         });
     }
 
@@ -316,6 +321,7 @@ pub fn scan_exact(
             confidence: 1.0,
             actionable: !only_hard_links,
             warnings,
+            signals: Vec::new(),
         });
     }
 
@@ -353,6 +359,7 @@ pub fn scan_exact(
             error_count: errors.len() as u64,
         },
         warnings: errors,
+        evidence: None,
     })
 }
 

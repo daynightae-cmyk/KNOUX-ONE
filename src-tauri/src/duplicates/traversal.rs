@@ -41,7 +41,7 @@ fn time_to_rfc3339(value: Result<SystemTime, std::io::Error>) -> String {
 }
 
 #[cfg(target_os = "windows")]
-fn identity(_metadata: &fs::Metadata, canonical: &Path) -> (String, u64) {
+pub fn identity(_metadata: &fs::Metadata, canonical: &Path) -> (String, u64) {
     use std::{os::windows::ffi::OsStrExt, ptr::null_mut};
     use windows_sys::Win32::{
         Foundation::{CloseHandle, INVALID_HANDLE_VALUE},
@@ -84,7 +84,7 @@ fn identity(_metadata: &fs::Metadata, canonical: &Path) -> (String, u64) {
 }
 
 #[cfg(unix)]
-fn identity(metadata: &fs::Metadata, _canonical: &Path) -> (String, u64) {
+pub fn identity(metadata: &fs::Metadata, _canonical: &Path) -> (String, u64) {
     use std::os::unix::fs::MetadataExt;
     (
         format!("unix:{}:{}", metadata.dev(), metadata.ino()),
@@ -93,7 +93,7 @@ fn identity(metadata: &fs::Metadata, _canonical: &Path) -> (String, u64) {
 }
 
 #[cfg(not(any(target_os = "windows", unix)))]
-fn identity(_metadata: &fs::Metadata, canonical: &Path) -> (String, u64) {
+pub fn identity(_metadata: &fs::Metadata, canonical: &Path) -> (String, u64) {
     (format!("path:{}", canonical.display()), 1)
 }
 

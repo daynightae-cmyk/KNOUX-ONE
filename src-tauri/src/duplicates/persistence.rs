@@ -122,6 +122,7 @@ pub fn load_scan_result(
                     hard_link_count: row.get::<_, i64>(14)? as u64,
                     is_hard_link_alias: row.get::<_, i64>(15)? != 0,
                     protected_path: row.get::<_, i64>(16)? != 0,
+                    evidence: Vec::new(),
                 })
             })
             .map_err(|error| format!("scan_result_files_query_failed: {error}"))?
@@ -138,6 +139,7 @@ pub fn load_scan_result(
             confidence,
             actionable,
             warnings: Vec::new(),
+            signals: Vec::new(),
         });
     }
     summary.duplicate_files_found = groups.iter().map(|group| group.files.len() as u64).sum();
@@ -146,5 +148,9 @@ pub fn load_scan_result(
         groups,
         summary,
         warnings,
+        // The SQLite history schema does not yet store the per-signal breakdown. The
+        // column set is owned by another agent's migration, so a reloaded group reports
+        // no signals rather than inventing them; the live scan result carries the full set.
+        evidence: None,
     })
 }

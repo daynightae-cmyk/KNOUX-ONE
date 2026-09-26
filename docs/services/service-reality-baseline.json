@@ -9,10 +9,10 @@
   "totals": {
     "services": 190,
     "states": {
-      "PLANNED": 110,
+      "PLANNED": 86,
       "GUARDED": 0,
-      "STATIC_VERIFIED": 74,
-      "PARTIAL": 6,
+      "STATIC_VERIFIED": 104,
+      "PARTIAL": 0,
       "RUNTIME_VERIFIED": 0,
       "BLOCKED": 0
     },
@@ -24,9 +24,9 @@
       "name": "Windows Setup",
       "total": 10,
       "counts": {
-        "PLANNED": 7,
+        "PLANNED": 3,
         "GUARDED": 0,
-        "STATIC_VERIFIED": 3,
+        "STATIC_VERIFIED": 7,
         "PARTIAL": 0,
         "RUNTIME_VERIFIED": 0,
         "BLOCKED": 0
@@ -37,9 +37,9 @@
       "name": "Device Cleanup",
       "total": 10,
       "counts": {
-        "PLANNED": 3,
+        "PLANNED": 0,
         "GUARDED": 0,
-        "STATIC_VERIFIED": 7,
+        "STATIC_VERIFIED": 10,
         "PARTIAL": 0,
         "RUNTIME_VERIFIED": 0,
         "BLOCKED": 0
@@ -52,8 +52,8 @@
       "counts": {
         "PLANNED": 0,
         "GUARDED": 0,
-        "STATIC_VERIFIED": 6,
-        "PARTIAL": 4,
+        "STATIC_VERIFIED": 10,
+        "PARTIAL": 0,
         "RUNTIME_VERIFIED": 0,
         "BLOCKED": 0
       }
@@ -65,8 +65,8 @@
       "counts": {
         "PLANNED": 0,
         "GUARDED": 0,
-        "STATIC_VERIFIED": 8,
-        "PARTIAL": 2,
+        "STATIC_VERIFIED": 10,
+        "PARTIAL": 0,
         "RUNTIME_VERIFIED": 0,
         "BLOCKED": 0
       }
@@ -125,12 +125,12 @@
     },
     {
       "moduleId": "M09",
-      "name": "Privacy Center",
+      "name": "Privacy & Telemetry",
       "total": 10,
       "counts": {
-        "PLANNED": 10,
+        "PLANNED": 3,
         "GUARDED": 0,
-        "STATIC_VERIFIED": 0,
+        "STATIC_VERIFIED": 7,
         "PARTIAL": 0,
         "RUNTIME_VERIFIED": 0,
         "BLOCKED": 0
@@ -141,9 +141,9 @@
       "name": "Security Center",
       "total": 10,
       "counts": {
-        "PLANNED": 10,
+        "PLANNED": 5,
         "GUARDED": 0,
-        "STATIC_VERIFIED": 0,
+        "STATIC_VERIFIED": 5,
         "PARTIAL": 0,
         "RUNTIME_VERIFIED": 0,
         "BLOCKED": 0
@@ -154,9 +154,9 @@
       "name": "Backup & Recovery",
       "total": 10,
       "counts": {
-        "PLANNED": 10,
+        "PLANNED": 5,
         "GUARDED": 0,
-        "STATIC_VERIFIED": 0,
+        "STATIC_VERIFIED": 5,
         "PARTIAL": 0,
         "RUNTIME_VERIFIED": 0,
         "BLOCKED": 0
@@ -308,14 +308,16 @@
       "serviceNumber": 3,
       "name": "Winget repair guidance",
       "nameAr": "دليل إصلاح أداة Winget",
-      "state": "PLANNED",
-      "verificationLevel": "none",
+      "state": "STATIC_VERIFIED",
+      "verificationLevel": "static",
       "runtime": "windows",
+      "handlerId": "m01.winget.repair",
+      "nativeCommand": "m01_winget_repair_guide",
       "requiresElevation": false,
       "reversible": false,
       "dangerous": false,
-      "testPosture": "No active native-handler test applicable.",
-      "evidence": "Active catalog deliberately exposes no native handler; this service must not be presented as runnable."
+      "testPosture": "Static contract evidence only; Windows runtime and E2E proof are not recorded.",
+      "evidence": "Winget is diagnosed by measuring the real executable, capturing the verbatim `winget source list` output and listing the newest diagnostic log. Each guidance step must cite the measurement that produced it, and the response reports that zero mutating actions were performed. Guidance text is never executed by the application. Windows runtime proof is still required."
     },
     {
       "moduleId": "M01",
@@ -323,14 +325,16 @@
       "serviceNumber": 4,
       "name": "Essential software catalog",
       "nameAr": "كتالوج البرامج الأساسية",
-      "state": "PLANNED",
-      "verificationLevel": "none",
+      "state": "STATIC_VERIFIED",
+      "verificationLevel": "static",
       "runtime": "windows",
+      "handlerId": "m01.catalog.essential",
+      "nativeCommand": "m01_essential_catalog",
       "requiresElevation": false,
       "reversible": false,
       "dangerous": false,
-      "testPosture": "No active native-handler test applicable.",
-      "evidence": "Active catalog deliberately exposes no native handler; this service must not be presented as runnable."
+      "testPosture": "Static contract evidence only; Windows runtime and E2E proof are not recorded.",
+      "evidence": "The bundled recommendation catalog is resolved against the measured Windows uninstall registry, and the exact catalog bytes are reported with a SHA-256 so a policy edit is always visible. A package identifier is only reported as verified when an explicitly requested check actually succeeded. Windows runtime proof is still required."
     },
     {
       "moduleId": "M01",
@@ -370,14 +374,16 @@
       "serviceNumber": 7,
       "name": "Export installed application inventory",
       "nameAr": "تصدير قائمة البرامج المثبتة",
-      "state": "PLANNED",
-      "verificationLevel": "none",
+      "state": "STATIC_VERIFIED",
+      "verificationLevel": "static",
       "runtime": "windows",
+      "handlerId": "m01.apps.inventory.export",
+      "nativeCommand": "m01_installed_app_inventory_export",
       "requiresElevation": false,
       "reversible": false,
       "dangerous": false,
-      "testPosture": "No active native-handler test applicable.",
-      "evidence": "Active catalog deliberately exposes no native handler; this service must not be presented as runnable."
+      "testPosture": "Static contract evidence only; Windows runtime and E2E proof are not recorded.",
+      "evidence": "The uninstall registry is read across HKLM 64-bit, HKLM WOW6432Node and HKCU; system-component and update entries are excluded by a named rule and the exclusion counts are reported. The JSON, CSV or HTML report is written, hashed with SHA-256 and read back before it is reported as exported. Windows runtime proof is still required."
     },
     {
       "moduleId": "M01",
@@ -385,14 +391,16 @@
       "serviceNumber": 8,
       "name": "Create post-format profiles",
       "nameAr": "إنشاء بروفايل إعداد بعد الفورمات",
-      "state": "PLANNED",
-      "verificationLevel": "none",
+      "state": "STATIC_VERIFIED",
+      "verificationLevel": "static",
       "runtime": "windows",
+      "handlerId": "m01.profiles.postformat.create",
+      "nativeCommand": "m01_post_format_profile_create",
       "requiresElevation": false,
       "reversible": false,
       "dangerous": false,
-      "testPosture": "No active native-handler test applicable.",
-      "evidence": "Active catalog deliberately exposes no native handler; this service must not be presented as runnable."
+      "testPosture": "Static contract evidence only; Windows runtime and E2E proof are not recorded.",
+      "evidence": "A post-format profile accepts only allowlisted native handlers with only their allowlisted parameter keys, so it cannot become an arbitrary command line. The document is written atomically, read back and hashed. No Windows scheduled task is created and no system state changes. Windows runtime proof is still required."
     },
     {
       "moduleId": "M01",
@@ -515,14 +523,16 @@
       "serviceNumber": 6,
       "name": "Delivery Optimization cache",
       "nameAr": "مخبأ تحسين التسليم لويندوز",
-      "state": "PLANNED",
-      "verificationLevel": "none",
+      "state": "STATIC_VERIFIED",
+      "verificationLevel": "static",
       "runtime": "windows",
+      "handlerId": "m02.cache.delivery",
+      "nativeCommand": "m02_delivery_cache",
       "requiresElevation": false,
       "reversible": false,
       "dangerous": false,
-      "testPosture": "No active native-handler test applicable.",
-      "evidence": "Active catalog deliberately exposes no native handler; this service must not be presented as runnable."
+      "testPosture": "Static contract/integrity tests; Windows runtime and E2E proof are not recorded.",
+      "evidence": "The real Delivery Optimization cache directories are measured with the file API under a depth ceiling, a file ceiling and a listing ceiling; hitting a ceiling is reported. The Delivery Optimization cmdlets are read when present and their absence is reported rather than faked. Nothing is removed. Windows runtime proof is still required."
     },
     {
       "moduleId": "M02",
@@ -547,14 +557,16 @@
       "serviceNumber": 8,
       "name": "Recycle Bin review",
       "nameAr": "مراجعة وقافلة سلة المهملات",
-      "state": "PLANNED",
-      "verificationLevel": "none",
+      "state": "STATIC_VERIFIED",
+      "verificationLevel": "static",
       "runtime": "windows",
+      "handlerId": "m02.recycle.review",
+      "nativeCommand": "m02_recycle_bin_review",
       "requiresElevation": false,
       "reversible": false,
       "dangerous": false,
-      "testPosture": "No active native-handler test applicable.",
-      "evidence": "Active catalog deliberately exposes no native handler; this service must not be presented as runnable."
+      "testPosture": "Static contract/integrity tests; Windows runtime and E2E proof are not recorded.",
+      "evidence": "The Recycle Bin is enumerated through the Windows Shell namespace and sized from the shell detail columns. The number of entries that carry no size is reported, so the byte total never overstates coverage. Nothing is emptied. Windows runtime proof is still required."
     },
     {
       "moduleId": "M02",
@@ -579,14 +591,16 @@
       "serviceNumber": 10,
       "name": "Scheduled cleanup profiles",
       "nameAr": "جدولة التنظيف التلقائي",
-      "state": "PLANNED",
-      "verificationLevel": "none",
+      "state": "STATIC_VERIFIED",
+      "verificationLevel": "static",
       "runtime": "windows",
+      "handlerId": "m02.cleanup.schedule",
+      "nativeCommand": "m02_cleanup_schedule",
       "requiresElevation": false,
       "reversible": false,
       "dangerous": false,
-      "testPosture": "No active native-handler test applicable.",
-      "evidence": "Active catalog deliberately exposes no native handler; this service must not be presented as runnable."
+      "testPosture": "Static contract/integrity tests; Windows runtime and E2E proof are not recorded.",
+      "evidence": "A cleanup profile is measured through the same allowlisted category list as the ordinary cleanup and is persisted and hashed like every other profile document. Applying it delegates to the existing audited cleanup execute command, so there is one deletion path, and it requires a literal confirmation token. No Windows scheduled task is registered. Windows runtime proof is still required."
     },
     {
       "moduleId": "M03",
@@ -628,7 +642,7 @@
       "serviceNumber": 3,
       "name": "Similar-image detection",
       "nameAr": "اكتشاف الصور المتشابهة",
-      "state": "PARTIAL",
+      "state": "STATIC_VERIFIED",
       "verificationLevel": "static",
       "runtime": "windows",
       "handlerId": "m03.scan.images",
@@ -637,7 +651,7 @@
       "reversible": false,
       "dangerous": false,
       "testPosture": "Static contract tests plus limited Rust unit tests; Windows runtime and E2E proof are not recorded.",
-      "evidence": "Partial: active native path exists, but audited media/archive or old-file behavior remains intentionally limited and is not runtime verified."
+      "evidence": "Static trace: catalog handler m03.scan.images maps to m03_scan_images_complete; Windows runtime proof is still required."
     },
     {
       "moduleId": "M03",
@@ -645,7 +659,7 @@
       "serviceNumber": 4,
       "name": "Duplicate-video detection",
       "nameAr": "اكتشاف مقاطع الفيديو المكررة",
-      "state": "PARTIAL",
+      "state": "STATIC_VERIFIED",
       "verificationLevel": "static",
       "runtime": "windows",
       "handlerId": "m03.scan.videos",
@@ -654,7 +668,7 @@
       "reversible": true,
       "dangerous": false,
       "testPosture": "Static contract tests plus limited Rust unit tests; Windows runtime and E2E proof are not recorded.",
-      "evidence": "Partial: active native path exists, but audited media/archive or old-file behavior remains intentionally limited and is not runtime verified."
+      "evidence": "Static trace: catalog handler m03.scan.videos maps to m03_scan_videos_complete; Windows runtime proof is still required."
     },
     {
       "moduleId": "M03",
@@ -662,7 +676,7 @@
       "serviceNumber": 5,
       "name": "Duplicate-audio detection",
       "nameAr": "اكتشاف الملفات الصوتية المكررة",
-      "state": "PARTIAL",
+      "state": "STATIC_VERIFIED",
       "verificationLevel": "static",
       "runtime": "windows",
       "handlerId": "m03.scan.audio",
@@ -671,7 +685,7 @@
       "reversible": true,
       "dangerous": false,
       "testPosture": "Static contract tests plus limited Rust unit tests; Windows runtime and E2E proof are not recorded.",
-      "evidence": "Partial: active native path exists, but audited media/archive or old-file behavior remains intentionally limited and is not runtime verified."
+      "evidence": "Static trace: catalog handler m03.scan.audio maps to m03_scan_audio_complete; Windows runtime proof is still required."
     },
     {
       "moduleId": "M03",
@@ -696,7 +710,7 @@
       "serviceNumber": 7,
       "name": "Duplicate-archive detection",
       "nameAr": "اكتشاف الأرشيف والضغط المكرر",
-      "state": "PARTIAL",
+      "state": "STATIC_VERIFIED",
       "verificationLevel": "static",
       "runtime": "windows",
       "handlerId": "m03.scan.archives",
@@ -705,7 +719,7 @@
       "reversible": true,
       "dangerous": false,
       "testPosture": "Static contract tests plus limited Rust unit tests; Windows runtime and E2E proof are not recorded.",
-      "evidence": "Partial: active native path exists, but audited media/archive or old-file behavior remains intentionally limited and is not runtime verified."
+      "evidence": "Static trace: catalog handler m03.scan.archives maps to m03_scan_archives_complete; Windows runtime proof is still required."
     },
     {
       "moduleId": "M03",
@@ -832,7 +846,7 @@
       "serviceNumber": 5,
       "name": "Old files",
       "nameAr": "الملفات القديمة النادرة الاستخدام",
-      "state": "PARTIAL",
+      "state": "STATIC_VERIFIED",
       "verificationLevel": "static",
       "runtime": "windows",
       "handlerId": "m04.files.old",
@@ -841,7 +855,7 @@
       "reversible": false,
       "dangerous": false,
       "testPosture": "Static contract/integrity tests; Windows runtime and E2E proof are not recorded.",
-      "evidence": "Partial: active native path exists, but audited media/archive or old-file behavior remains intentionally limited and is not runtime verified."
+      "evidence": "Old-file analysis measures the machine last-access policy with fsutil and the registry, labels every row LAST_ACCESS, LAST_WRITE_FALLBACK or UNKNOWN, and only says \"not accessed since\" when access time was measured reliable. Read-only; Windows runtime proof is still required."
     },
     {
       "moduleId": "M04",
@@ -917,7 +931,7 @@
       "serviceNumber": 10,
       "name": "Exportable storage reports",
       "nameAr": "تصدير تقرير مساحة الأقراص",
-      "state": "PARTIAL",
+      "state": "STATIC_VERIFIED",
       "verificationLevel": "static",
       "runtime": "windows",
       "handlerId": "m04.report.export",
@@ -926,7 +940,7 @@
       "reversible": false,
       "dangerous": false,
       "testPosture": "Static contract/integrity tests; Windows runtime and E2E proof are not recorded.",
-      "evidence": "Partial: current native export serializes JSON evidence only; the catalog must not claim PDF until a tested PDF producer exists."
+      "evidence": "Storage reports are regenerated from the SQLite snapshot after a restart, rendered as deterministic JSON, CSV and HTML, and hashed with SHA-256 and BLAKE3 with a format-signature check. PDF is reported as unsupported with its reason rather than faked. Windows runtime proof is still required."
     },
     {
       "moduleId": "M05",
@@ -1614,14 +1628,16 @@
       "serviceNumber": 1,
       "name": "Windows permission dashboard",
       "nameAr": "لوحة التحكم في أذونات تطبيقات ويندوز",
-      "state": "PLANNED",
-      "verificationLevel": "none",
+      "state": "STATIC_VERIFIED",
+      "verificationLevel": "static",
       "runtime": "windows",
+      "handlerId": "m09.permission.dashboard",
+      "nativeCommand": "m09_permission_dashboard",
       "requiresElevation": false,
       "reversible": false,
       "dangerous": false,
-      "testPosture": "No active native-handler test applicable.",
-      "evidence": "Active catalog deliberately exposes no native handler; this service must not be presented as runnable."
+      "testPosture": "Static contract evidence only; Windows runtime and E2E proof are not recorded.",
+      "evidence": "The per-user CapabilityAccessManager consent store is read across webcam, microphone, location and extended location, with per-application allow, deny and never-asked counts and last-used timestamps converted from Windows FILETIME. A store that does not exist is reported as absent, not as clean. No permission is changed. Windows runtime proof is still required."
     },
     {
       "moduleId": "M09",
@@ -1629,14 +1645,16 @@
       "serviceNumber": 2,
       "name": "Camera permission review",
       "nameAr": "مراجعة أذونات الكاميرا",
-      "state": "PLANNED",
-      "verificationLevel": "none",
+      "state": "STATIC_VERIFIED",
+      "verificationLevel": "static",
       "runtime": "windows",
+      "handlerId": "m09.permission.camera",
+      "nativeCommand": "m09_camera_permission",
       "requiresElevation": false,
       "reversible": false,
       "dangerous": false,
-      "testPosture": "No active native-handler test applicable.",
-      "evidence": "Active catalog deliberately exposes no native handler; this service must not be presented as runnable."
+      "testPosture": "Static contract evidence only; Windows runtime and E2E proof are not recorded.",
+      "evidence": "Camera consent entries are projected from the same measured consent store the dashboard uses, so the two services cannot disagree. An absent webcam store is reported as absent. Windows runtime proof is still required."
     },
     {
       "moduleId": "M09",
@@ -1644,14 +1662,16 @@
       "serviceNumber": 3,
       "name": "Microphone permission review",
       "nameAr": "مراجعة أذونات الميكروفون",
-      "state": "PLANNED",
-      "verificationLevel": "none",
+      "state": "STATIC_VERIFIED",
+      "verificationLevel": "static",
       "runtime": "windows",
+      "handlerId": "m09.permission.microphone",
+      "nativeCommand": "m09_microphone_permission",
       "requiresElevation": false,
       "reversible": false,
       "dangerous": false,
-      "testPosture": "No active native-handler test applicable.",
-      "evidence": "Active catalog deliberately exposes no native handler; this service must not be presented as runnable."
+      "testPosture": "Static contract evidence only; Windows runtime and E2E proof are not recorded.",
+      "evidence": "Microphone consent entries come from the same measured consent store as the dashboard, with per-application counts and real last-used times. Windows runtime proof is still required."
     },
     {
       "moduleId": "M09",
@@ -1659,14 +1679,16 @@
       "serviceNumber": 4,
       "name": "Location permission review",
       "nameAr": "مراجعة أذونات الموقع الجغرافي",
-      "state": "PLANNED",
-      "verificationLevel": "none",
+      "state": "STATIC_VERIFIED",
+      "verificationLevel": "static",
       "runtime": "windows",
+      "handlerId": "m09.permission.location",
+      "nativeCommand": "m09_location_permission",
       "requiresElevation": false,
       "reversible": false,
       "dangerous": false,
-      "testPosture": "No active native-handler test applicable.",
-      "evidence": "Active catalog deliberately exposes no native handler; this service must not be presented as runnable."
+      "testPosture": "Static contract evidence only; Windows runtime and E2E proof are not recorded.",
+      "evidence": "Location consent is read from the measured consent store. A capability Windows has no record of is reported as unmeasured rather than permitted. Windows runtime proof is still required."
     },
     {
       "moduleId": "M09",
@@ -1674,14 +1696,16 @@
       "serviceNumber": 5,
       "name": "Advertising ID",
       "nameAr": "المعرف الإعلاني الخاص بويندوز",
-      "state": "PLANNED",
-      "verificationLevel": "none",
+      "state": "STATIC_VERIFIED",
+      "verificationLevel": "static",
       "runtime": "windows",
+      "handlerId": "m09.advertising.id",
+      "nativeCommand": "m09_advertising_id",
       "requiresElevation": false,
       "reversible": false,
       "dangerous": false,
-      "testPosture": "No active native-handler test applicable.",
-      "evidence": "Active catalog deliberately exposes no native handler; this service must not be presented as runnable."
+      "testPosture": "Static contract evidence only; Windows runtime and E2E proof are not recorded.",
+      "evidence": "The stored per-user advertising identifier and its Enabled switch are read verbatim. A stored identifier with the feature switched off is reported as stored rather than active, which is what a Windows reset actually leaves behind. Nothing is reset by this service. Windows runtime proof is still required."
     },
     {
       "moduleId": "M09",
@@ -1689,14 +1713,16 @@
       "serviceNumber": 6,
       "name": "Clipboard history cleanup",
       "nameAr": "تنظيف سجل الحافظة (Clipboard)",
-      "state": "PLANNED",
-      "verificationLevel": "none",
+      "state": "STATIC_VERIFIED",
+      "verificationLevel": "static",
       "runtime": "windows",
+      "handlerId": "m09.clipboard.privacy",
+      "nativeCommand": "m09_clipboard_privacy",
       "requiresElevation": false,
       "reversible": false,
       "dangerous": false,
-      "testPosture": "No active native-handler test applicable.",
-      "evidence": "Active catalog deliberately exposes no native handler; this service must not be presented as runnable."
+      "testPosture": "Static contract evidence only; Windows runtime and E2E proof are not recorded.",
+      "evidence": "Clipboard history state is read from the registry. The clipboard content is only described when the request explicitly opts in, is truncated to a sixty-character preview and is never stored. Clearing requires the literal confirmation token and does not clear clipboard history itself. Windows runtime proof is still required."
     },
     {
       "moduleId": "M09",
@@ -1734,14 +1760,16 @@
       "serviceNumber": 9,
       "name": "Hosts-file inspection",
       "nameAr": "فحص ملف Hosts الموجه للمواقع",
-      "state": "PLANNED",
-      "verificationLevel": "none",
+      "state": "STATIC_VERIFIED",
+      "verificationLevel": "static",
       "runtime": "windows",
+      "handlerId": "m09.hosts.inspect",
+      "nativeCommand": "m09_hosts_file",
       "requiresElevation": false,
       "reversible": false,
       "dangerous": false,
-      "testPosture": "No active native-handler test applicable.",
-      "evidence": "Active catalog deliberately exposes no native handler; this service must not be presented as runnable."
+      "testPosture": "Static contract evidence only; Windows runtime and E2E proof are not recorded.",
+      "evidence": "The Windows hosts file is read as bytes, validated as UTF-8 and parsed into active mappings, comments and blank lines. Blocking entries and repeated addresses are counted, and an unreadable or non-UTF-8 file is reported as such rather than as empty. The file is not modified. Windows runtime proof is still required."
     },
     {
       "moduleId": "M09",
@@ -1764,14 +1792,16 @@
       "serviceNumber": 1,
       "name": "Defender status",
       "nameAr": "حالة نظام مايكروسوفت ديفندر Defender",
-      "state": "PLANNED",
-      "verificationLevel": "none",
+      "state": "STATIC_VERIFIED",
+      "verificationLevel": "static",
       "runtime": "windows",
-      "requiresElevation": false,
+      "handlerId": "m10.defender.status",
+      "nativeCommand": "m10_defender_status",
+      "requiresElevation": true,
       "reversible": false,
-      "dangerous": false,
-      "testPosture": "No active native-handler test applicable.",
-      "evidence": "Active catalog deliberately exposes no native handler; this service must not be presented as runnable."
+      "dangerous": true,
+      "testPosture": "Static contract evidence only; Windows runtime and E2E proof are not recorded.",
+      "evidence": "Defender status, signature age, scan ages and the full exclusion list are read from Get-MpComputerStatus, Get-MpPreference, the WinDefend service and the signature registry key. Each provider is reported separately so one that stayed silent is visible. No scan is started and no setting is written. The Defender scan services remain planned because no scan has actually been run on a user machine yet. Windows runtime proof is still required."
     },
     {
       "moduleId": "M10",
@@ -1824,14 +1854,16 @@
       "serviceNumber": 5,
       "name": "Firewall status",
       "nameAr": "حالة جدار الحماية Windows Firewall",
-      "state": "PLANNED",
-      "verificationLevel": "none",
+      "state": "STATIC_VERIFIED",
+      "verificationLevel": "static",
       "runtime": "windows",
-      "requiresElevation": false,
+      "handlerId": "m10.firewall.status",
+      "nativeCommand": "m10_firewall_status",
+      "requiresElevation": true,
       "reversible": false,
-      "dangerous": false,
-      "testPosture": "No active native-handler test applicable.",
-      "evidence": "Active catalog deliberately exposes no native handler; this service must not be presented as runnable."
+      "dangerous": true,
+      "testPosture": "Static contract evidence only; Windows runtime and E2E proof are not recorded.",
+      "evidence": "Every firewall profile is read with its default actions and logging state, and active rules are counted rather than listed. No rule is created, enabled or disabled. Windows runtime proof is still required."
     },
     {
       "moduleId": "M10",
@@ -1839,14 +1871,16 @@
       "serviceNumber": 6,
       "name": "UAC status",
       "nameAr": "حالة التحكم في حساب المستخدم UAC",
-      "state": "PLANNED",
-      "verificationLevel": "none",
+      "state": "STATIC_VERIFIED",
+      "verificationLevel": "static",
       "runtime": "windows",
+      "handlerId": "m10.uac.status",
+      "nativeCommand": "m10_uac_status",
       "requiresElevation": false,
       "reversible": false,
       "dangerous": false,
-      "testPosture": "No active native-handler test applicable.",
-      "evidence": "Active catalog deliberately exposes no native handler; this service must not be presented as runnable."
+      "testPosture": "Static contract evidence only; Windows runtime and E2E proof are not recorded.",
+      "evidence": "The machine and per-user User Account Control policy values are read and each is given its plain meaning, so a bare numeric policy value is never presented without an interpretation. The response names the machine policy as the governing scope. No value is written and no elevation is requested. Windows runtime proof is still required."
     },
     {
       "moduleId": "M10",
@@ -1854,14 +1888,16 @@
       "serviceNumber": 7,
       "name": "SmartScreen status",
       "nameAr": "حالة حماية المتصفح والتنزيلات SmartScreen",
-      "state": "PLANNED",
-      "verificationLevel": "none",
+      "state": "STATIC_VERIFIED",
+      "verificationLevel": "static",
       "runtime": "windows",
+      "handlerId": "m10.smartscreen.status",
+      "nativeCommand": "m10_smartscreen_status",
       "requiresElevation": false,
       "reversible": false,
       "dangerous": false,
-      "testPosture": "No active native-handler test applicable.",
-      "evidence": "Active catalog deliberately exposes no native handler; this service must not be presented as runnable."
+      "testPosture": "Static contract evidence only; Windows runtime and E2E proof are not recorded.",
+      "evidence": "SmartScreen policy is probed at all six locations Windows exposes it and each readable value is reported with its origin. When no location is readable the service reports unknown rather than assuming a default. Windows runtime proof is still required."
     },
     {
       "moduleId": "M10",
@@ -1869,14 +1905,16 @@
       "serviceNumber": 8,
       "name": "Secure Boot & TPM",
       "nameAr": "حالة الإقلاع الآمن Secure Boot و TPM 2.0",
-      "state": "PLANNED",
-      "verificationLevel": "none",
+      "state": "STATIC_VERIFIED",
+      "verificationLevel": "static",
       "runtime": "windows",
-      "requiresElevation": false,
+      "handlerId": "m10.secureboot.tpm",
+      "nativeCommand": "m10_secureboot_tpm_status",
+      "requiresElevation": true,
       "reversible": false,
-      "dangerous": false,
-      "testPosture": "No active native-handler test applicable.",
-      "evidence": "Active catalog deliberately exposes no native handler; this service must not be presented as runnable."
+      "dangerous": true,
+      "testPosture": "Static contract evidence only; Windows runtime and E2E proof are not recorded.",
+      "evidence": "Secure Boot is read through Confirm-SecureBootUEFI and the firmware registry flag, and TPM through Get-Tpm and Win32_Tpm. Secure Boot being off is reported as a reading rather than an error, and a TPM no provider could reach is reported as unmeasured rather than absent. Windows runtime proof is still required."
     },
     {
       "moduleId": "M10",
@@ -1944,14 +1982,16 @@
       "serviceNumber": 3,
       "name": "Settings export",
       "nameAr": "تصدير إعدادات KNOUX ONE",
-      "state": "PLANNED",
-      "verificationLevel": "none",
+      "state": "STATIC_VERIFIED",
+      "verificationLevel": "static",
       "runtime": "windows",
+      "handlerId": "m11.settings.export",
+      "nativeCommand": "m11_settings_export",
       "requiresElevation": false,
       "reversible": false,
       "dangerous": false,
-      "testPosture": "No active native-handler test applicable.",
-      "evidence": "Active catalog deliberately exposes no native handler; this service must not be presented as runnable."
+      "testPosture": "Static contract evidence only; Windows runtime and E2E proof are not recorded.",
+      "evidence": "An explicit document list from the KNOUX ONE app data directory is exported, each file hashed and read back, and a manifest written, hashed and read back in turn. Directory walks are emitted in sorted order with a normalised path separator so the digest is reproducible on any platform. An empty export reports everythingVerified false rather than reading as a good backup. Windows runtime proof is still required."
     },
     {
       "moduleId": "M11",
@@ -1974,14 +2014,16 @@
       "serviceNumber": 5,
       "name": "Environment-variable export",
       "nameAr": "تصدير متغيرات البيئة PATH",
-      "state": "PLANNED",
-      "verificationLevel": "none",
+      "state": "STATIC_VERIFIED",
+      "verificationLevel": "static",
       "runtime": "windows",
+      "handlerId": "m11.environment.export",
+      "nativeCommand": "m11_environment_export",
       "requiresElevation": false,
       "reversible": false,
       "dangerous": false,
-      "testPosture": "No active native-handler test applicable.",
-      "evidence": "Active catalog deliberately exposes no native handler; this service must not be presented as runnable."
+      "testPosture": "Static contract evidence only; Windows runtime and E2E proof are not recorded.",
+      "evidence": "Machine and per-user environment variables are read from the registry and exported, with PATH reported in the order Windows actually searches it and every entry present in both scopes named, because exporting one scope alone loses entries on restore. Windows runtime proof is still required."
     },
     {
       "moduleId": "M11",
@@ -1989,14 +2031,16 @@
       "serviceNumber": 6,
       "name": "Bookmark backup",
       "nameAr": "حفظ نسخة من إشارات المتصفحات",
-      "state": "PLANNED",
-      "verificationLevel": "none",
+      "state": "STATIC_VERIFIED",
+      "verificationLevel": "static",
       "runtime": "windows",
+      "handlerId": "m11.bookmarks.backup",
+      "nativeCommand": "m11_bookmark_backup",
       "requiresElevation": false,
       "reversible": false,
       "dangerous": false,
-      "testPosture": "No active native-handler test applicable.",
-      "evidence": "Active catalog deliberately exposes no native handler; this service must not be presented as runnable."
+      "testPosture": "Static contract evidence only; Windows runtime and E2E proof are not recorded.",
+      "evidence": "Browsers are discovered from real profile directories and Chromium profile names are read from Local State rather than guessed. Every Bookmarks file is validated as JSON before it is called a backup, and a Firefox profile is copied as a complete places.sqlite set including its WAL and SHM sidecars. Nothing is written inside any browser profile directory. Windows runtime proof is still required."
     },
     {
       "moduleId": "M11",
@@ -2004,14 +2048,16 @@
       "serviceNumber": 7,
       "name": "Registry-key backup",
       "nameAr": "تصدير نسخة احتياطية لمفاتيح السجل",
-      "state": "PLANNED",
-      "verificationLevel": "none",
+      "state": "STATIC_VERIFIED",
+      "verificationLevel": "static",
       "runtime": "windows",
+      "handlerId": "m11.registry.backup",
+      "nativeCommand": "m11_registry_key_backup",
       "requiresElevation": false,
       "reversible": false,
       "dangerous": false,
-      "testPosture": "No active native-handler test applicable.",
-      "evidence": "Active catalog deliberately exposes no native handler; this service must not be presented as runnable."
+      "testPosture": "Static contract evidence only; Windows runtime and E2E proof are not recorded.",
+      "evidence": "Static trace: catalog handler m11.registry.backup maps to m11_registry_key_backup; Windows runtime proof is still required."
     },
     {
       "moduleId": "M11",
@@ -2034,14 +2080,16 @@
       "serviceNumber": 9,
       "name": "Restore wizard",
       "nameAr": "معالج استعادة النسخ الاحتياطية",
-      "state": "PLANNED",
-      "verificationLevel": "none",
+      "state": "STATIC_VERIFIED",
+      "verificationLevel": "static",
       "runtime": "windows",
+      "handlerId": "m11.restore.inventory",
+      "nativeCommand": "m11_restore_inventory",
       "requiresElevation": false,
       "reversible": false,
       "dangerous": false,
-      "testPosture": "No active native-handler test applicable.",
-      "evidence": "Active catalog deliberately exposes no native handler; this service must not be presented as runnable."
+      "testPosture": "Static contract evidence only; Windows runtime and E2E proof are not recorded.",
+      "evidence": "Static trace: catalog handler m11.restore.inventory maps to m11_restore_inventory; Windows runtime proof is still required."
     },
     {
       "moduleId": "M11",

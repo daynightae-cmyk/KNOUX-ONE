@@ -17,8 +17,6 @@ use tauri::{AppHandle, Emitter, Manager};
 use uuid::Uuid;
 use walkdir::WalkDir;
 
-static SNAPSHOTS: Lazy<Mutex<HashMap<String, StorageAnalysisResult>>> =
-    Lazy::new(|| Mutex::new(HashMap::new()));
 static CANCEL: Lazy<Mutex<HashMap<String, Arc<AtomicBool>>>> =
     Lazy::new(|| Mutex::new(HashMap::new()));
 static MONITOR_RUNNING: AtomicBool = AtomicBool::new(false);
@@ -32,6 +30,53 @@ fn default_days() -> u64 {
 fn default_max() -> u64 {
     1_000_000
 }
+/// Which timestamp a row's "age" actually came from. The three values are not
+/// interchangeable and the UI must not collapse them into one word.
+pub mod age_basis {
+    /// Windows was measured to keep last-access timestamps, so access time is real.
+    pub const LAST_ACCESS: &str = "LAST_ACCESS";
+    /// Access time is not trustworthy on this machine, so modification time is used
+    /// and the row must be described as "not modified since".
+    pub const LAST_WRITE_FALLBACK: &str = "LAST_WRITE_FALLBACK";
+    /// Neither timestamp could be read, so no age claim is made at all.
+    pub const UNKNOWN: &str = "UNKNOWN";
+}
+
+/// Measured evidence about the machine's NTFS last-access policy.
+///
+/// Without this, "old" silently becomes "unused" even on a system that stopped
+/// recording last-access times, which is the specific lie this service must not tell.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct StorageAgePolicy {
+    /// `fsutil`, `registry`, or `unknown`.
+    pub source: String,
+    /// The exact value the operating system reported, kept verbatim as evidence.
+    pub raw_value: String,
+    /// `last_access_updates_enabled`, `last_access_updates_disabled`,
+    /// `system_managed`, or `unknown`.
+    pub state: String,
+    /// True only when access time can be treated as a real "last used" signal.
+    pub last_access_reliable_for_files: bool,
+    pub note_en: String,
+    pub note_ar: String,
+}
+
+impl Default for StorageAgePolicy {
+    fn default() -> Self {
+        Self {
+            source: "unknown".into(),
+            raw_value: String::new(),
+            state: "unknown".into(),
+            last_access_reliable_for_files: false,
+            note_en: "The last-access policy could not be measured, so no row is described \
+                      as unused."
+                .into(),
+            note_ar: "تعذّر قياس سياسة وقت الوصول، لذلك لا يُوصف أي صف بأنه غير مستخدم.".into(),
+        }
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct StorageScanRequest {
@@ -42,6 +87,10 @@ pub struct StorageScanRequest {
     pub old_days: u64,
     #[serde(default = "default_max")]
     pub max_files: u64,
+    /// Absolute paths whose subtrees are skipped. Excluded roots are reported back so a
+    /// smaller result is explainable rather than mysterious.
+    #[serde(default)]
+    pub excludes: Vec<String>,
 }
 impl StorageScanRequest {
     fn root(path: String) -> Self {
@@ -50,6 +99,7 @@ impl StorageScanRequest {
             top_limit: 100,
             old_days: 180,
             max_files: 1_000_000,
+            excludes: Vec::new(),
         }
     }
 }
@@ -60,7 +110,10 @@ pub struct StorageFileItem {
     pub size_bytes: u64,
     pub modified_at: String,
     pub accessed_at: Option<String>,
+    pub created_at: Option<String>,
     pub age_basis: String,
+    /// True only when the row crossed the age threshold on its own recorded basis.
+    pub is_old: bool,
     pub extension: String,
     pub category: String,
 }
@@ -86,8 +139,14 @@ pub struct StorageOldFilesSummary {
     pub file_count: u64,
     pub size_bytes: u64,
     pub largest_files: Vec<StorageFileItem>,
+    /// Kept for compatibility, but now derived from the measured policy rather than
+    /// from whether any single file happened to return an access time.
     pub access_time_supported: bool,
     pub fallback_file_count: u64,
+    pub unknown_count: u64,
+    pub age_policy: StorageAgePolicy,
+    /// This service is analysis only. It never deletes, moves, or quarantines.
+    pub read_only: bool,
 }
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -104,9 +163,12 @@ pub struct StorageAnalysisResult {
     pub largest_folders: Vec<StorageFolderItem>,
     pub type_distribution: Vec<StorageTypeItem>,
     pub old_files: StorageOldFilesSummary,
+    pub age_policy: StorageAgePolicy,
+    pub excluded_paths: Vec<String>,
     pub scanned_at: String,
     pub warnings: Vec<String>,
 }
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct PhysicalStorageDevice {
@@ -177,6 +239,12 @@ pub struct StorageSpaceCheckResult {
 pub struct StorageReportExportRequest {
     pub scan_id: String,
     pub file_name: Option<String>,
+    /// `json`, `csv`, `html`, or `all`. PDF is not accepted; see `m04_report_formats`.
+    #[serde(default)]
+    pub format: Option<String>,
+    /// `none` or `user_profile`.
+    #[serde(default)]
+    pub redaction: Option<String>,
 }
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -186,7 +254,43 @@ pub struct StorageReportExportResult {
     pub path: String,
     pub byte_count: u64,
     pub json_evidence_path: String,
+    /// Every written document with its content hash and format-signature verdict.
+    pub artifacts: Vec<super::m04_reports::StorageReportArtifact>,
+    pub redaction_profile: String,
+    pub source_operation_id: Option<String>,
+    pub formats_supported: Vec<String>,
+    /// Formats a user may reasonably ask for that this build cannot honestly produce,
+    /// each with the reason. A format is never silently skipped.
+    pub formats_unsupported: Vec<StorageUnsupportedFormat>,
+    pub warnings: Vec<String>,
 }
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct StorageUnsupportedFormat {
+    pub format: String,
+    pub reason_en: String,
+    pub reason_ar: String,
+}
+
+/// The report formats this build can produce. PDF is deliberately absent: producing a
+/// PDF requires a vetted renderer, and a hand-built document that silently drops
+/// non-ASCII paths would misrepresent the evidence.
+pub const SUPPORTED_REPORT_FORMATS: [&str; 3] = ["json", "csv", "html"];
+
+fn unsupported_formats() -> Vec<StorageUnsupportedFormat> {
+    vec![StorageUnsupportedFormat {
+        format: "pdf".into(),
+        reason_en: "PDF is not produced. It needs a vetted renderer with embedded Unicode \
+                    fonts; a hand-assembled document would drop non-ASCII paths. Use the \
+                    HTML report, which renders Arabic and every measured path exactly."
+            .into(),
+        reason_ar: "لا يُنتج ملف PDF. يتطلب محركًا موثوقًا بخطوط Unicode مدمجة، والوثيقة \
+                    المُركّبة يدويًا ستحذف المسارات غير اللاتينية. استخدم تقرير HTML الذي \
+                    يعرض العربية وكل مسار مقيس بدقة."
+            .into(),
+    }]
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct StorageProgress {
@@ -251,9 +355,132 @@ fn category(ext: &str) -> &'static str {
 }
 fn push_file(items: &mut Vec<StorageFileItem>, item: StorageFileItem, limit: usize) {
     items.push(item);
-    items.sort_by(|a, b| b.size_bytes.cmp(&a.size_bytes));
+    // Total order so the list is stable across runs: size descending, then path. Without
+    // the tiebreak, two equal-size files can swap places between scans and a report
+    // re-export would not be reproducible.
+    items.sort_by(|a, b| {
+        b.size_bytes
+            .cmp(&a.size_bytes)
+            .then_with(|| a.path.cmp(&b.path))
+    });
     items.truncate(limit)
 }
+
+/// Extracts the integer that follows `key` in `fsutil behavior query` output, whose
+/// real shape is `disablelastaccess = 1 (disabled)`.
+fn parse_fsutil_value(output: &str, key: &str) -> Option<String> {
+    let lowered = output.to_ascii_lowercase();
+    let position = lowered.find(key)?;
+    let rest = &output[position + key.len()..];
+    let after_equals = rest.split_once('=')?.1;
+    let digits: String = after_equals
+        .trim_start()
+        .chars()
+        .take_while(|c| c.is_ascii_digit())
+        .collect();
+    if digits.is_empty() {
+        None
+    } else {
+        Some(digits)
+    }
+}
+
+fn policy_state(raw: &str) -> &'static str {
+    match raw {
+        "0" => "last_access_updates_enabled",
+        "1" => "last_access_updates_disabled",
+        // Value 2 means only NTFS *directories* update their own last-access time, so
+        // file access times are not a usable "last used" signal.
+        "2" => "system_managed",
+        _ => "unknown",
+    }
+}
+
+/// Measures the machine's real last-access policy.
+///
+/// `fsutil behavior query disablelastaccess` is the authoritative surface. The
+/// registry value behind it is used only as a fallback, and the source used is always
+/// reported so the evidence is attributable.
+fn detect_age_policy() -> StorageAgePolicy {
+    #[cfg(target_os = "windows")]
+    {
+        if let Ok(output) = Command::new("fsutil.exe")
+            .args(["behavior", "query", "disablelastaccess"])
+            .output()
+        {
+            if output.status.success() {
+                let text = String::from_utf8_lossy(&output.stdout);
+                if let Some(raw) = parse_fsutil_value(&text, "disablelastaccess") {
+                    let state = policy_state(&raw);
+                    let reliable = state == "last_access_updates_enabled";
+                    return StorageAgePolicy {
+                        source: "fsutil".into(),
+                        raw_value: raw.clone(),
+                        state: state.into(),
+                        last_access_reliable_for_files: reliable,
+                        note_en: if reliable {
+                            "Windows reports that last-access timestamps are updated, so \
+                             access time is a real last-used signal."
+                                .into()
+                        } else {
+                            format!(
+                                "Windows reports disablelastaccess = {raw}, so last-access \
+                                 timestamps are not a reliable last-used signal. Rows fall back \
+                                 to modification time and are described as \"not modified since\"."
+                            )
+                        },
+                        note_ar: if reliable {
+                            "تعرض ويندوز أن وقت الوصول يُحدَّث، لذلك هو دليل حقيقي على آخر استخدام."
+                                .into()
+                        } else {
+                            format!(
+                                "تعرض ويندوز أن disablelastaccess = {raw}، لذلك وقت الوصول ليس \
+                                 دليلًا موثوقًا على آخر استخدام. تعتمد الصفوف على وقت التعديل \
+                                 وتُوصف بأنها \"لم يتم تعديلها منذ\"."
+                            )
+                        },
+                    };
+                }
+            }
+        }
+
+        let script = r#"$ErrorActionPreference='Stop';$v=(Get-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem' -Name NtfsDisableLastAccessUpdate -ErrorAction Stop).NtfsDisableLastAccessUpdate;[string]$v"#;
+        if let Ok(output) = Command::new("powershell.exe")
+            .args(["-NoProfile", "-NonInteractive", "-Command", script])
+            .output()
+        {
+            if output.status.success() {
+                let raw = String::from_utf8_lossy(&output.stdout).trim().to_string();
+                if !raw.is_empty() {
+                    let state = policy_state(&raw);
+                    let reliable = state == "last_access_updates_enabled";
+                    return StorageAgePolicy {
+                        source: "registry".into(),
+                        raw_value: raw.clone(),
+                        state: state.into(),
+                        last_access_reliable_for_files: reliable,
+                        note_en: format!(
+                            "Read NtfsDisableLastAccessUpdate = {raw} from the registry, so \
+                             last-access timestamps are {} a reliable last-used signal.",
+                            if reliable { "a" } else { "not a" }
+                        ),
+                        note_ar: format!(
+                            "قُرئت القيمة NtfsDisableLastAccessUpdate = {raw} من السجل، لذلك وقت \
+                             الوصول {} دليل موثوق على آخر استخدام.",
+                            if reliable {
+                                "يُعدّ"
+                            } else {
+                                "لا يُعدّ"
+                            }
+                        ),
+                    };
+                }
+            }
+        }
+    }
+    StorageAgePolicy::default()
+}
+
 fn add_folders(root: &Path, file: &Path, size: u64, map: &mut HashMap<PathBuf, (u64, u64)>) {
     let mut current = file.parent();
     while let Some(dir) = current {
@@ -283,6 +510,21 @@ fn scan(
     let limit = request.top_limit.clamp(10, 500);
     let max = request.max_files.clamp(1000, 10_000_000);
     let threshold = request.old_days.saturating_mul(86400);
+    let policy = detect_age_policy();
+    // Canonicalize the user exclusions once so comparison is not defeated by `..`,
+    // a different separator, or a relative spelling of the same directory.
+    let mut exclusions: Vec<PathBuf> = Vec::new();
+    for raw in &request.excludes {
+        match dunce::canonicalize(PathBuf::from(raw.trim())) {
+            Ok(path) if path != root => exclusions.push(path),
+            Ok(_) => {
+                return Err("storage_exclusion_equals_root".into());
+            }
+            Err(_) => {
+                return Err(format!("storage_exclusion_not_found:{}", raw.trim()));
+            }
+        }
+    }
     let mut largest = Vec::new();
     let mut old = Vec::new();
     let mut folders = HashMap::new();
@@ -295,7 +537,8 @@ fn scan(
     let mut old_count = 0u64;
     let mut old_bytes = 0u64;
     let mut fallback = 0u64;
-    let mut access_supported = false;
+    let mut unknown = 0u64;
+    let mut excluded_hits = HashSet::new();
     let mut warnings = Vec::new();
     let mut truncated = false;
     for item in WalkDir::new(&root).follow_links(false).into_iter() {
@@ -313,6 +556,15 @@ fn scan(
             }
         };
         if entry.file_type().is_symlink() {
+            continue;
+        }
+        // `filter_entry` semantics: skipping a directory prunes its whole subtree, and
+        // the skip is recorded so the smaller result stays explainable.
+        if let Some(hit) = exclusions
+            .iter()
+            .find(|excluded| entry.path().starts_with(excluded))
+        {
+            excluded_hits.insert(hit.to_string_lossy().to_string());
             continue;
         }
         if entry.file_type().is_dir() {
@@ -344,16 +596,14 @@ fn scan(
         let size = metadata.len();
         let modified = metadata.modified().ok();
         let accessed = metadata.accessed().ok();
-        if accessed.is_some() {
-            access_supported = true;
+        let created = metadata.created().ok();
+        let (age_time, basis) =
+            classify_age(policy.last_access_reliable_for_files, accessed, modified);
+        match basis {
+            age_basis::LAST_ACCESS => {}
+            age_basis::LAST_WRITE_FALLBACK => fallback += 1,
+            _ => unknown += 1,
         }
-        let (age_time, basis) = match accessed {
-            Some(v) => (Some(v), "last_access"),
-            None => {
-                fallback += 1;
-                (modified, "modified_fallback")
-            }
-        };
         let is_old = age_time
             .and_then(|v| v.elapsed().ok())
             .map(|v| v.as_secs() >= threshold)
@@ -371,7 +621,9 @@ fn scan(
                 .unwrap_or_else(Utc::now)
                 .to_rfc3339(),
             accessed_at: accessed.map(DateTime::<Utc>::from).map(|v| v.to_rfc3339()),
+            created_at: created.map(DateTime::<Utc>::from).map(|v| v.to_rfc3339()),
             age_basis: basis.into(),
+            is_old,
             extension: extension.clone(),
             category: category(&extension).into(),
         };
@@ -411,7 +663,11 @@ fn scan(
             file_count,
         })
         .collect::<Vec<_>>();
-    largest_folders.sort_by(|a, b| b.size_bytes.cmp(&a.size_bytes));
+    largest_folders.sort_by(|a, b| {
+        b.size_bytes
+            .cmp(&a.size_bytes)
+            .then_with(|| a.path.cmp(&b.path))
+    });
     largest_folders.truncate(limit);
     let mut type_distribution = types
         .into_iter()
@@ -424,9 +680,17 @@ fn scan(
             },
         )
         .collect::<Vec<_>>();
-    type_distribution.sort_by(|a, b| b.size_bytes.cmp(&a.size_bytes));
-    if !access_supported {
-        warnings.push("Last-access timestamps were unavailable; modification time was used and is labeled per file.".into());
+    type_distribution.sort_by(|a, b| {
+        b.size_bytes
+            .cmp(&a.size_bytes)
+            .then_with(|| a.category.cmp(&b.category))
+    });
+    let mut excluded_paths: Vec<String> = excluded_hits.into_iter().collect();
+    excluded_paths.sort();
+    if unknown > 0 {
+        warnings.push(format!(
+            "unknown_age_basis_files:{unknown} rows with no readable timestamp make no age claim"
+        ));
     }
     let cancelled = token.load(Ordering::Relaxed);
     Ok(StorageAnalysisResult {
@@ -446,27 +710,50 @@ fn scan(
             file_count: old_count,
             size_bytes: old_bytes,
             largest_files: old,
-            access_time_supported: access_supported,
+            access_time_supported: policy.last_access_reliable_for_files,
             fallback_file_count: fallback,
+            unknown_count: unknown,
+            age_policy: policy.clone(),
+            read_only: true,
         },
+        age_policy: policy,
+        excluded_paths,
         scanned_at: Utc::now().to_rfc3339(),
         warnings,
     })
 }
-fn save_snapshot(value: &StorageAnalysisResult) {
-    if !value.cancelled {
-        if let Ok(mut map) = SNAPSHOTS.lock() {
-            map.insert(value.scan_id.clone(), value.clone());
-            while map.len() > 20 {
-                if let Some(k) = map.keys().next().cloned() {
-                    map.remove(&k);
-                } else {
-                    break;
-                }
-            }
+
+/// Chooses the timestamp a row's age is measured from, and never claims a signal the
+/// machine is not actually keeping.
+fn classify_age(
+    last_access_reliable: bool,
+    accessed: Option<std::time::SystemTime>,
+    modified: Option<std::time::SystemTime>,
+) -> (Option<std::time::SystemTime>, &'static str) {
+    if last_access_reliable {
+        if let Some(value) = accessed {
+            return (Some(value), age_basis::LAST_ACCESS);
         }
     }
+    match modified {
+        Some(value) => (Some(value), age_basis::LAST_WRITE_FALLBACK),
+        None => (None, age_basis::UNKNOWN),
+    }
 }
+
+/// Persists a completed, non-cancelled scan so a later export can be regenerated from
+/// the database instead of from process memory. A persistence failure is reported as a
+/// warning rather than silently dropping the evidence.
+fn save_snapshot(app: &AppHandle, result: &StorageAnalysisResult) -> Option<String> {
+    if result.cancelled {
+        return None;
+    }
+    match super::m04_reports::persist_snapshot(app, &result.excluded_paths, result) {
+        Ok(()) => None,
+        Err(error) => Some(format!("storage_snapshot_persist_failed:{error}")),
+    }
+}
+
 async fn scan_command(
     app: AppHandle,
     op_id: String,
@@ -490,30 +777,69 @@ async fn scan_command(
     }
     match execution {
         Ok(data) => {
-            save_snapshot(&data);
-            let warnings = data.warnings.clone();
+            let persist_warning = save_snapshot(&app, &data);
+            let mut warnings = data.warnings.clone();
+            if let Some(message) = persist_warning {
+                warnings.push(message);
+            }
+            let status = if data.cancelled {
+                "cancelled"
+            } else if warnings.is_empty() {
+                "completed"
+            } else {
+                "completed_with_warnings"
+            };
+            let policy = data.age_policy.clone();
+            // The summary must not imply the files are unused. Whether access time is
+            // trustworthy is stated outright, because it decides the only honest wording.
+            let (en, ar) = if policy.last_access_reliable_for_files {
+                (
+                    format!(
+                        "Measured {} files. Windows keeps last-access timestamps, so access \
+                         time is used and these rows mean \"not accessed since\" the threshold.",
+                        data.total_files
+                    ),
+                    format!(
+                        "تم قياس {} ملف. تحدّث ويندوز وقت الوصول، لذلك يُستخدم وقت الوصول \
+                         وتعني هذه الصفوف \"لم يتم الوصول إليها منذ\" الحد.",
+                        data.total_files
+                    ),
+                )
+            } else if policy.state == "unknown" {
+                (
+                    "Measured files, but the last-access policy could not be read, so no row \
+                     is described as unused; modification time is used where available."
+                        .into(),
+                    "تم قياس الملفات، لكن تعذّرت قراءة سياسة وقت الوصول، لذلك لا يُوصف أي صف \
+                     بأنه غير مستخدم؛ يُستخدم وقت التعديل عند توفره."
+                        .into(),
+                )
+            } else {
+                (
+                    format!(
+                        "Measured {} files. Windows reports disablelastaccess = {}, so access \
+                         time is not a last-used signal; rows fall back to modification time and \
+                         mean \"not modified since\" the threshold.",
+                        data.total_files, policy.raw_value
+                    ),
+                    format!(
+                        "تم قياس {} ملف. تُظهر ويندوز أن disablelastaccess = {}، لذلك وقت الوصول \
+                         ليس دليلًا على آخر استخدام؛ تعتمد الصفوف على وقت Modification وتعني \
+                         \"لم يتم تعديلها منذ\" الحد.",
+                        data.total_files, policy.raw_value
+                    ),
+                )
+            };
             Ok(op(
                 op_id,
                 capability,
                 handler,
                 started,
                 timer,
-                if data.cancelled {
-                    "cancelled"
-                } else if warnings.is_empty() {
-                    "completed"
-                } else {
-                    "completed_with_warnings"
-                },
-                Some(data.clone()),
-                format!(
-                    "Measured {} files with explicit access-time evidence.",
-                    data.total_files
-                ),
-                format!(
-                    "تم قياس {} ملف مع توضيح دليل وقت الوصول لكل ملف.",
-                    data.total_files
-                ),
+                status,
+                Some(data),
+                en,
+                ar,
                 warnings,
                 None,
             ))
@@ -778,61 +1104,6 @@ pub fn m04_space_check_complete(
     Ok(op(op_id,"m04_s09","m04.space.check",started,timer,if warnings.is_empty(){"completed"}else{"completed_with_warnings"},Some(data),"Free space was checked and persistent in-process monitoring was enabled with Windows toast alerts.".into(),"تم فحص المساحة الحرة وتفعيل المراقبة الخلفية مع تنبيهات ويندوز.".into(),warnings,None))
 }
 
-fn ascii(value: &str) -> String {
-    value
-        .chars()
-        .map(|c| {
-            if c.is_ascii_graphic() || c == ' ' {
-                c
-            } else {
-                '?'
-            }
-        })
-        .collect()
-}
-fn pdf_escape(value: &str) -> String {
-    ascii(value)
-        .replace('\\', "\\\\")
-        .replace('(', "\\(")
-        .replace(')', "\\)")
-}
-fn make_pdf(lines: &[String]) -> Vec<u8> {
-    let content = lines
-        .iter()
-        .take(46)
-        .enumerate()
-        .map(|(i, line)| {
-            format!(
-                "BT /F1 10 Tf 50 {} Td ({}) Tj ET\n",
-                790 - (i as i32 * 16),
-                pdf_escape(line)
-            )
-        })
-        .collect::<String>();
-    let objects = ["<< /Type /Catalog /Pages 2 0 R >>".to_string(),"<< /Type /Pages /Kids [3 0 R] /Count 1 >>".to_string(),"<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 842] /Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R >>".to_string(),"<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>".to_string(),format!("<< /Length {} >>\nstream\n{}endstream",content.len(),content)];
-    let mut out = b"%PDF-1.4\n".to_vec();
-    let mut offsets = Vec::new();
-    for (i, obj) in objects.iter().enumerate() {
-        offsets.push(out.len());
-        out.extend_from_slice(format!("{} 0 obj\n{}\nendobj\n", i + 1, obj).as_bytes());
-    }
-    let xref = out.len();
-    out.extend_from_slice(
-        format!("xref\n0 {}\n0000000000 65535 f \n", objects.len() + 1).as_bytes(),
-    );
-    for offset in offsets {
-        out.extend_from_slice(format!("{:010} 00000 n \n", offset).as_bytes());
-    }
-    out.extend_from_slice(
-        format!(
-            "trailer << /Size {} /Root 1 0 R >>\nstartxref\n{}\n%%EOF\n",
-            objects.len() + 1,
-            xref
-        )
-        .as_bytes(),
-    );
-    out
-}
 fn safe_name(value: Option<String>, scan_id: &str, ext: &str) -> String {
     let base = value.unwrap_or_else(|| format!("storage-report-{scan_id}"));
     let clean = base
@@ -849,6 +1120,24 @@ fn safe_name(value: Option<String>, scan_id: &str, ext: &str) -> String {
         ext
     )
 }
+
+/// Resolves the requested formats to the concrete set to render. `all` expands to every
+/// supported format. An unsupported request is an error, never a silent fallback.
+fn resolve_formats(requested: Option<&str>) -> Result<Vec<String>, String> {
+    let value = requested.unwrap_or("all");
+    if value == "all" {
+        return Ok(SUPPORTED_REPORT_FORMATS
+            .iter()
+            .map(|f| (*f).to_string())
+            .collect());
+    }
+    let normalized = value.trim().to_ascii_lowercase();
+    if !SUPPORTED_REPORT_FORMATS.contains(&normalized.as_str()) {
+        return Err(format!("report_format_unsupported:{normalized}"));
+    }
+    Ok(vec![normalized])
+}
+
 #[tauri::command]
 pub fn m04_report_export_complete(
     app: AppHandle,
@@ -857,11 +1146,125 @@ pub fn m04_report_export_complete(
 ) -> Result<OperationResult<StorageReportExportResult>, String> {
     let started = Utc::now().to_rfc3339();
     let timer = Instant::now();
-    let snapshot = SNAPSHOTS
-        .lock()
-        .ok()
-        .and_then(|m| m.get(&request.scan_id).cloned());
-    let Some(snapshot) = snapshot else {
+    let formats = match resolve_formats(request.format.as_deref()) {
+        Ok(value) => value,
+        Err(error) => {
+            return Ok(op(
+                op_id,
+                "m04_s10",
+                "m04.report.export",
+                started,
+                timer,
+                "failed",
+                None,
+                "Requested report format is not supported.".into(),
+                "صيغة التقرير المطلوبة غير مدعومة.".into(),
+                Vec::new(),
+                Some(error),
+            ))
+        }
+    };
+    let redaction = match super::m04_reports::RedactionProfile::parse(request.redaction.as_deref())
+    {
+        Ok(value) => value,
+        Err(error) => {
+            return Ok(op(
+                op_id,
+                "m04_s10",
+                "m04.report.export",
+                started,
+                timer,
+                "failed",
+                None,
+                "Requested redaction profile is not supported.".into(),
+                "ملف إخفاء الهوية المطلوب غير مدعوم.".into(),
+                Vec::new(),
+                Some(error),
+            ))
+        }
+    };
+
+    // The snapshot comes from SQLite, so the export works after a restart instead of
+    // depending on a process-lifetime in-memory map.
+    let snapshot = match super::m04_reports::load_snapshot(&app, &request.scan_id) {
+        Ok(value) => value,
+        Err(error) => {
+            return Ok(op(
+                op_id,
+                "m04_s10",
+                "m04.report.export",
+                started,
+                timer,
+                "failed",
+                None,
+                "No persisted analysis was found for that scan id. Run an analysis first; \
+                 cancelled scans are never persisted."
+                    .into(),
+                "لم يُعثر على تحليل محفوظ لرقم الفحص. شغّل تحليلًا أولًا؛ الفحوص الملغاة لا تُحفظ.".into(),
+                Vec::new(),
+                Some(error),
+            ))
+        }
+    };
+
+    let directory = match app
+        .path()
+        .app_data_dir()
+        .map_err(|e| format!("app_data_failed:{e}"))
+    {
+        Ok(base) => base.join("storage-reports"),
+        Err(error) => {
+            return Ok(op(
+                op_id,
+                "m04_s10",
+                "m04.report.export",
+                started,
+                timer,
+                "failed",
+                None,
+                "The report directory could not be resolved.".into(),
+                "تعذّر تحديد مجلد التقارير.".into(),
+                Vec::new(),
+                Some(error),
+            ))
+        }
+    };
+
+    let generated_at = Utc::now().to_rfc3339();
+    let mut artifacts = Vec::new();
+    let mut warnings = Vec::new();
+    for format in &formats {
+        let rendered = match format.as_str() {
+            "json" => super::m04_reports::render_json(&snapshot, redaction, generated_at.clone()),
+            "csv" => super::m04_reports::render_csv(&snapshot, redaction, generated_at.clone()),
+            "html" => super::m04_reports::render_html(&snapshot, redaction, generated_at.clone()),
+            other => Err(format!("report_format_unsupported:{other}")),
+        };
+        let rendered = match rendered {
+            Ok(value) => value,
+            Err(error) => {
+                warnings.push(format!("report_render_failed:{format}:{error}"));
+                continue;
+            }
+        };
+        let stem = safe_name(request.file_name.clone(), &snapshot.snapshot_id, "");
+        let stem = stem.trim_end_matches('.').to_string();
+        match super::m04_reports::write_artifact(&directory, &stem, format, &rendered.bytes) {
+            Ok(artifact) => {
+                if !artifact.signature_valid {
+                    warnings.push(format!(
+                        "artifact_signature_unverified:{} the written bytes do not match the \
+                         declared {format} signature",
+                        artifact.artifact_id
+                    ));
+                }
+                artifacts.push(artifact);
+            }
+            Err(error) => warnings.push(format!("report_write_failed:{format}:{error}")),
+        }
+    }
+
+    if artifacts.is_empty() {
         return Ok(op(
             op_id,
             "m04_s10",
@@ -870,71 +1273,129 @@ pub fn m04_report_export_complete(
             timer,
             "failed",
             None,
-            "Measured snapshot unavailable. Run a new analysis.".into(),
-            "المعاينة المقاسة غير متاحة. شغّل تحليلًا جديدًا.".into(),
-            Vec::new(),
-            Some("storage_snapshot_missing".into()),
+            "No report document could be written.".into(),
+            "لم يُكتب أي مستند تقرير.".into(),
+            warnings,
+            Some("report_write_failed".into()),
         ));
-    };
-    let dir = app
-        .path()
-        .app_data_dir()
-        .map_err(|e| format!("app_data_failed:{e}"))?
-        .join("storage-reports");
-    fs::create_dir_all(&dir).map_err(|e| format!("report_dir_failed:{e}"))?;
-    let json_path = dir.join(safe_name(
-        request.file_name.clone(),
-        &snapshot.scan_id,
-        "json",
-    ));
-    let json =
-        serde_json::to_vec_pretty(&snapshot).map_err(|e| format!("report_json_failed:{e}"))?;
-    fs::write(&json_path, &json).map_err(|e| format!("report_json_write_failed:{e}"))?;
-    let pdf_path = dir.join(safe_name(request.file_name, &snapshot.scan_id, "pdf"));
-    let mut lines = vec![
-        "KNOUX ONE - Verified Storage Report".into(),
-        format!("Scan ID: {}", snapshot.scan_id),
-        format!("Root: {}", snapshot.root_path),
-        format!("Measured at: {}", snapshot.scanned_at),
-        format!("Files: {}", snapshot.total_files),
-        format!("Directories: {}", snapshot.total_directories),
-        format!("Bytes: {}", snapshot.total_bytes),
-        format!(
-            "Old files: {} ({} bytes)",
-            snapshot.old_files.file_count, snapshot.old_files.size_bytes
-        ),
-        format!(
-            "Access-time supported: {}",
-            snapshot.old_files.access_time_supported
-        ),
-        "Largest files:".into(),
-    ];
-    for item in snapshot.largest_files.iter().take(25) {
-        lines.push(format!("{} bytes - {}", item.size_bytes, item.path));
     }
-    let pdf = make_pdf(&lines);
-    fs::write(&pdf_path, &pdf).map_err(|e| format!("report_pdf_write_failed:{e}"))?;
+
+    // Record every artifact and its hash so a report can be verified later.
+    match crate::storage::database::open(&app) {
+        Ok(connection) => {
+            for artifact in &artifacts {
+                if let Err(error) = super::m04_reports::record_artifact(
+                    &connection,
+                    artifact,
+                    Some(&op_id),
+                    &snapshot.snapshot_id,
+                    redaction,
+                ) {
+                    warnings.push(format!("artifact_record_failed:{}", artifact.artifact_id));
+                    warnings.push(format!("artifact_record_error:{error}"));
+                }
+            }
+        }
+        Err(error) => warnings.push(format!("artifact_record_unavailable:{error}")),
+    }
+
+    let json_artifact = artifacts
+        .iter()
+        .find(|artifact| artifact.format == "json")
+        .cloned();
+    let primary = artifacts[0].clone();
     let data = StorageReportExportResult {
-        scan_id: snapshot.scan_id.clone(),
-        format: "pdf+json".into(),
-        path: pdf_path.to_string_lossy().to_string(),
-        byte_count: pdf.len() as u64,
-        json_evidence_path: json_path.to_string_lossy().to_string(),
+        scan_id: snapshot.snapshot_id.clone(),
+        format: artifacts
+            .iter()
+            .map(|artifact| artifact.format.clone())
+            .collect::<Vec<_>>()
+            .join("+"),
+        path: primary.path.clone(),
+        byte_count: artifacts.iter().map(|artifact| artifact.byte_count).sum(),
+        json_evidence_path: json_artifact
+            .as_ref()
+            .map(|artifact| artifact.path.clone())
+            .unwrap_or_default(),
+        redaction_profile: redaction.as_str().to_string(),
+        source_operation_id: snapshot.operation_id.clone(),
+        formats_supported: SUPPORTED_REPORT_FORMATS
+            .iter()
+            .map(|f| (*f).to_string())
+            .collect(),
+        formats_unsupported: unsupported_formats(),
+        artifacts,
+        warnings: warnings.clone(),
     };
+    let status = if warnings.is_empty() {
+        "completed"
+    } else {
+        "completed_with_warnings"
+    };
+    let written = data.artifacts.len();
+    let source_scan = data.scan_id.clone();
     Ok(op(
         op_id,
         "m04_s10",
         "m04.report.export",
         started,
         timer,
-        "completed",
+        status,
         Some(data),
-        "Exported a valid PDF report with a JSON evidence sidecar.".into(),
-        "تم تصدير تقرير PDF صالح مع ملف أدلة JSON مرافق.".into(),
-        Vec::new(),
+        format!(
+            "Wrote {written} report document(s) from persisted scan {source_scan} and recorded a \
+             SHA-256 and BLAKE3 hash for each."
+        ),
+        format!(
+            "تمت كتابة {written} مستند تقرير من الفحص المحفوظ {source_scan} وتسجيل بصمة \
+             SHA-256 وBLAKE3 لكل منها."
+        ),
+        warnings,
         None,
     ))
 }
+
+/// Lists persisted scans so a report can be exported again long after the analysis ran.
+#[tauri::command]
+pub fn m04_report_snapshots(
+    app: AppHandle,
+    op_id: String,
+) -> Result<OperationResult<Vec<super::m04_reports::SnapshotSummary>>, String> {
+    let started = Utc::now().to_rfc3339();
+    let timer = Instant::now();
+    match super::m04_reports::list_snapshots(&app, 50) {
+        Ok(values) => {
+            let count = values.len();
+            Ok(op(
+                op_id,
+                "m04_s10",
+                "m04.report.history",
+                started,
+                timer,
+                "completed",
+                Some(values),
+                format!("Loaded {count} persisted storage analyses available for export."),
+                format!("تم تحميل {count} تحليل مساحة محفوظ متاح للتصدير."),
+                Vec::new(),
+                None,
+            ))
+        }
+        Err(error) => Ok(op(
+            op_id,
+            "m04_s10",
+            "m04.report.history",
+            started,
+            timer,
+            "failed",
+            None,
+            "Persisted analyses could not be listed.".into(),
+            "تعذّر عرض التحليلات المحفوظة.".into(),
+            Vec::new(),
+            Some(error),
+        )),
+    }
+}
+
 #[tauri::command]
 pub fn m04_scan_cancel_complete(
     op_id: String,
@@ -967,4 +1428,240 @@ pub fn m04_scan_cancel_complete(
         Vec::new(),
         None,
     ))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{
+        age_basis, classify_age, detect_age_policy, parse_fsutil_value, policy_state, push_file,
+        resolve_formats, StorageFileItem, StorageReportExportRequest, SUPPORTED_REPORT_FORMATS,
+    };
+    use std::time::{Duration, SystemTime};
+
+    fn item(path: &str, size: u64) -> StorageFileItem {
+        StorageFileItem {
+            path: path.into(),
+            size_bytes: size,
+            modified_at: "2024-01-02T00:00:00+00:00".into(),
+            accessed_at: None,
+            created_at: None,
+            age_basis: age_basis::UNKNOWN.into(),
+            is_old: false,
+            extension: "bin".into(),
+            category: "other".into(),
+        }
+    }
+
+    // ---- last-access policy measurement -------------------------------------------------
+
+    #[test]
+    fn fsutil_output_is_parsed_to_the_reported_value() {
+        // Real `fsutil behavior query disablelastaccess` shape.
+        let output = "File system behavior settings\ndisablelastaccess = 0 (enabled)\n";
+        assert_eq!(
+            parse_fsutil_value(output, "disablelastaccess").as_deref(),
+            Some("0")
+        );
+    }
+
+    #[test]
+    fn fsutil_parsing_is_case_and_spacing_tolerant() {
+        let output = "  DisableLastAccess = 2 (system managed)  ";
+        assert_eq!(
+            parse_fsutil_value(output, "disablelastaccess").as_deref(),
+            Some("2")
+        );
+    }
+
+    #[test]
+    fn unparseable_fsutil_output_yields_no_value_rather_than_a_guess() {
+        assert_eq!(
+            parse_fsutil_value("access cannot be determined", "disablelastaccess"),
+            None
+        );
+        assert_eq!(
+            parse_fsutil_value("disablelastaccess = (unknown)", "disablelastaccess"),
+            None
+        );
+        assert_eq!(parse_fsutil_value("", "disablelastaccess"), None);
+    }
+
+    #[test]
+    fn a_different_setting_is_not_mistaken_for_last_access() {
+        let output = "disableletwritetime = 1 (enabled)\ndisablelastaccess = 0 (enabled)";
+        assert_eq!(
+            parse_fsutil_value(output, "disablelastaccess").as_deref(),
+            Some("0")
+        );
+    }
+
+    #[test]
+    fn policy_states_map_to_the_documented_ntfs_meanings() {
+        assert_eq!(policy_state("0"), "last_access_updates_enabled");
+        assert_eq!(policy_state("1"), "last_access_updates_disabled");
+        // Value 2 is system-managed: only NTFS directories update their own access time,
+        // so it is not a usable file "last used" signal either.
+        assert_eq!(policy_state("2"), "system_managed");
+        assert_eq!(policy_state("7"), "unknown");
+        assert_eq!(policy_state(""), "unknown");
+    }
+
+    #[test]
+    fn measured_policy_never_claims_reliability_without_evidence() {
+        let policy = detect_age_policy();
+        if policy.last_access_reliable_for_files {
+            // Reliability may only be asserted with a real measurement behind it.
+            assert_eq!(policy.state, "last_access_updates_enabled");
+            assert!(!matches!(policy.source.as_str(), "unknown" | ""));
+            assert!(!policy.raw_value.is_empty());
+        } else {
+            // An unmeasured or disabled policy must say why, in both languages.
+            assert!(!policy.note_en.is_empty());
+            assert!(!policy.note_ar.is_empty());
+        }
+    }
+
+    // ---- per-row age classification -----------------------------------------------------
+
+    #[test]
+    fn access_time_is_used_only_when_the_policy_was_measured_reliable() {
+        let now = SystemTime::now();
+        let (time, basis) = classify_age(true, Some(now), Some(now - Duration::from_secs(10)));
+        assert_eq!(basis, age_basis::LAST_ACCESS);
+        assert!(time.is_some());
+    }
+
+    #[test]
+    fn an_unreliable_policy_falls_back_to_modification_time() {
+        let modified = SystemTime::now() - Duration::from_secs(10);
+        let accessed = SystemTime::now();
+        let (_, basis) = classify_age(false, Some(accessed), Some(modified));
+        // The readable-but-meaningless access time is deliberately not chosen.
+        assert_eq!(basis, age_basis::LAST_WRITE_FALLBACK);
+    }
+
+    #[test]
+    fn a_reliable_policy_without_a_readable_access_time_still_falls_back() {
+        let modified = SystemTime::now();
+        let (time, basis) = classify_age(true, None, Some(modified));
+        assert_eq!(basis, age_basis::LAST_WRITE_FALLBACK);
+        assert!(time.is_some());
+    }
+
+    #[test]
+    fn no_readable_timestamp_makes_no_age_claim() {
+        let (time, basis) = classify_age(true, None, None);
+        assert_eq!(basis, age_basis::UNKNOWN);
+        assert!(time.is_none());
+        let (_, basis) = classify_age(false, None, None);
+        assert_eq!(basis, age_basis::UNKNOWN);
+    }
+
+    // ---- deterministic ordering ---------------------------------------------------------
+
+    #[test]
+    fn largest_files_are_ordered_by_size_then_path() {
+        let mut items = vec![
+            item("C:\\b.bin", 10),
+            item("C:\\a.bin", 10),
+            item("C:\\c.bin", 20),
+        ];
+        push_file(&mut items, item("C:\\d.bin", 5), 10);
+        let order: Vec<&str> = items.iter().map(|value| value.path.as_str()).collect();
+        assert_eq!(
+            order,
+            vec!["C:\\c.bin", "C:\\a.bin", "C:\\b.bin", "C:\\d.bin"]
+        );
+    }
+
+    #[test]
+    fn ordering_is_stable_across_insertion_orders() {
+        let mut first = vec![item("C:\\b.bin", 10), item("C:\\a.bin", 10)];
+        push_file(&mut first, item("C:\\c.bin", 20), 10);
+        let mut second = vec![item("C:\\c.bin", 20), item("C:\\a.bin", 10)];
+        push_file(&mut second, item("C:\\b.bin", 10), 10);
+        let left: Vec<&str> = first.iter().map(|value| value.path.as_str()).collect();
+        let right: Vec<&str> = second.iter().map(|value| value.path.as_str()).collect();
+        assert_eq!(left, right);
+    }
+
+    #[test]
+    fn the_top_limit_truncates_rather_than_growing() {
+        let mut items = Vec::new();
+        for index in 0..50u64 {
+            push_file(&mut items, item(&format!("C:\\{index}.bin"), index), 10);
+        }
+        assert_eq!(items.len(), 10);
+        assert_eq!(items.first().map(|value| value.size_bytes), Some(49));
+    }
+
+    // ---- report format negotiation ------------------------------------------------------
+
+    #[test]
+    fn all_expands_to_exactly_the_supported_formats() {
+        assert_eq!(
+            resolve_formats(Some("all")).expect("all"),
+            SUPPORTED_REPORT_FORMATS
+                .iter()
+                .map(|f| (*f).to_string())
+                .collect::<Vec<_>>()
+        );
+        assert_eq!(
+            resolve_formats(None).expect("default"),
+            resolve_formats(Some("all")).unwrap()
+        );
+    }
+
+    #[test]
+    fn a_single_supported_format_is_accepted_and_normalized() {
+        assert_eq!(
+            resolve_formats(Some("HTML")).expect("html"),
+            vec!["html".to_string()]
+        );
+        assert_eq!(
+            resolve_formats(Some(" json ")).expect("json"),
+            vec!["json".to_string()]
+        );
+    }
+
+    #[test]
+    fn an_unsupported_format_is_refused_rather_than_silently_replaced() {
+        assert_eq!(
+            resolve_formats(Some("pdf")).expect_err("pdf must be refused"),
+            "report_format_unsupported:pdf"
+        );
+        assert!(resolve_formats(Some("xlsx")).is_err());
+        assert!(resolve_formats(Some("")).is_err());
+    }
+
+    #[test]
+    fn pdf_is_not_among_the_formats_this_build_writes() {
+        assert!(!SUPPORTED_REPORT_FORMATS.contains(&"pdf"));
+        assert!(SUPPORTED_REPORT_FORMATS.contains(&"html"));
+        assert!(SUPPORTED_REPORT_FORMATS.contains(&"csv"));
+        assert!(SUPPORTED_REPORT_FORMATS.contains(&"json"));
+    }
+
+    // ---- request deserialization --------------------------------------------------------
+
+    #[test]
+    fn an_export_request_from_an_older_client_still_deserializes() {
+        // Only `scanId` existed before; the new fields must default rather than fail.
+        let request: StorageReportExportRequest =
+            serde_json::from_str(r#"{"scanId":"abc"}"#).expect("legacy request");
+        assert_eq!(request.scan_id, "abc");
+        assert!(request.format.is_none());
+        assert!(request.redaction.is_none());
+        assert!(request.file_name.is_none());
+    }
+
+    #[test]
+    fn an_export_request_deserializes_every_new_field() {
+        let request: StorageReportExportRequest = serde_json::from_str(
+            r#"{"scanId":"abc","fileName":"r","format":"html","redaction":"user_profile"}"#,
+        )
+        .expect("full request");
+        assert_eq!(request.format.as_deref(), Some("html"));
+        assert_eq!(request.redaction.as_deref(), Some("user_profile"));
+    }
 }

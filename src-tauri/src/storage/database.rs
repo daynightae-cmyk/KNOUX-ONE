@@ -39,8 +39,11 @@ pub fn migrate(connection: &Connection) -> Result<(), String> {
         .execute_batch(include_str!("../../migrations/003_quarantine.sql"))
         .map_err(|error| format!("migration_003_failed: {error}"))?;
     connection
+        .execute_batch(include_str!("../../migrations/004_storage_reports.sql"))
+        .map_err(|error| format!("migration_004_failed: {error}"))?;
+    connection
         .execute(
-            "INSERT INTO app_meta(key, value, updated_at) VALUES ('schema_version', '3', datetime('now'))
+            "INSERT INTO app_meta(key, value, updated_at) VALUES ('schema_version', '4', datetime('now'))
              ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at",
             [],
         )
@@ -70,5 +73,49 @@ mod tests {
             )
             .expect("table count");
         assert_eq!(count, 4);
+    }
+
+    #[test]
+    fn migrations_create_durable_storage_report_tables() {
+        let connection = Connection::open_in_memory().expect("in-memory database");
+        migrate(&connection).expect("migrations");
+        let count: i64 = connection
+            .query_row(
+                "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name IN (
+                  'storage_snapshots',
+                  'storage_snapshot_files',
+                  'storage_snapshot_folders',
+                  'storage_snapshot_types',
+                  'storage_snapshot_exclusions',
+                  'knoux_artifacts',
+                  'storage_report_exports'
+                )",
+                [],
+                |row| row.get(0),
+            )
+            .expect("table count");
+        assert_eq!(count, 7);
+    }
+
+    #[test]
+    fn migration_is_idempotent_across_repeated_open() {
+        for _ in 0..3 {
+            let connection = Connection::open_in_memory().expect("in-memory database");
+            migrate(&connection).expect("migrations");
+        }
+    }
+
+    #[test]
+    fn schema_version_is_recorded_as_four() {
+        let connection = Connection::open_in_memory().expect("in-memory database");
+        migrate(&connection).expect("migrations");
+        let version: String = connection
+            .query_row(
+                "SELECT value FROM app_meta WHERE key = 'schema_version'",
+                [],
+                |row| row.get(0),
+            )
+            .expect("schema version");
+        assert_eq!(version, "4");
     }
 }
