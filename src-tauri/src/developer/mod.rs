@@ -13,6 +13,34 @@ use tauri::{AppHandle, Manager};
 use uuid::Uuid;
 use walkdir::WalkDir;
 
+/// Catalog service id for `m15.git.audit`.
+///
+/// These ids used to be positional: the Nth command in the file claimed the Nth
+/// Module 15 service. That silently paired `m15_git_audit` (git configuration) with
+/// the "Node & package-manager status" service and `m15_runtime_inspect`
+/// (package-manager homes) with "Git configuration", so every result envelope
+/// named a service it was not. They are named constants now so a command cannot
+/// drift onto another service's id again.
+const M15_GIT_CONFIGURATION_SERVICE: &str = "m15_s03";
+/// Catalog service id for `m15.runtime.inspect`.
+const M15_NODE_PACKAGE_MANAGER_SERVICE: &str = "m15_s04";
+/// Catalog service id for the read-only listing mode of `m15.ports.manage`.
+const M15_PORT_VIEWER_SERVICE: &str = "m15_s08";
+/// Catalog service id for the confirmed-termination mode of `m15.ports.manage`.
+const M15_PORT_TERMINATION_SERVICE: &str = "m15_s09";
+
+/// Capability id for a native command that is implemented and allowlisted but is
+/// not exposed by any catalog service.
+///
+/// `m15.repositories.scan`, `m15.projects.audit`, `m15.caches.manage` and
+/// `m15.http.execute` are all real, typed, tested commands with no service that
+/// routes to them. They previously claimed Module 15 service ids that name a
+/// different feature, which is a false statement in a typed envelope. Module 16 is
+/// reserved by `catalogIntegrity.test.ts` for exposing exactly this kind of work,
+/// so these commands stay registered and report that they are unexposed rather
+/// than borrowing another service's identity.
+const M15_UNEXPOSED_SERVICE: &str = "m15_unexposed";
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ToolchainItem {
@@ -686,7 +714,7 @@ pub fn m15_runtime_inspect(op_id: String) -> Result<OperationResult<RuntimeInspe
     };
     Ok(success(
         op_id,
-        "m15_s03",
+        M15_NODE_PACKAGE_MANAGER_SERVICE,
         "m15.runtime.inspect",
         started_at,
         timer,
@@ -748,7 +776,7 @@ pub fn m15_git_audit(op_id: String) -> Result<OperationResult<GitAudit>, String>
     };
     Ok(success(
         op_id,
-        "m15_s04",
+        M15_GIT_CONFIGURATION_SERVICE,
         "m15.git.audit",
         started_at,
         timer,
@@ -864,7 +892,7 @@ pub async fn m15_repositories_scan(
     .map_err(|error| format!("repository_scan_join_failed:{error}"))?;
     Ok(success(
         op_id,
-        "m15_s05",
+        M15_UNEXPOSED_SERVICE,
         "m15.repositories.scan",
         started_at,
         timer,
@@ -918,11 +946,19 @@ pub fn m15_ports_manage(
 ) -> Result<OperationResult<PortManageResult>, String> {
     let started_at = Utc::now().to_rfc3339();
     let timer = Instant::now();
+    // One command serves two catalog services: read-only listing (M15-S08) and
+    // confirmed termination (M15-S09). The envelope has to name the service that
+    // was actually invoked, so the id follows the request action instead of being
+    // hardcoded to whichever service the command happened to be written against.
+    let capability_id = match &request {
+        PortManageRequest::Inspect => M15_PORT_VIEWER_SERVICE,
+        PortManageRequest::Terminate { .. } => M15_PORT_TERMINATION_SERVICE,
+    };
     #[cfg(not(target_os = "windows"))]
     {
         return Ok(failure(
             op_id,
-            "m15_s06",
+            capability_id,
             "m15.ports.manage",
             started_at,
             timer,
@@ -937,7 +973,7 @@ pub fn m15_ports_manage(
             if confirmation != format!("STOP {pid}") {
                 return Ok(failure(
                     op_id,
-                    "m15_s06",
+                    capability_id,
                     "m15.ports.manage",
                     started_at,
                     timer,
@@ -948,7 +984,7 @@ pub fn m15_ports_manage(
             if pid <= 4 || pid == std::process::id() {
                 return Ok(failure(
                     op_id,
-                    "m15_s06",
+                    capability_id,
                     "m15.ports.manage",
                     started_at,
                     timer,
@@ -961,7 +997,7 @@ pub fn m15_ports_manage(
             if process.is_none() {
                 return Ok(failure(
                     op_id,
-                    "m15_s06",
+                    capability_id,
                     "m15.ports.manage",
                     started_at,
                     timer,
@@ -972,7 +1008,7 @@ pub fn m15_ports_manage(
             if process.is_some_and(|item| item.protected) {
                 return Ok(failure(
                     op_id,
-                    "m15_s06",
+                    capability_id,
                     "m15.ports.manage",
                     started_at,
                     timer,
@@ -987,7 +1023,7 @@ pub fn m15_ports_manage(
             if !status.success() {
                 return Ok(failure(
                     op_id,
-                    "m15_s06",
+                    capability_id,
                     "m15.ports.manage",
                     started_at,
                     timer,
@@ -1000,7 +1036,7 @@ pub fn m15_ports_manage(
         let processes = inspect_ports()?;
         Ok(success(
             op_id,
-            "m15_s06",
+            capability_id,
             "m15.ports.manage",
             started_at,
             timer,
@@ -1119,7 +1155,7 @@ pub async fn m15_projects_audit(
     .map_err(|error| format!("project_audit_join_failed:{error}"))?;
     Ok(success(
         op_id,
-        "m15_s07",
+        M15_UNEXPOSED_SERVICE,
         "m15.projects.audit",
         started_at,
         timer,
@@ -1316,7 +1352,7 @@ pub async fn m15_caches_manage(
     .map_err(|error| format!("cache_worker_join_failed:{error}"))?;
     Ok(success(
         op_id,
-        "m15_s08",
+        M15_UNEXPOSED_SERVICE,
         "m15.caches.manage",
         started_at,
         timer,
@@ -1391,7 +1427,7 @@ pub async fn m15_http_execute(
     {
         return Ok(failure(
             op_id,
-            "m15_s09",
+            M15_UNEXPOSED_SERVICE,
             "m15.http.execute",
             started_at,
             timer,
@@ -1407,7 +1443,7 @@ pub async fn m15_http_execute(
         match response {
             Ok(data) => Ok(success(
                 op_id,
-                "m15_s09",
+                M15_UNEXPOSED_SERVICE,
                 "m15.http.execute",
                 started_at,
                 timer,
@@ -1418,7 +1454,7 @@ pub async fn m15_http_execute(
             )),
             Err(error) => Ok(failure(
                 op_id,
-                "m15_s09",
+                M15_UNEXPOSED_SERVICE,
                 "m15.http.execute",
                 started_at,
                 timer,
