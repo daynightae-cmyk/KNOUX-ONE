@@ -81,6 +81,22 @@ implemented('m01', 5, 'm01.winget.install',
   'Allowlisted installation, post-install verification, persistent queue state, retries and resume commands are connected.',
   'تم ربط التثبيت المسموح والتحقق بعد التثبيت وحفظ الطابور وإعادة المحاولة والاستكمال.',
   { supportsUndo: false });
+implemented('m01', 3, 'm01.winget.repair',
+  'Winget is diagnosed by measuring the real executable, the verbatim source-list output and the newest diagnostic log. Every guidance step cites the measurement that produced it, and this service executes no command and repairs nothing.',
+  'يتم تشخيص Winget بقياس الملف التنفيذي الحقيقي ونص قائمة المصادر الحرفي وأحدث سجل تشخيص. كل خطوة إرشاد تستند إلى القياس الذي أنتجها، وهذه الخدمة لا تشغّل أي أمر ولا تُصلح شيئًا.',
+  { supportsDryRun: true });
+implemented('m01', 4, 'm01.catalog.essential',
+  'The bundled recommendation catalog is resolved against the measured Windows uninstall registry, and its exact bytes are reported with a SHA-256 so a policy change is always visible. A package identifier is only marked verified when an explicit check actually succeeded.',
+  'تُطابق سياسة التوصيات المرفقة مع سجل إلغاء تثبيت ويندوز المقاس، ويُبلَّغ عن بايتاتها الدقيقة مع بصمة SHA-256 ليكون أي تغيير ظاهرًا دائمًا. ولا يُعتبر معرّف الحزمة متحققًا إلا بعد نجاح فحص صريح.',
+  { supportsDryRun: true });
+implemented('m01', 7, 'm01.apps.inventory.export',
+  'The uninstall registry is read across all three hives, exclusions are counted and named, and the JSON, CSV or HTML report is written, hashed and read back before it is reported as exported.',
+  'تُقرأ سجلات إلغاء التثبيت من الأفرع الثلاثة، وتُحصى الاستثناءات وتُسمّى، ثم يُكتب تقرير JSON أو CSV أو HTML ويُجزَّأ ويُقرأ مجددًا قبل الإبلاغ عنه كصدر.',
+  { supportsDryRun: true });
+implemented('m01', 8, 'm01.profiles.postformat.create',
+  'A post-format profile accepts only allowlisted native handlers with only their allowlisted parameter keys, is written atomically, read back and hashed. No Windows scheduled task is created and no system state changes.',
+  'يقبل ملف تعريف ما بعد التهيئة معالجات محلية مسموحًا بها فقط بمفاتيحها المسموح بها فقط، ويُكتب ذريًا ويُقرأ ويُجزَّأ. لا يُنشأ أي مهمة مجدولة في ويندوز ولا تتغير حالة النظام.',
+  { supportsDryRun: true });
 
 setModule('m02', 'Device Cleanup', 'تنظيف الملفات غير الضرورية',
   'Measure real disposable files, verify every mutation, request UAC only for protected evidence and quarantine old installers reversibly.',
@@ -93,8 +109,87 @@ const m02: Array<[number, string, string, string, Partial<KnouxCapability>?]> = 
   [5, 'm02.scan.crash_dumps', 'User and protected crash-report locations are scanned; protected deletion uses the verified UAC manifest workflow.', 'يتم فحص مواقع تقارير الأعطال العادية والمحمية ويستخدم الحذف المحمي مسار UAC الموثق.', { requiresAdmin: true, supportsCancel: true }],
   [7, 'm02.scan.application_logs', 'Allowlisted LocalAppData log, report, WER, crash and temporary-log directories are discovered to bounded depth.', 'يتم اكتشاف مجلدات السجلات والتقارير وWER والأعطال داخل LocalAppData بعمق محدود وآمن.', { supportsCancel: true }],
   [9, 'm02.scan.old_downloads', 'Old installers are selected from a verified scan and moved to checksum-backed AppData quarantine with restore support.', 'يتم اختيار ملفات التثبيت القديمة من فحص موثق ونقلها إلى محجر AppData ببصمة رقمية ودعم الاستعادة.', { supportsQuarantine: true, supportsUndo: true, supportsCancel: true }],
+  [6, 'm02.cache.delivery', 'The real Delivery Optimization cache directories are measured with the file API under a depth and file ceiling, and the Delivery Optimization cmdlets are read when present. Nothing is removed.', 'تُقاس مجلدات ذاكرة توصيل التحسين الحقيقية عبر واجهة الملفات مع حد للعمق وعدد الملفات، وتُقرأ أوامر توصيل التحسين عند توفرها. لا يُحذف شيء.', { supportsCancel: true }],
+  [8, 'm02.recycle.review', 'The Recycle Bin is enumerated through the Windows Shell namespace, sized from the shell detail columns, and the count of entries that carry no size is reported. Nothing is emptied.', 'تُستعرض سلة المحذوفات عبر مساحة أسماء Windows، ويُحسب الحجم من أعمدة التفاصيل، ويُبلَّغ عن عدد العناصر التي لا تحمل حجمًا. لا يتم الإفراغ.', {}],
+  [10, 'm02.cleanup.schedule', 'A cleanup profile is measured through the same allowlisted category list as the ordinary cleanup, is persisted and hashed, and applies only after a literal confirmation. No scheduled task is registered.', 'يُقاس ملف تعريف التنظيف عبر نفس قائمة الفئات المسموح بها المستخدمة في التنظيف العادي، ويُحفظ ويُجزَّأ، ولا يُطبَّق إلا بعد تأكيد حرفي. لا تُسجَّل أي مهمة مجدولة.', { supportsUndo: false, supportsCancel: true }],
 ];
 for (const [number, handler, en, ar, options] of m02) implemented('m02', number, handler, en, ar, options);
+
+setModule('m09', 'Privacy & Telemetry', 'الخصوصية وجمع البيانات',
+  'Read the privacy surfaces Windows actually records: per-application camera, microphone and location consent, the stored advertising identifier, clipboard history state, and every active name mapping in the hosts file.',
+  'قراءة أسطح الخصوصية التي يسجّلها ويندوز فعلًا: موافقة كل تطبيق على الكاميرا والميكروفون والموقع، ومعرّف الإعلان المخزّن، وحالة سجل الحافظة، وكل تعيين نشط في ملف hosts.');
+implemented('m09', 1, 'm09.permission.dashboard',
+  'The per-user CapabilityAccessManager consent store is read across webcam, microphone, location and extended location, with the per-application allow, deny and never-asked counts and the last-used timestamps converted from Windows FILETIME.',
+  'تُقرأ مخزن موافقات CapabilityAccessManager الخاص بالمستخدم عبر الكاميرا والميكروفون والموقع والموقع الموسّع، مع أعداد السماح والرفض والتطبيقات التي لم تسأل لكل تطبيق، وتحويل أوقات آخر استخدام من FILETIME.',
+  { requiresAdmin: false });
+implemented('m09', 2, 'm09.permission.camera',
+  'Camera consent entries are projected from the same measurement the dashboard uses, so the two can never contradict each other. An absent webcam store is reported as absent, not as clean.',
+  'تُسقَط موافقات الكاميرا من القياس نفسه الذي تستخدمه لوحة المعلومات، فلا يمكن أن يتناقضا. يُبلَّغ عن غياب مخزن الكاميرا كغياب لا كنظافة.',
+  { requiresAdmin: false });
+implemented('m09', 3, 'm09.permission.microphone',
+  'Microphone consent entries come from the same measured consent store as the dashboard, with per-application allow, deny and never-used counts and real last-used times.',
+  'تأتي موافقات الميكروفون من مخزن الموافقات المقاس نفسه، مع أعداد السماح والرفض والتطبيقات التي لم تستخدمه وأوقات آخر استخدام الحقيقية.',
+  { requiresAdmin: false });
+implemented('m09', 4, 'm09.permission.location',
+  'Location consent is read from the measured consent store. A capability Windows has no record of is reported as unmeasured rather than permitted.',
+  'تُقرأ موافقة الموقع من مخزن الموافقات المقاس. والإمكانية التي لا سجل لها في ويندوز تُبلَّغ كـ«غير مقاسة» لا كمسموح بها.',
+  { requiresAdmin: false });
+implemented('m09', 5, 'm09.advertising.id',
+  'The stored per-user advertising identifier and its Enabled switch are read verbatim. A stored identifier with the feature switched off is reported as stored rather than active, which is what a Windows reset actually leaves behind.',
+  'تُقرأ قيمة معرّف الإعلان المخزّنة للمستخدم ومفتاح التفعيل حرفيًا. والمعرّف المخزّن مع مفتاح معطّل يُبلَّغ عنه كـ«مخزّن» لا كـ«نشط»، وهو ما تتركه إعادة التعيين فعليًا.',
+  { requiresAdmin: false });
+implemented('m09', 6, 'm09.clipboard.privacy',
+  'Clipboard history state is read from the registry. The clipboard content is only described when the request explicitly opts in, is truncated to a short preview and is never stored. Clearing requires the literal confirmation token and clipboard history itself is not cleared.',
+  'تُقرأ حالة سجل الحافظة من السجل. لا يُوصف محتوى الحافظة إلا بطلب صريح، ويُقتطع إلى معاينة قصيرة ولا يُخزَّن. ويتطلب المسح رمز تأكيد حرفيًا، ولا يُمسح سجل الحافظة نفسه.',
+  { requiresAdmin: false });
+implemented('m09', 9, 'm09.hosts.inspect',
+  'The Windows hosts file is read as bytes, validated as UTF-8 and parsed into active mappings, comments and blank lines. Blocking entries and repeated addresses are counted, and an unreadable file is reported as unreadable rather than as empty.',
+  'تُقرأ ملف hosts في ويندوز كبايتات، ويُتحقق من صلاحيته UTF-8 ويُحلَّل إلى تعيينات نشطة وتعليقات وأسطر فارغة. وتُعدّ مداخل الحجب والعناوين المكررة، ويُبلَّغ عن الملف غير القابل للقراءة كغير قابل للقراءة لا كـ«فارغ».',
+  { requiresAdmin: false });
+setModule('m11', 'Backup & Recovery', 'النسخ الاحتياطي والاسترجاع',
+  'Export real machine state to real files in a directory you choose, hash each file and read it back before reporting success. A backup that was not verified is worse than none, because it is believed.',
+  'تصدير حالة الجهاز الحقيقية إلى ملفات حقيقية في مجلد تختاره، وتجزئة كل ملف وقراءته قبل الإبلاغ بالنجاح. النسخ غير الموثق أسوأ من عدمه لأنه يُصدَّق.');
+implemented('m11', 3, 'm11.settings.export',
+  'An explicit document list from the KNOUX ONE app data directory is exported, each file hashed and read back, and a manifest written, hashed and read back in turn. Directory walks are emitted in sorted order with a normalised separator so the digest is reproducible. An empty export is reported as empty.',
+  'تُصدَّر قائمة مستندات صريحة من مجلد بيانات KNOUX ONE، ويُجزَّأ كل ملف ويُقرأ للتحقق، ثم يُكتب بيان يُجزَّأ ويُقرأ بدوره. وتُرWalking المجلدات بترتيب مطبَّع وفاصل موحَّد ليبقى التجزئة قابلة للتكرار. والتصدير الفارغ يُبلَّغ عنه كـ«فارغ».',
+  { requiresAdmin: false });
+implemented('m11', 7, 'm11.registry.backup',
+  'A fixed list of six allowlisted registry keys is exported with reg.exe export, which writes a .reg file and never writes to the registry. Each file is hashed, read back, and structurally checked for key and value headers, so a reg.exe exit code of zero is not mistaken for a usable backup.',
+  'تُصدَّر قائمة ثابتة من ستة مفاتيح سجل مسموح بها عبر reg.exe export، وهو يكتب ملف .reg ولا يكتب في السجل. ويُجزَّأ كل ملف ويُقرأ ويُفحص بنيويًا لعناوين المفاتيح والقيم، فلا يُخلط بين رمز خروج صفر ونسخة صالحة.',
+  { requiresAdmin: false });
+implemented('m11', 9, 'm11.restore.inventory',
+  'Every backup run directory is re-hashed on disk and compared against the digest the run itself recorded. A file with no recorded digest is reported as a baseline rather than as a pass, and a run counts as verified only when every file in it still matches.',
+  'يُعاد تجزئة كل مجلد تشغيل على القرنص ويُقارن بالتجزئة التي سجّلها التشغيل نفسه. والملف بلا تجزئة مسجّلة يُبلَّغ عنه كخط أساس لا كنجاح، ولا يُعدّ التشغيل متحقَّقًا إلا إذا طابق كل ملف فيه تخزينه.',
+  { requiresAdmin: false });
+implemented('m11', 5, 'm11.environment.export',
+  'Machine and per-user environment variables are read from the registry and exported, with PATH reported in the order Windows actually searches it and every entry present in both scopes named, because exporting one scope alone loses entries on restore.',
+  'تُقرأ متغيرات بيئة الجهاز والمستخدم من السجل وتُصدَّر، مع عرض PATH بالترتيب الذي يبحث فيه ويندوز فعليًا، وتسمية كل مدخل موجود في النطاقين، لأن تصدير نطاق واحد فقط يفقد مدخلات عند الاسترجاع.',
+  { requiresAdmin: false });
+implemented('m11', 6, 'm11.bookmarks.backup',
+  'Browsers are discovered from real profile directories and Chromium profile names are read from Local State, not guessed. Every Bookmarks file is validated as JSON before it is called a backup. Firefox profiles are copied as a complete places.sqlite set including WAL and SHM. Nothing is written inside a browser profile.',
+  'يُكتشف المتصفحات من مجلدات الملفات التعريفية الحقيقية، وتُقرأ أسماء ملفات تعريف Chromium من Local State لا بالتخمين. ويُتحقق من كل ملف Bookmarks أنه JSON قبل اعتباره نسخة. وتُنسخ ملفات تعريف Firefox كطقم places.sqlite كامل مع WAL وSHM. ولا يُكتب شيء داخل أي ملف تعريف متصفح.',
+  { requiresAdmin: false });
+setModule('m10', 'Security Center', 'مركز الأمان',
+  'Read the security posture Windows actually reports: Defender state and signature age, every firewall profile, the User Account Control policy, SmartScreen policy locations, and Secure Boot with every available TPM provider.',
+  'قراءة الوضع الأمني كما يبلّغه ويندوز فعلًا: حالة Defender وعمر التوقيع، وكل ملفات تعريف جدار الحماية، وسياسة التحكم في حسابات المستخدمين، ومواقع سياسة SmartScreen، وSecure Boot مع كل مزوّد TPM متاح.');
+implemented('m10', 1, 'm10.defender.status',
+  'Defender status, signature age, scan age and the full exclusion list are read from Get-MpComputerStatus, Get-MpPreference, the WinDefend service and the signature registry key. Each provider is reported separately so a silent one is visible, and no scan is started.',
+  'تُقرأ حالة Defender وعمر التوقيع وعمر الفحص وقائمة الاستثناءات الكاملة من Get-MpComputerStatus وGet-MpPreference وخدمة WinDefend ومفتاح التوقيع في السجل. يُبلَّغ عن كل مزوّد على حدة ليظهر الصامت منها، ولا يبدأ أي فحص.',
+  { requiresAdmin: true });
+implemented('m10', 5, 'm10.firewall.status',
+  'Every firewall profile is read with its default actions and logging state, and active rules are counted rather than listed. No rule is created, enabled or disabled.',
+  'تُقرأ كل ملفات تعريف جدار الحماية مع إجراءاتها الافتراضية وحالة التسجيل، وتُعدّ القواعد النشطة بدل سردها. لا تُنشأ قاعدة ولا تُفعَّل ولا تُعطَّل.',
+  { requiresAdmin: true });
+implemented('m10', 6, 'm10.uac.status',
+  'The machine and per-user User Account Control policy values are read and each is given its plain meaning. The response names the machine policy as the governing scope and no value is written.',
+  'تقرأ قيم سياسة التحكم في حسابات المستخدمين للجهاز والمستخدم ويعطى كل منها معناه المبسط. تسمّي الاستجابة سياسة الجهاز هي النطاق الحاكم ولا تكتب أي قيمة.');
+implemented('m10', 7, 'm10.smartscreen.status',
+  'SmartScreen policy is probed at all six locations Windows exposes it, and each readable value is reported with its origin. When nothing is readable the service says unknown rather than assuming a default.',
+  'تُفحص سياسة SmartScreen في المواقع الستة التي يعرضها ويندوز، ويُبلَّغ عن كل قيمة قابلة للقراءة مع موضعها. وإذا لم تكن هناك أي قيمة قابلة للقراءة تقول الخدمة غير معروف بدل افتراض افتراضي.');
+implemented('m10', 8, 'm10.secureboot.tpm',
+  'Secure Boot is read through Confirm-SecureBootUEFI and the firmware registry flag, and TPM through Get-Tpm and Win32_Tpm. Secure Boot being off is reported as a reading, not as an error, and a missing TPM is reported as unmeasured rather than absent.',
+  'تُقرأ حالة Secure Boot عبر Confirm-SecureBootUEFI ومن علامة البرنامج الثابت، وتُقرأ TPM عبر Get-Tpm وWin32_Tpm. يُبلَّغ عن تعطيل Secure Boot كقراءة لا كخطأ، وتُبلَّغ عن غياب TPM كـ«غير مقاس» لا كـ«غير موجود».',
+  { requiresAdmin: true });
 
 setModule('m03', 'Duplicate Finder', 'البحث عن الملفات المكررة',
   'Verify exact duplicates, classify similar images with multiple signals, fingerprint decoded media and compare archive manifests without extraction.',

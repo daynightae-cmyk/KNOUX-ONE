@@ -22,6 +22,7 @@ import { useKnoux } from '../../context/KnouxContext';
 import { MODULES_CATALOG } from '../../data/capabilitiesCatalog';
 import type { OperationResult } from '../../types';
 import { cleanupClient } from './cleanupClient';
+import { CleanupPlannedPanels } from './CleanupPlannedPanels';
 import type {
   CleanupExecuteResult,
   CleanupHistoryEntry,
@@ -366,6 +367,8 @@ export const SmartCleanupWorkspace: React.FC = () => {
           ))}
         </div>
       </section>
+
+      <CleanupPlannedPanels available={runtime.available} />
     </div>
   );
 };
