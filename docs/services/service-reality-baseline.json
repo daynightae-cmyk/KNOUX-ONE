@@ -4,9 +4,9 @@
   "runtimeVerificationPolicy": "RUNTIME_VERIFIED requires a record in docs/evidence/windows-runtime-evidence.json whose four stages are all true: a React control was clicked, the call crossed the Tauri IPC boundary, the native Rust command executed against real Windows, and the result was rendered. The generator rejects a record whose handler or native command disagrees with the active catalog.",
   "globalRuntimeGate": {
     "state": "BLOCKED",
-    "reason": "0 of 101 implemented services carry recorded Windows runtime evidence. The gate stays BLOCKED while any implemented service is unproven at runtime, and the missing coverage is listed rather than summarised.",
+    "reason": "10 of 101 implemented services carry recorded Windows runtime evidence. The gate stays BLOCKED while any implemented service is unproven at runtime, and the missing coverage is listed rather than summarised.",
     "eligible": 101,
-    "verified": 0,
+    "verified": 10,
     "missing": [
       "M01-S01",
       "M01-S02",
@@ -85,26 +85,16 @@
       "M08-S08",
       "M08-S09",
       "M08-S10",
-      "M09-S01",
       "M09-S02",
       "M09-S03",
       "M09-S04",
-      "M09-S05",
       "M09-S06",
-      "M09-S09",
       "M10-S01",
       "M10-S05",
       "M10-S06",
-      "M10-S07",
-      "M10-S08",
-      "M11-S03",
-      "M11-S05",
-      "M11-S06",
       "M11-S07",
       "M11-S09",
-      "M15-S01",
       "M15-S02",
-      "M15-S03",
       "M15-S04",
       "M15-S08",
       "M15-S09",
@@ -116,12 +106,12 @@
     "states": {
       "PLANNED": 89,
       "GUARDED": 0,
-      "STATIC_VERIFIED": 101,
+      "STATIC_VERIFIED": 91,
       "PARTIAL": 0,
-      "RUNTIME_VERIFIED": 0,
+      "RUNTIME_VERIFIED": 10,
       "BLOCKED": 0
     },
-    "runtimeVerifiedPercentageOfEligible": 0
+    "runtimeVerifiedPercentageOfEligible": 9.9
   },
   "modules": [
     {
@@ -235,9 +225,9 @@
       "counts": {
         "PLANNED": 3,
         "GUARDED": 0,
-        "STATIC_VERIFIED": 7,
+        "STATIC_VERIFIED": 4,
         "PARTIAL": 0,
-        "RUNTIME_VERIFIED": 0,
+        "RUNTIME_VERIFIED": 3,
         "BLOCKED": 0
       }
     },
@@ -248,9 +238,9 @@
       "counts": {
         "PLANNED": 5,
         "GUARDED": 0,
-        "STATIC_VERIFIED": 5,
+        "STATIC_VERIFIED": 3,
         "PARTIAL": 0,
-        "RUNTIME_VERIFIED": 0,
+        "RUNTIME_VERIFIED": 2,
         "BLOCKED": 0
       }
     },
@@ -261,9 +251,9 @@
       "counts": {
         "PLANNED": 5,
         "GUARDED": 0,
-        "STATIC_VERIFIED": 5,
+        "STATIC_VERIFIED": 2,
         "PARTIAL": 0,
-        "RUNTIME_VERIFIED": 0,
+        "RUNTIME_VERIFIED": 3,
         "BLOCKED": 0
       }
     },
@@ -313,9 +303,9 @@
       "counts": {
         "PLANNED": 3,
         "GUARDED": 0,
-        "STATIC_VERIFIED": 7,
+        "STATIC_VERIFIED": 5,
         "PARTIAL": 0,
-        "RUNTIME_VERIFIED": 0,
+        "RUNTIME_VERIFIED": 2,
         "BLOCKED": 0
       }
     },
@@ -1733,16 +1723,16 @@
       "serviceNumber": 1,
       "name": "Windows permission dashboard",
       "nameAr": "لوحة التحكم في أذونات تطبيقات ويندوز",
-      "state": "STATIC_VERIFIED",
-      "verificationLevel": "static",
+      "state": "RUNTIME_VERIFIED",
+      "verificationLevel": "runtime",
       "runtime": "windows",
       "handlerId": "m09.permission.dashboard",
       "nativeCommand": "m09_permission_dashboard",
       "requiresElevation": false,
       "reversible": false,
       "dangerous": false,
-      "testPosture": "Static contract evidence only; Windows runtime and E2E proof are not recorded.",
-      "evidence": "The per-user CapabilityAccessManager consent store is read across webcam, microphone, location and extended location, with per-application allow, deny and never-asked counts and last-used timestamps converted from Windows FILETIME. A store that does not exist is reported as absent, not as clean. No permission is changed. Windows runtime proof is still required."
+      "testPosture": "Unit and contract tests plus a recorded Windows run through the React control, the Tauri IPC boundary, the native Rust command and back into the rendered UI.",
+      "evidence": "WINDOWS RUNTIME VERIFIED 2026-09-26T22:58:00Z on DESKTOP-FCJJB5O. React control click -> typed client -> Tauri IPC -> m09_permission_dashboard -> real Windows measurement -> rendered result. Rendered: Real per-app camera, microphone and location consent entries were read; no permission was changed. Consent store present: yes. Application entries seen: 0. Allowed somewhere: 0. Changed any permission: no. Camera webcam 0/0/0/0: The consent store exists but lists no application. Microphone microphone 0/0/0/0: The consent store exists but lists no application. Location location 0/0/0/0: The consent store exists but lists no application. Extended location locationExtended 0/0/0/0: No consent store exists for this capability on this account. Providers consulted: CapabilityAccessManager\\ConsentStore. What this does and does not mean: Provider: the per-user CapabilityAccessManager consent store. This account is a different one from the pre-reinstall machine, which recorded 2 webcam, 23 microphone and 3 location entries; zero here is a fresh measurement, not a regression. The service distinguishes a store that exists but lists no application from a capability that has no store at all."
     },
     {
       "moduleId": "M09",
@@ -1801,16 +1791,16 @@
       "serviceNumber": 5,
       "name": "Advertising ID",
       "nameAr": "المعرف الإعلاني الخاص بويندوز",
-      "state": "STATIC_VERIFIED",
-      "verificationLevel": "static",
+      "state": "RUNTIME_VERIFIED",
+      "verificationLevel": "runtime",
       "runtime": "windows",
       "handlerId": "m09.advertising.id",
       "nativeCommand": "m09_advertising_id",
       "requiresElevation": false,
       "reversible": false,
       "dangerous": false,
-      "testPosture": "Static contract evidence only; Windows runtime and E2E proof are not recorded.",
-      "evidence": "The stored per-user advertising identifier and its Enabled switch are read verbatim. A stored identifier with the feature switched off is reported as stored rather than active, which is what a Windows reset actually leaves behind. Nothing is reset by this service. Windows runtime proof is still required."
+      "testPosture": "Unit and contract tests plus a recorded Windows run through the React control, the Tauri IPC boundary, the native Rust command and back into the rendered UI.",
+      "evidence": "WINDOWS RUNTIME VERIFIED 2026-09-26T22:59:00Z on DESKTOP-FCJJB5O. React control click -> typed client -> Tauri IPC -> m09_advertising_id -> real Windows measurement -> rendered result. Rendered: The stored advertising identifier and its switch state were read; nothing was reset. Advertising ID enabled: yes. Limit ad tracking: unknown. Stored identifier: none stored. Changed any value: no. Providers consulted: HKCU:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\AdvertisingInfo and AdvertisingInfo\\Id. What this does and does not mean: Limit ad tracking is reported as unknown rather than as off, because no value for it was readable at the inspected key. A feature that is enabled with no stored identifier is reported as stored-versus-active rather than as tracking."
     },
     {
       "moduleId": "M09",
@@ -1865,16 +1855,16 @@
       "serviceNumber": 9,
       "name": "Hosts-file inspection",
       "nameAr": "فحص ملف Hosts الموجه للمواقع",
-      "state": "STATIC_VERIFIED",
-      "verificationLevel": "static",
+      "state": "RUNTIME_VERIFIED",
+      "verificationLevel": "runtime",
       "runtime": "windows",
       "handlerId": "m09.hosts.inspect",
       "nativeCommand": "m09_hosts_file",
       "requiresElevation": false,
       "reversible": false,
       "dangerous": false,
-      "testPosture": "Static contract evidence only; Windows runtime and E2E proof are not recorded.",
-      "evidence": "The Windows hosts file is read as bytes, validated as UTF-8 and parsed into active mappings, comments and blank lines. Blocking entries and repeated addresses are counted, and an unreadable or non-UTF-8 file is reported as such rather than as empty. The file is not modified. Windows runtime proof is still required."
+      "testPosture": "Unit and contract tests plus a recorded Windows run through the React control, the Tauri IPC boundary, the native Rust command and back into the rendered UI.",
+      "evidence": "WINDOWS RUNTIME VERIFIED 2026-09-26T23:00:00Z on DESKTOP-FCJJB5O. React control click -> typed client -> Tauri IPC -> m09_hosts_file -> real Windows measurement -> rendered result. Rendered: The Windows hosts file was read and every active mapping was listed; the file was not modified. Active mappings: 0. Blocking entries: 0. Repeated addresses: 0. File modified: no. C:\\WINDOWS\\System32/drivers/etc/hosts, 824 bytes, modified 07/12/2019 1:12:44 PM, 20 comment lines, 1 blank line. No active name mapping was found. That is a measurement of this file, not an assurance that no other resolver is in play. Providers consulted: Win32 file read. What this does and does not mean: The file is read as bytes and decoded as UTF-8; a decoding failure is reported rather than replaced. Zero mappings is scoped to this file and is not presented as a clean machine."
     },
     {
       "moduleId": "M09",
@@ -1993,16 +1983,16 @@
       "serviceNumber": 7,
       "name": "SmartScreen status",
       "nameAr": "حالة حماية المتصفح والتنزيلات SmartScreen",
-      "state": "STATIC_VERIFIED",
-      "verificationLevel": "static",
+      "state": "RUNTIME_VERIFIED",
+      "verificationLevel": "runtime",
       "runtime": "windows",
       "handlerId": "m10.smartscreen.status",
       "nativeCommand": "m10_smartscreen_status",
       "requiresElevation": false,
       "reversible": false,
       "dangerous": false,
-      "testPosture": "Static contract evidence only; Windows runtime and E2E proof are not recorded.",
-      "evidence": "SmartScreen policy is probed at all six locations Windows exposes it and each readable value is reported with its origin. When no location is readable the service reports unknown rather than assuming a default. Windows runtime proof is still required."
+      "testPosture": "Unit and contract tests plus a recorded Windows run through the React control, the Tauri IPC boundary, the native Rust command and back into the rendered UI.",
+      "evidence": "WINDOWS RUNTIME VERIFIED 2026-09-26T23:01:00Z on DESKTOP-FCJJB5O. React control click -> typed client -> Tauri IPC -> m10_smartscreen_status -> real Windows measurement -> rendered result. Rendered: SmartScreen policy values were read from every location Windows exposes them; no value was written. Enforcement: unknown: no SmartScreen policy value was readable at any probed location, so this service cannot say whether SmartScreen is on. Locations readable: 0/6. Locations empty: 6. Changed any value: no. No SmartScreen policy value was readable at any probed location. That is reported as unknown, not as enabled. What this does and does not mean: This is the unavailable-state path. Six registry locations are probed because Windows reads SmartScreen from different places on different builds; zero readable yields unknown rather than an assumed default."
     },
     {
       "moduleId": "M10",
@@ -2010,16 +2000,16 @@
       "serviceNumber": 8,
       "name": "Secure Boot & TPM",
       "nameAr": "حالة الإقلاع الآمن Secure Boot و TPM 2.0",
-      "state": "STATIC_VERIFIED",
-      "verificationLevel": "static",
+      "state": "RUNTIME_VERIFIED",
+      "verificationLevel": "runtime",
       "runtime": "windows",
       "handlerId": "m10.secureboot.tpm",
       "nativeCommand": "m10_secureboot_tpm_status",
       "requiresElevation": true,
       "reversible": false,
       "dangerous": true,
-      "testPosture": "Static contract evidence only; Windows runtime and E2E proof are not recorded.",
-      "evidence": "Secure Boot is read through Confirm-SecureBootUEFI and the firmware registry flag, and TPM through Get-Tpm and Win32_Tpm. Secure Boot being off is reported as a reading rather than an error, and a TPM no provider could reach is reported as unmeasured rather than absent. Windows runtime proof is still required."
+      "testPosture": "Unit and contract tests plus a recorded Windows run through the React control, the Tauri IPC boundary, the native Rust command and back into the rendered UI.",
+      "evidence": "WINDOWS RUNTIME VERIFIED 2026-09-26T23:01:10Z on DESKTOP-FCJJB5O. React control click -> typed client -> Tauri IPC -> m10_secureboot_tpm_status -> real Windows measurement -> rendered result. Rendered: Secure Boot state and every available TPM provider were read; nothing was changed. Secure Boot: off. Firmware mode: UEFI with secure boot reported as off, or a legacy BIOS boot. TPM providers reached: 1/2. Changed any setting: no. Confirm-SecureBootUEFI reported: Unable to set proper privileges. Access was denied. SecureBoot\\State registry key: UEFISecureBootEnabled = 0. Get-Tpm: present false, ready false, enabled not reported, activated not reported. Win32_Tpm (root\\CIMV2\\Security\\MicrosoftTpm): Access denied. What this does and does not mean: Secure Boot being off is rendered as a reading with the cmdlet's own message, not as an error. One of two TPM providers answered, and the unreachable one is named, so a TPM this process could not reach is unmeasured rather than absent."
     },
     {
       "moduleId": "M10",
@@ -2087,16 +2077,16 @@
       "serviceNumber": 3,
       "name": "Settings export",
       "nameAr": "تصدير إعدادات KNOUX ONE",
-      "state": "STATIC_VERIFIED",
-      "verificationLevel": "static",
+      "state": "RUNTIME_VERIFIED",
+      "verificationLevel": "runtime",
       "runtime": "windows",
       "handlerId": "m11.settings.export",
       "nativeCommand": "m11_settings_export",
       "requiresElevation": false,
       "reversible": false,
       "dangerous": false,
-      "testPosture": "Static contract evidence only; Windows runtime and E2E proof are not recorded.",
-      "evidence": "An explicit document list from the KNOUX ONE app data directory is exported, each file hashed and read back, and a manifest written, hashed and read back in turn. Directory walks are emitted in sorted order with a normalised path separator so the digest is reproducible on any platform. An empty export reports everythingVerified false rather than reading as a good backup. Windows runtime proof is still required."
+      "testPosture": "Unit and contract tests plus a recorded Windows run through the React control, the Tauri IPC boundary, the native Rust command and back into the rendered UI.",
+      "evidence": "WINDOWS RUNTIME VERIFIED 2026-09-26T23:02:51Z on DESKTOP-FCJJB5O. React control click -> typed client -> Tauri IPC -> m11_settings_export -> real Windows measurement -> rendered result. Rendered: KNOUX ONE settings were exported to a real directory, hashed and read back. Documents found: 0. Contents included: yes. Manifest verified: yes. Verification incomplete - 0 verified, 0 unverified. Destination C:\\Users\\k7\\AppData\\Roaming\\com.knoux.one\\backups\\settings-20260926-230251. The default destination inside the application data directory was used. All seven catalogued documents (essential-software.json, post-format-profiles, cleanup-profiles, install-queue, m03, space-thresholds.json, cleanup-history.json) reported as not existing yet on this machine. No file was written. An empty backup is not a good backup. Manifest digest d116d509b6b2d0c7a72de7f1. On-disk artifact %APPDATA%\\com.knoux.one\\backups\\settings-20260926-230251\\manifest.json (1974 bytes, SHA-256 starting d116d509b6b2d0c7a72de7f1) was independently re-hashed outside the application after the run. What this does and does not mean: The write path ran and the manifest was written, hashed and read back; the on-disk file was independently confirmed at 1974 bytes with a matching digest prefix. Zero source documents existed, so the run reports itself incomplete instead of succeeding vacuously. The artifact was re-hashed outside the application after the run."
     },
     {
       "moduleId": "M11",
@@ -2119,16 +2109,16 @@
       "serviceNumber": 5,
       "name": "Environment-variable export",
       "nameAr": "تصدير متغيرات البيئة PATH",
-      "state": "STATIC_VERIFIED",
-      "verificationLevel": "static",
+      "state": "RUNTIME_VERIFIED",
+      "verificationLevel": "runtime",
       "runtime": "windows",
       "handlerId": "m11.environment.export",
       "nativeCommand": "m11_environment_export",
       "requiresElevation": false,
       "reversible": false,
       "dangerous": false,
-      "testPosture": "Static contract evidence only; Windows runtime and E2E proof are not recorded.",
-      "evidence": "Machine and per-user environment variables are read from the registry and exported, with PATH reported in the order Windows actually searches it and every entry present in both scopes named, because exporting one scope alone loses entries on restore. Windows runtime proof is still required."
+      "testPosture": "Unit and contract tests plus a recorded Windows run through the React control, the Tauri IPC boundary, the native Rust command and back into the rendered UI.",
+      "evidence": "WINDOWS RUNTIME VERIFIED 2026-09-26T23:02:51Z on DESKTOP-FCJJB5O. React control click -> typed client -> Tauri IPC -> m11_environment_export -> real Windows measurement -> rendered result. Rendered: Machine and per-user environment variables were exported, with PATH reported in the order Windows actually searches it. Machine PATH entries: 8. User PATH entries: 7. In both scopes: 0. Effective PATH length: 559 chars. Every file verified by read-back - 1 files, 3.9 KB. Path: machine 207 chars, user 352 chars, effective 559. PATHEXT machine 53, user absent. TEMP machine 15, user 30. TMP machine 15, user 30. NUMBER_OF_PROCESSORS machine 1, user absent. PROCESSOR_ARCHITECTURE machine 5, user absent. OS machine 10, user absent. COMSPEC machine 27, user absent. On-disk artifact %APPDATA%\\com.knoux.one\\backups\\environment-20260926-230251\\environment.json (3953 bytes, SHA-256 starting 0775c8d2d327c9e68e2d925d) was independently re-hashed outside the application after the run. What this does and does not mean: Both PATH scopes are exported because Windows searches both; the effective value is their concatenation in search order. A variable absent from the user scope is rendered as absent rather than as empty."
     },
     {
       "moduleId": "M11",
@@ -2136,16 +2126,16 @@
       "serviceNumber": 6,
       "name": "Bookmark backup",
       "nameAr": "حفظ نسخة من إشارات المتصفحات",
-      "state": "STATIC_VERIFIED",
-      "verificationLevel": "static",
+      "state": "RUNTIME_VERIFIED",
+      "verificationLevel": "runtime",
       "runtime": "windows",
       "handlerId": "m11.bookmarks.backup",
       "nativeCommand": "m11_bookmark_backup",
       "requiresElevation": false,
       "reversible": false,
       "dangerous": false,
-      "testPosture": "Static contract evidence only; Windows runtime and E2E proof are not recorded.",
-      "evidence": "Browsers are discovered from real profile directories and Chromium profile names are read from Local State rather than guessed. Every Bookmarks file is validated as JSON before it is called a backup, and a Firefox profile is copied as a complete places.sqlite set including its WAL and SHM sidecars. Nothing is written inside any browser profile directory. Windows runtime proof is still required."
+      "testPosture": "Unit and contract tests plus a recorded Windows run through the React control, the Tauri IPC boundary, the native Rust command and back into the rendered UI.",
+      "evidence": "WINDOWS RUNTIME VERIFIED 2026-09-26T23:02:51Z on DESKTOP-FCJJB5O. React control click -> typed client -> Tauri IPC -> m11_bookmark_backup -> real Windows measurement -> rendered result. Rendered: Bookmark files were copied out of every real browser profile, hashed and read back. Nothing was written inside any browser profile directory. Browsers found: 2. Profiles seen: 3. Files copied: 1. Wrote into a browser profile: no. Every file verified by read-back - 1 files, 3.8 KB. brave, vivaldi, firefox, opera and opera-gx each reported as not existing on this machine. chrome Default: no bookmarks file in this profile. chrome Profile 1: no bookmarks file in this profile. edge Default: found, copied, 3.8 KB. On-disk artifact %APPDATA%\\com.knoux.one\\backups\\bookmarks-20260926-230251\\edge-Default-Bookmarks.json (3865 bytes, SHA-256 starting a30073f00d924f25558b4fcd) was independently re-hashed outside the application after the run. What this does and does not mean: Browsers are discovered from real profile directories and Chromium profile names come from Local State. A browser that is not installed is recorded as absent, which is a different claim from having no bookmarks. The copied file was independently re-hashed outside the application after the run."
     },
     {
       "moduleId": "M11",
@@ -2667,16 +2657,16 @@
       "serviceNumber": 1,
       "name": "Development-environment detection",
       "nameAr": "اكتشاف أدوات ولغات التطوير المثبتة",
-      "state": "STATIC_VERIFIED",
-      "verificationLevel": "static",
+      "state": "RUNTIME_VERIFIED",
+      "verificationLevel": "runtime",
       "runtime": "windows",
       "handlerId": "m15.environment.discover",
       "nativeCommand": "m15_environment_discover",
       "requiresElevation": false,
       "reversible": false,
       "dangerous": false,
-      "testPosture": "Static contract evidence only; Windows runtime and E2E proof are not recorded.",
-      "evidence": "Static trace: catalog handler m15.environment.discover maps to m15_environment_discover; Windows runtime proof is still required."
+      "testPosture": "Unit and contract tests plus a recorded Windows run through the React control, the Tauri IPC boundary, the native Rust command and back into the rendered UI.",
+      "evidence": "WINDOWS RUNTIME VERIFIED 2026-09-26T22:47:00Z on DESKTOP-FCJJB5O. React control click -> typed client -> Tauri IPC -> m15_environment_discover -> real Windows measurement -> rendered result. Rendered: Installed tools 10/20. Healthy probes 9. PATH findings 0. Listening endpoints 79. Python 3.13.15 at C:\\Users\\k7\\AppData\\Local\\Programs\\Python\\Launcher\\py.exe. pip 26.2.1 from C:\\Users\\k7\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\pip (python 3.13). Visual Studio Code 1.139.1 at C:\\Users\\k7\\AppData\\Local\\Programs\\Microsoft VS Code\\bin\\code.cmd. Rust Compiler: Not installed. Cargo: Not installed. Rustup: Not installed. Go: Not installed. .NET SDK: Not installed. Java: Not installed. Java Compiler: Not installed. Docker: Not installed. Host identity: Computer DESKTOP-FCJJB5O, User SYSTEM, Architecture x86_64, Shell C:\\WINDOWS\\system32\\cmd.exe. Tool categories: vcs 1, runtime 7, package manager 5, compiler 3, runtime manager 1, container 2, editor 1. What this does and does not mean: Each tool is reported from the executable Windows actually resolved. A tool that is installed on the machine but absent from the process PATH is reported as Not installed, which is what this service measured."
     },
     {
       "moduleId": "M15",
@@ -2701,16 +2691,16 @@
       "serviceNumber": 3,
       "name": "Git configuration",
       "nameAr": "إدارة إعدادات Git وهويتك في الكود",
-      "state": "STATIC_VERIFIED",
-      "verificationLevel": "static",
+      "state": "RUNTIME_VERIFIED",
+      "verificationLevel": "runtime",
       "runtime": "windows",
       "handlerId": "m15.git.audit",
       "nativeCommand": "m15_git_audit",
       "requiresElevation": false,
       "reversible": false,
       "dangerous": false,
-      "testPosture": "Static contract evidence only; Windows runtime and E2E proof are not recorded.",
-      "evidence": "Reads the located Git executable for its version and the global configuration for user.name, user.email, init.defaultBranch, core.autocrlf, credential.helper and commit signing. No credential or token is read. This service was previously published against `m15_runtime_inspect`, which measures package-manager homes, and has been re-bound to `m15_git_audit`; the Rust envelope capability id was corrected in the same change. Windows runtime proof is still required."
+      "testPosture": "Unit and contract tests plus a recorded Windows run through the React control, the Tauri IPC boundary, the native Rust command and back into the rendered UI.",
+      "evidence": "WINDOWS RUNTIME VERIFIED 2026-09-26T22:55:56Z on DESKTOP-FCJJB5O. React control click -> typed client -> Tauri IPC -> m15_git_audit -> real Windows measurement -> rendered result. Rendered: Global Git configuration audit. Reads selected non-secret settings only. Tokens, passwords, and credential payloads are never collected. Version: git version 2.55.0.windows.3. Default branch: main. user.name: daynightae-cmyk. user.email: 293348050+daynightae-cmyk@users.noreply.github.com. core.autocrlf: true. Credential helper: -. Signing key: Not configured. Commit signing: Disabled. No Git configuration findings. The OperationResult envelope returned capabilityId m15_s03. What this does and does not mean: The OperationResult envelope returned capabilityId m15_s03, which is the Git configuration service. Before the Module 15 mapping fix this command returned m15_s04 and was published as Node & package-manager status. An unset credential.helper is rendered as an absent value rather than as a configured one."
     },
     {
       "moduleId": "M15",

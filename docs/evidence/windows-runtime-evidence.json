@@ -1,0 +1,128 @@
+{
+  "schemaVersion": 1,
+  "policy": "A record may only promote a service to RUNTIME_VERIFIED when all four stages are true. The generator refuses to consume a record whose handlerId or nativeCommand disagrees with the active catalog or the native command registry, so a stale or edited record fails services:check instead of silently promoting a service.",
+  "host": {
+    "machine": "DESKTOP-FCJJB5O",
+    "os": "Microsoft Windows 10 Pro",
+    "version": "10.0.19045",
+    "build": "19045",
+    "architecture": "64-bit",
+    "windowsInstallDate": "2026-09-27T04:14:45",
+    "applicationSha256": "317c64d18558712055bd42606de27105922b43368c79a9451058d87492ef7964",
+    "applicationSizeBytes": 25899008,
+    "applicationProductVersion": "1.0.0",
+    "bundlePath": "target/release/bundle/nsis/KNOUX ONE_1.0.0_x64-setup.exe",
+    "bundleSha256": "2af22fa705181742fb8efb38dbb709d4b4f3b217ad38d2870337bfc8fdf078c3",
+    "bundleSizeBytes": 8652718,
+    "webview2Runtime": "153.0.4234.48"
+  },
+  "method": {
+    "transport": "The signed release binary knoux-one.exe was launched and driven through its own WebView2 surface with the WebView2 remote-debugging switch enabled via WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS. No application code was modified and no test hook was added.",
+    "chain": "React control click -> OperationService.executeCapability -> NativeClient.executeCapability -> resolveNativeCommand allowlist -> Tauri invoke -> registered #[tauri::command] -> native Rust -> real Windows API, registry read, file read or child process -> OperationResult returned over IPC -> React state -> rendered DOM text",
+    "evidenceRule": "renderedEvidence is copied from document.body.innerText of the running application after the operation completed, so it is what a user actually saw and not a re-derivation from source.",
+    "destructiveOperationsRun": "none",
+    "elevationRequested": false
+  },
+  "records": [
+    {
+      "serviceId": "m15_s01",
+      "handlerId": "m15.environment.discover",
+      "nativeCommand": "m15_environment_discover",
+      "capturedAt": "2026-09-26T22:47:00Z",
+      "stages": { "uiControlClicked": true, "ipcRoundTrip": true, "nativeExecuted": true, "resultRendered": true },
+      "renderedEvidence": "Installed tools 10/20. Healthy probes 9. PATH findings 0. Listening endpoints 79. Python 3.13.15 at C:\\Users\\k7\\AppData\\Local\\Programs\\Python\\Launcher\\py.exe. pip 26.2.1 from C:\\Users\\k7\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\pip (python 3.13). Visual Studio Code 1.139.1 at C:\\Users\\k7\\AppData\\Local\\Programs\\Microsoft VS Code\\bin\\code.cmd. Rust Compiler: Not installed. Cargo: Not installed. Rustup: Not installed. Go: Not installed. .NET SDK: Not installed. Java: Not installed. Java Compiler: Not installed. Docker: Not installed. Host identity: Computer DESKTOP-FCJJB5O, User SYSTEM, Architecture x86_64, Shell C:\\WINDOWS\\system32\\cmd.exe. Tool categories: vcs 1, runtime 7, package manager 5, compiler 3, runtime manager 1, container 2, editor 1.",
+      "interpretation": "Each tool is reported from the executable Windows actually resolved. A tool that is installed on the machine but absent from the process PATH is reported as Not installed, which is what this service measured."
+    },
+    {
+      "serviceId": "m15_s03",
+      "handlerId": "m15.git.audit",
+      "nativeCommand": "m15_git_audit",
+      "capturedAt": "2026-09-26T22:55:56Z",
+      "stages": { "uiControlClicked": true, "ipcRoundTrip": true, "nativeExecuted": true, "resultRendered": true },
+      "capabilityIdReturnedByNative": "m15_s03",
+      "renderedEvidence": "Global Git configuration audit. Reads selected non-secret settings only. Tokens, passwords, and credential payloads are never collected. Version: git version 2.55.0.windows.3. Default branch: main. user.name: daynightae-cmyk. user.email: 293348050+daynightae-cmyk@users.noreply.github.com. core.autocrlf: true. Credential helper: -. Signing key: Not configured. Commit signing: Disabled. No Git configuration findings.",
+      "interpretation": "The OperationResult envelope returned capabilityId m15_s03, which is the Git configuration service. Before the Module 15 mapping fix this command returned m15_s04 and was published as Node & package-manager status. An unset credential.helper is rendered as an absent value rather than as a configured one."
+    },
+    {
+      "serviceId": "m09_s01",
+      "handlerId": "m09.permission.dashboard",
+      "nativeCommand": "m09_permission_dashboard",
+      "capturedAt": "2026-09-26T22:58:00Z",
+      "stages": { "uiControlClicked": true, "ipcRoundTrip": true, "nativeExecuted": true, "resultRendered": true },
+      "renderedEvidence": "Real per-app camera, microphone and location consent entries were read; no permission was changed. Consent store present: yes. Application entries seen: 0. Allowed somewhere: 0. Changed any permission: no. Camera webcam 0/0/0/0: The consent store exists but lists no application. Microphone microphone 0/0/0/0: The consent store exists but lists no application. Location location 0/0/0/0: The consent store exists but lists no application. Extended location locationExtended 0/0/0/0: No consent store exists for this capability on this account. Providers consulted: CapabilityAccessManager\\ConsentStore.",
+      "interpretation": "Provider: the per-user CapabilityAccessManager consent store. This account is a different one from the pre-reinstall machine, which recorded 2 webcam, 23 microphone and 3 location entries; zero here is a fresh measurement, not a regression. The service distinguishes a store that exists but lists no application from a capability that has no store at all."
+    },
+    {
+      "serviceId": "m09_s05",
+      "handlerId": "m09.advertising.id",
+      "nativeCommand": "m09_advertising_id",
+      "capturedAt": "2026-09-26T22:59:00Z",
+      "stages": { "uiControlClicked": true, "ipcRoundTrip": true, "nativeExecuted": true, "resultRendered": true },
+      "renderedEvidence": "The stored advertising identifier and its switch state were read; nothing was reset. Advertising ID enabled: yes. Limit ad tracking: unknown. Stored identifier: none stored. Changed any value: no. Providers consulted: HKCU:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\AdvertisingInfo and AdvertisingInfo\\Id.",
+      "interpretation": "Limit ad tracking is reported as unknown rather than as off, because no value for it was readable at the inspected key. A feature that is enabled with no stored identifier is reported as stored-versus-active rather than as tracking."
+    },
+    {
+      "serviceId": "m09_s09",
+      "handlerId": "m09.hosts.inspect",
+      "nativeCommand": "m09_hosts_file",
+      "capturedAt": "2026-09-26T23:00:00Z",
+      "stages": { "uiControlClicked": true, "ipcRoundTrip": true, "nativeExecuted": true, "resultRendered": true },
+      "renderedEvidence": "The Windows hosts file was read and every active mapping was listed; the file was not modified. Active mappings: 0. Blocking entries: 0. Repeated addresses: 0. File modified: no. C:\\WINDOWS\\System32/drivers/etc/hosts, 824 bytes, modified 07/12/2019 1:12:44 PM, 20 comment lines, 1 blank line. No active name mapping was found. That is a measurement of this file, not an assurance that no other resolver is in play. Providers consulted: Win32 file read.",
+      "interpretation": "The file is read as bytes and decoded as UTF-8; a decoding failure is reported rather than replaced. Zero mappings is scoped to this file and is not presented as a clean machine."
+    },
+    {
+      "serviceId": "m10_s07",
+      "handlerId": "m10.smartscreen.status",
+      "nativeCommand": "m10_smartscreen_status",
+      "capturedAt": "2026-09-26T23:01:00Z",
+      "stages": { "uiControlClicked": true, "ipcRoundTrip": true, "nativeExecuted": true, "resultRendered": true },
+      "renderedEvidence": "SmartScreen policy values were read from every location Windows exposes them; no value was written. Enforcement: unknown: no SmartScreen policy value was readable at any probed location, so this service cannot say whether SmartScreen is on. Locations readable: 0/6. Locations empty: 6. Changed any value: no. No SmartScreen policy value was readable at any probed location. That is reported as unknown, not as enabled.",
+      "interpretation": "This is the unavailable-state path. Six registry locations are probed because Windows reads SmartScreen from different places on different builds; zero readable yields unknown rather than an assumed default."
+    },
+    {
+      "serviceId": "m10_s08",
+      "handlerId": "m10.secureboot.tpm",
+      "nativeCommand": "m10_secureboot_tpm_status",
+      "capturedAt": "2026-09-26T23:01:10Z",
+      "stages": { "uiControlClicked": true, "ipcRoundTrip": true, "nativeExecuted": true, "resultRendered": true },
+      "renderedEvidence": "Secure Boot state and every available TPM provider were read; nothing was changed. Secure Boot: off. Firmware mode: UEFI with secure boot reported as off, or a legacy BIOS boot. TPM providers reached: 1/2. Changed any setting: no. Confirm-SecureBootUEFI reported: Unable to set proper privileges. Access was denied. SecureBoot\\State registry key: UEFISecureBootEnabled = 0. Get-Tpm: present false, ready false, enabled not reported, activated not reported. Win32_Tpm (root\\CIMV2\\Security\\MicrosoftTpm): Access denied.",
+      "interpretation": "Secure Boot being off is rendered as a reading with the cmdlet's own message, not as an error. One of two TPM providers answered, and the unreachable one is named, so a TPM this process could not reach is unmeasured rather than absent."
+    },
+    {
+      "serviceId": "m11_s03",
+      "handlerId": "m11.settings.export",
+      "nativeCommand": "m11_settings_export",
+      "capturedAt": "2026-09-26T23:02:51Z",
+      "stages": { "uiControlClicked": true, "ipcRoundTrip": true, "nativeExecuted": true, "resultRendered": true },
+      "artifactPath": "%APPDATA%\\com.knoux.one\\backups\\settings-20260926-230251\\manifest.json",
+      "artifactSha256Prefix": "d116d509b6b2d0c7a72de7f1",
+      "artifactSizeBytes": 1974,
+      "renderedEvidence": "KNOUX ONE settings were exported to a real directory, hashed and read back. Documents found: 0. Contents included: yes. Manifest verified: yes. Verification incomplete - 0 verified, 0 unverified. Destination C:\\Users\\k7\\AppData\\Roaming\\com.knoux.one\\backups\\settings-20260926-230251. The default destination inside the application data directory was used. All seven catalogued documents (essential-software.json, post-format-profiles, cleanup-profiles, install-queue, m03, space-thresholds.json, cleanup-history.json) reported as not existing yet on this machine. No file was written. An empty backup is not a good backup. Manifest digest d116d509b6b2d0c7a72de7f1.",
+      "interpretation": "The write path ran and the manifest was written, hashed and read back; the on-disk file was independently confirmed at 1974 bytes with a matching digest prefix. Zero source documents existed, so the run reports itself incomplete instead of succeeding vacuously. The artifact was re-hashed outside the application after the run."
+    },
+    {
+      "serviceId": "m11_s05",
+      "handlerId": "m11.environment.export",
+      "nativeCommand": "m11_environment_export",
+      "capturedAt": "2026-09-26T23:02:51Z",
+      "stages": { "uiControlClicked": true, "ipcRoundTrip": true, "nativeExecuted": true, "resultRendered": true },
+      "artifactPath": "%APPDATA%\\com.knoux.one\\backups\\environment-20260926-230251\\environment.json",
+      "artifactSizeBytes": 3953,
+      "artifactSha256Prefix": "0775c8d2d327c9e68e2d925d",
+      "renderedEvidence": "Machine and per-user environment variables were exported, with PATH reported in the order Windows actually searches it. Machine PATH entries: 8. User PATH entries: 7. In both scopes: 0. Effective PATH length: 559 chars. Every file verified by read-back - 1 files, 3.9 KB. Path: machine 207 chars, user 352 chars, effective 559. PATHEXT machine 53, user absent. TEMP machine 15, user 30. TMP machine 15, user 30. NUMBER_OF_PROCESSORS machine 1, user absent. PROCESSOR_ARCHITECTURE machine 5, user absent. OS machine 10, user absent. COMSPEC machine 27, user absent.",
+      "interpretation": "Both PATH scopes are exported because Windows searches both; the effective value is their concatenation in search order. A variable absent from the user scope is rendered as absent rather than as empty."
+    },
+    {
+      "serviceId": "m11_s06",
+      "handlerId": "m11.bookmarks.backup",
+      "nativeCommand": "m11_bookmark_backup",
+      "capturedAt": "2026-09-26T23:02:51Z",
+      "stages": { "uiControlClicked": true, "ipcRoundTrip": true, "nativeExecuted": true, "resultRendered": true },
+      "artifactPath": "%APPDATA%\\com.knoux.one\\backups\\bookmarks-20260926-230251\\edge-Default-Bookmarks.json",
+      "artifactSizeBytes": 3865,
+      "artifactSha256Prefix": "a30073f00d924f25558b4fcd",
+      "renderedEvidence": "Bookmark files were copied out of every real browser profile, hashed and read back. Nothing was written inside any browser profile directory. Browsers found: 2. Profiles seen: 3. Files copied: 1. Wrote into a browser profile: no. Every file verified by read-back - 1 files, 3.8 KB. brave, vivaldi, firefox, opera and opera-gx each reported as not existing on this machine. chrome Default: no bookmarks file in this profile. chrome Profile 1: no bookmarks file in this profile. edge Default: found, copied, 3.8 KB.",
+      "interpretation": "Browsers are discovered from real profile directories and Chromium profile names come from Local State. A browser that is not installed is recorded as absent, which is a different claim from having no bookmarks. The copied file was independently re-hashed outside the application after the run."
+    }
+  ]
+}
