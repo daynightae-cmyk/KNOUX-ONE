@@ -38,9 +38,9 @@ const expectedCommands = {
 describe('fourteen partial-service completion gate', () => {
   it('keeps the catalog honest after subsequent verified modules', () => {
     expect(ALL_CAPABILITIES).toHaveLength(190);
-    expect(ALL_CAPABILITIES.filter(item => item.implementationState === 'implemented')).toHaveLength(104);
+    expect(ALL_CAPABILITIES.filter(item => item.implementationState === 'implemented')).toHaveLength(101);
     expect(ALL_CAPABILITIES.filter(item => item.implementationState === 'partial')).toHaveLength(0);
-    expect(ALL_CAPABILITIES.filter(item => item.implementationState === 'planned')).toHaveLength(86);
+    expect(ALL_CAPABILITIES.filter(item => item.implementationState === 'planned')).toHaveLength(89);
     for (const id of completedPartialIds) {
       const service = ALL_CAPABILITIES.find(item => item.id === id);
       expect(service, id).toBeDefined();

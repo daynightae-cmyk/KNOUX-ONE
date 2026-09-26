@@ -296,15 +296,68 @@ for (const [number, handler, en, ar, options] of m08) implemented('m08', number,
 setModule('m15', 'KNOUX Developer Studio', 'استوديو المطورين KNOUX',
   'Local-first Windows developer tooling with explicit native commands and evidence reports.',
   'أدوات مطور محلية لويندوز بأوامر صريحة وتقارير أدلة.');
-const m15Handlers = [
-  'm15.environment.discover', 'm15.path.audit', 'm15.runtime.inspect', 'm15.git.audit',
-  'm15.repositories.scan', 'm15.ports.manage', 'm15.projects.audit', 'm15.caches.manage',
-  'm15.http.execute', 'm15.report.export',
+
+/**
+ * Module 15 handlers are declared per service on purpose.
+ *
+ * This list used to be positional: a flat array of handler ids was zipped onto
+ * services 1..10 by index. Because the array order did not match the order the
+ * services are named in, the pairing was wrong for eight of the ten services. The
+ * git-configuration reader was published as "Node & package-manager status", the
+ * port inspector was published as ".NET SDK status", and every result envelope
+ * named a service it was not measuring. The same wrong order was then copied into
+ * `catalogIntegrity.test.ts`, so the gate agreed with the defect.
+ *
+ * Each entry is therefore `[serviceNumber, handlerId, reasonEn, reasonAr]` and the
+ * test asserts the pairing by service number. Services 5, 6 and 7 are absent on
+ * purpose: nothing in the native layer measures virtualenv paths, `dotnet
+ * --list-sdks` or JAVA_HOME/Android SDK command-line tools, so they stay planned
+ * rather than being pointed at a command that measures something else.
+ */
+const m15Implemented: Array<[number, string, string, string]> = [
+  [1, 'm15.environment.discover',
+    'Toolchain versions for Git, Node, package managers, Python, .NET, Java, Android, Rust, Go and Flutter are measured by locating each real executable and reading its reported version.',
+    'تُقاس إصدارات أدوات التطوير مثل Git وNode ومديري الحزم وPython وdotnet وJava وAndroid وRust وGo وFlutter من خلال تحديد كل ملف تنفيذي فعلي وقراءة الإصدار الذي يعلنه.'],
+  [2, 'm15.path.audit',
+    'The machine and per-user PATH are read from the environment block and each entry is checked for existence, so a stale directory is reported as measured rather than assumed.',
+    'تُقرأ قيمة PATH على مستوى النظام والمستخدم من كتلة البيئة ويُتحقق من وجود كل مدخل، فيُبلَّغ عن المجلد القديم كقيمة مقاسة لا كافتراض.'],
+  [3, 'm15.git.audit',
+    'The real Git executable is located and the global configuration is read for user.name, user.email, init.defaultBranch, core.autocrlf, credential.helper and commit signing. No credential or token is read.',
+    'يُحدد ملف Git التنفيذي فعليًا وتُقرأ الإعدادات العامة لـ user.name وuser.email وinit.defaultBranch وcore.autocrlf وcredential.helper وتوقيع الالتزامات، دون قراءة أي بيانات اعتماد.'],
+  [4, 'm15.runtime.inspect',
+    'Installed package managers and the developer home directories (npm prefix, PYTHONHOME, RUSTUP_HOME, CARGO_HOME, DOTNET_ROOT) are read from the real environment. A variable that is not set is reported as unset rather than guessed.',
+    'تُقرأ مديرو الحزم المثبتون ومجلدات بيئات التطوير (بادئة npm وPYTHONHOME وRUSTUP_HOME وCARGO_HOME وDOTNET_ROOT) من البيئة الفعلية، ويُبلَّغ عن المتغير غير المضبوط كغير مضبوط دون افتراض.'],
+  [8, 'm15.ports.manage',
+    'Listening TCP and UDP endpoints are read from the Windows networking providers together with the bound process name, command line and protected status. This service only lists; it terminates nothing.',
+    'تُقرأ نقاط نهاية TCP وUDP النشطة من مزودي شبكة ويندوز مع اسم العملية المرتبطة وسطر الأوامر وحالة الحماية. تكتفي هذه الخدمة بالعرض ولا تُنهي أي عملية.'],
+  [9, 'm15.ports.manage',
+    'Termination requires the literal token STOP <pid>, refuses protected processes and the application\'s own process, re-reads the port table to confirm the target is still listening, and reports whether taskkill.exe actually succeeded. No process is terminated without that token.',
+    'يتطلب إنهاء العملية الرمز الحرفي STOP <pid>، ويرفض العمليات المحمية وعملية التطبيق نفسها، ويعيد قراءة جدول المنافذ للتأكد من أن العملية ما زالت تستمع، ويبلّغ عن نجاح taskkill.exe فعليًا. لا تُنهي أي عملية دون ذلك الرمز.'],
+  [10, 'm15.report.export',
+    'A developer health report is assembled from the measured toolchain, PATH, package-manager and port evidence, written, hashed and read back before it is reported as exported.',
+    'يُجمَّع تقرير حالة المطور من أدلة أدوات التطوير وPATH ومديري الحزم والمنافذ المقاسة، ثم يُكتب ويُجزَّأ ويُقرأ مجددًا قبل الإبلاغ عن تصديره.'],
 ];
-for (let index = 0; index < m15Handlers.length; index += 1) {
-  implemented('m15', index + 1, m15Handlers[index],
-    'Connected to an explicit allowlisted native Windows handler with honest web fallback.',
-    'متصلة بأمر ويندوز محلي صريح ومسموح مع حالة صادقة في نسخة الويب.');
+for (const [number, handler, en, ar] of m15Implemented) implemented('m15', number, handler, en, ar);
+
+const m15UnavailableReasonEn =
+  'No native command measures what this service names. M15-S05 (virtualenv paths and pip state), M15-S06 (dotnet --list-sdks) and M15-S07 (JAVA_HOME, JDK and Android SDK command-line tools) are not implemented, so this service stays planned instead of being pointed at a command that measures something else.';
+const m15UnavailableReasonAr =
+  'لا يوجد أمر محلي يقيس ما يسمّيه هذا القسم. الأقسام M15-S05 وM15-S06 وM15-S07 غير منفذة، لذلك يبقى هذا القسم مخططًا بدلًا من ربطه بأمر يقيس شيئًا آخر.';
+for (const number of [5, 6, 7]) {
+  patchService('m15', number, {
+    handlerId: undefined,
+    status: 'planned',
+    implementationState: 'planned',
+    availabilityReasonEn: m15UnavailableReasonEn,
+    availabilityReasonAr: m15UnavailableReasonAr,
+    runtime: 'desktop',
+    requiresAdmin: false,
+    supportsPreview: false,
+    supportsDryRun: false,
+    supportsCancel: false,
+    supportsUndo: false,
+    supportsQuarantine: false,
+  });
 }
 
 const module16 = catalog.find(item => item.id === 'm16');
