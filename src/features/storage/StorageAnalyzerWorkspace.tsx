@@ -18,6 +18,7 @@ import { useKnoux } from '../../context/KnouxContext';
 import { MODULES_CATALOG } from '../../data/capabilitiesCatalog';
 import type { OperationResult } from '../../types';
 import { storageClient } from './storageClient';
+import { StorageAgePolicyPanel, StorageReportPanel, ageBasisLabel, ageBasisTone } from './StorageEvidencePanels';
 import type {
   StorageAnalysisResult,
   StorageDriveInventory,
@@ -51,6 +52,9 @@ export const StorageAnalyzerWorkspace: React.FC = () => {
   const runtime = storageClient.runtimeState();
   const [rootPath, setRootPath] = useState('C:\\');
   const [oldDays, setOldDays] = useState(180);
+  /** One exclusion per line. Each is an absolute path whose subtree is skipped. */
+  const [exclusionText, setExclusionText] = useState('');
+  const [excludes, setExcludes] = useState<string[]>([]);
   const [thresholdPercent, setThresholdPercent] = useState(10);
   const [analysis, setAnalysis] = useState<StorageAnalysisResult | null>(null);
   const [drives, setDrives] = useState<StorageDriveInventory | null>(null);
@@ -115,7 +119,7 @@ export const StorageAnalyzerWorkspace: React.FC = () => {
   const scanSelectedPath = () => runAnalysis(
     'Storage scan',
     'فحص مساحة التخزين',
-    () => storageClient.scan({ rootPath: rootPath.trim(), oldDays }),
+    () => storageClient.scan({ rootPath: rootPath.trim(), oldDays, excludes }),
   );
 
   const scanDownloads = () => runAnalysis(
@@ -223,6 +227,49 @@ export const StorageAnalyzerWorkspace: React.FC = () => {
           </button>
         </div>
 
+        <details className="mt-4 rounded-xl border border-[var(--knoux-border)] bg-[var(--knoux-surface)] p-4">
+          <summary className="cursor-pointer text-xs font-black text-[var(--knoux-text)]">
+            {t('Advanced: exclude paths from the scan', 'متقدم: استثنِ مسارات من الفحص')}
+          </summary>
+          <p className="mt-2 text-xs leading-6 text-[var(--knoux-text-muted)]">
+            {t(
+              'One absolute path per line. An excluded directory and its whole subtree are skipped, and the scan reports which roots were excluded so a smaller result is explainable.',
+              'مسار مطلق واحد في كل سطر. يُتخطى المجلد المستثنى وكامل شجرته، ويذكر الفحص ما استُثني حتى يبقى الأصغر مفهومًا.',
+            )}
+          </p>
+          <textarea
+            value={exclusionText}
+            onChange={event => setExclusionText(event.target.value)}
+            placeholder={'C:\\Users\\Name\\node_modules\nD:\\cache'}
+            disabled={busy}
+            rows={3}
+            data-testid="m04-exclusions"
+            className="mt-2 w-full rounded-xl border border-[var(--knoux-border)] bg-[var(--knoux-surface)] px-4 py-3 font-mono text-xs text-[var(--knoux-text)] outline-none focus:border-[var(--knoux-primary)]"
+          />
+          <div className="mt-2 flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              className="knoux-card-action"
+              onClick={() => setExcludes(exclusionText.split(/\r?\n/).map(v => v.trim()).filter(Boolean))}
+              disabled={busy}
+              data-testid="m04-exclusions-apply"
+            >
+              {t('Apply exclusions', 'تطبيق الاستثناءات')} ({excludes.length})
+            </button>
+            <button
+              type="button"
+              className="knoux-card-action"
+              onClick={() => {
+                setExclusionText('');
+                setExcludes([]);
+              }}
+              disabled={busy}
+            >
+              {t('Clear', 'مسح')}
+            </button>
+          </div>
+        </details>
+
         <div className="mt-4 flex flex-wrap gap-3">
           <button type="button" onClick={scanDownloads} disabled={!runtime.available || busy} className="knoux-card-action disabled:opacity-50"><Download className="h-4 w-4" />{t('Analyze Downloads', 'تحليل التنزيلات')}</button>
           <button type="button" onClick={scanAppData} disabled={!runtime.available || busy} className="knoux-card-action disabled:opacity-50"><Database className="h-4 w-4" />{t('Analyze program data', 'تحليل مساحة البرامج')}</button>
@@ -321,7 +368,43 @@ export const StorageAnalyzerWorkspace: React.FC = () => {
               {tab === 'files' && analysis.largestFiles.map(item => <ResultRow key={item.path} title={pathLabel(item.path)} subtitle={item.path} value={formatBytes(item.sizeBytes)} ratio={largestMeasured ? item.sizeBytes / largestMeasured : 0} />)}
               {tab === 'folders' && analysis.largestFolders.map(item => <ResultRow key={item.path} title={pathLabel(item.path)} subtitle={`${item.path} · ${item.fileCount.toLocaleString()} ${t('files', 'ملف')}`} value={formatBytes(item.sizeBytes)} ratio={largestFolder ? item.sizeBytes / largestFolder : 0} />)}
               {tab === 'types' && typeTotals.map(item => <ResultRow key={item.category} title={item.category} subtitle={`${item.fileCount.toLocaleString()} ${t('files', 'ملف')}`} value={formatBytes(item.sizeBytes)} ratio={largestType ? item.sizeBytes / largestType : 0} />)}
-              {tab === 'old' && analysis.oldFiles.largestFiles.map(item => <ResultRow key={item.path} title={pathLabel(item.path)} subtitle={`${item.path} · ${new Date(item.modifiedAt).toLocaleDateString()}`} value={formatBytes(item.sizeBytes)} ratio={analysis.oldFiles.largestFiles[0]?.sizeBytes ? item.sizeBytes / analysis.oldFiles.largestFiles[0].sizeBytes : 0} />)}
+              {tab === 'old' && (
+                <>
+                  <p className="rounded-xl border border-[var(--knoux-border)] bg-[var(--knoux-surface)] p-3 text-xs leading-6 text-[var(--knoux-text-secondary)]" data-testid="m04-old-tab-note">
+                    {analysis.agePolicy.lastAccessReliableForFiles
+                      ? t(
+                          `These files were not accessed since ${analysis.oldFiles.thresholdDays} days ago. This machine was measured to keep last-access timestamps, so access time is a real last-used signal.`,
+                          `لم يتم الوصول إلى هذه الملفات منذ ${analysis.oldFiles.thresholdDays} يومًا. تم قياس أن هذا الجهاز يحدّث وقت الوصول، لذلك هو دليل حقيقي على آخر استخدام.`,
+                        )
+                      : t(
+                          `These files were not modified since ${analysis.oldFiles.thresholdDays} days ago. This machine does not reliably keep last-access timestamps, so "old" here does not mean "unused".`,
+                          `لم يتم تعديل هذه الملفات منذ ${analysis.oldFiles.thresholdDays} يومًا. هذا الجهاز لا يحتفظ بوقت الوصول بشكل موثوق، لذلك "قديم" هنا لا تعني "غير مستخدم".`,
+                        )}
+                    {analysis.oldFiles.unknownCount ? t(
+                      ` ${analysis.oldFiles.unknownCount} row(s) had no readable timestamp and make no age claim at all.`,
+                      ` ${analysis.oldFiles.unknownCount} صف لا يحتوي على وقت قابل للقراءة ولا يدّعي أي عمر.`,
+                    ) : ''}
+                  </p>
+                  {analysis.oldFiles.largestFiles.map(item => (
+                    <div key={item.path} className="rounded-2xl border border-[var(--knoux-border)] bg-[var(--knoux-surface-muted)] p-4" data-testid="m04-old-row" data-age-basis={item.ageBasis}>
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="min-w-0">
+                          <p className="truncate font-black text-[var(--knoux-text)]">{pathLabel(item.path)}</p>
+                          <p className="mt-1 truncate text-xs text-[var(--knoux-text-muted)]">{item.path}</p>
+                        </div>
+                        <span className="shrink-0 font-black text-[var(--knoux-primary-bright)]">{formatBytes(item.sizeBytes)}</span>
+                      </div>
+                      <p className={`mt-2 text-xs font-bold ${ageBasisTone(item.ageBasis)}`} data-testid="m04-old-row-basis">
+                        {ageBasisLabel(item.ageBasis, language)} · {new Date(item.modifiedAt).toLocaleDateString()}
+                      </p>
+                      <p className="mt-1 text-[10px] text-[var(--knoux-text-muted)]" dir="ltr">{item.ageBasis}</p>
+                    </div>
+                  ))}
+                  <p className="text-xs text-[var(--knoux-text-muted)]">
+                    {t('This service is read-only. It never deletes, moves, or quarantines anything.', 'هذه الخدمة للقراءة فقط. لا تحذف ولا تنقل ولا تعزل أي شيء.')}
+                  </p>
+                </>
+              )}
             </div>
 
             {(analysis.truncated || analysis.cancelled || analysis.warnings.length > 0) && <p className="mt-5 text-xs font-semibold text-amber-300">{analysis.cancelled ? t('The result is partial because the scan was cancelled.', 'النتيجة جزئية لأن الفحص تم إلغاؤه.') : ''} {analysis.truncated ? t('The configured maximum file count was reached.', 'تم الوصول إلى الحد الأقصى المحدد للملفات.') : ''} {analysis.warnings.join(' · ')}</p>}
@@ -329,8 +412,25 @@ export const StorageAnalyzerWorkspace: React.FC = () => {
         </>
       )}
 
+      {analysis && (
+        <>
+          <StorageAgePolicyPanel policy={analysis.agePolicy} />
+          <StorageReportPanel
+            scanId={analysis.scanId}
+            runtimeAvailable={runtime.available}
+            onExported={setExported}
+          />
+        </>
+      )}
+
       {exported && (
-        <section className="rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-5"><p className="font-black text-emerald-100">{t('Report saved locally', 'تم حفظ التقرير محليًا')}</p><p className="mt-2 break-all text-xs text-emerald-100/70">{exported.path} · {formatBytes(exported.byteCount)}</p></section>
+        <section className="rounded-2xl border border-emerald-500/30 bg-emerald-500/10 p-5" data-testid="m04-export-summary">
+          <p className="font-black text-emerald-100">{t('Report saved locally', 'تم حفظ التقرير محليًا')}</p>
+          <p className="mt-2 break-all text-xs text-emerald-100/70">{exported.path} · {formatBytes(exported.byteCount)}</p>
+          <p className="mt-1 text-xs text-emerald-100/70">
+            {t('Formats', 'الصيغ')}: {exported.artifacts.map(item => `${item.format} (${item.sha256.slice(0, 12)}…)`).join(' · ')}
+          </p>
+        </section>
       )}
     </div>
   );

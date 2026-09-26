@@ -3,6 +3,7 @@ import { CheckCircle2, Cpu, Download, HardDrive, Monitor, PackageCheck, Play, Re
 import { useKnoux } from '../../context/KnouxContext';
 import { MODULES_CATALOG } from '../../data/capabilitiesCatalog';
 import { setupClient } from './setupClient';
+import { SetupPlannedPanels } from './SetupPlannedPanels';
 import type { InstallQueueItem, SystemDiscoveryData } from './setupContracts';
 
 const PACKAGES = [
@@ -165,6 +166,8 @@ export const WindowsSetupWorkspace: React.FC = () => {
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between"><div><div className="knoux-eyebrow">{t('Persistent installation queue', 'طابور التثبيت المحفوظ')}</div><h2 className="mt-2 text-2xl font-black text-[var(--knoux-text)]">{t('Resume failed or interrupted installations', 'استكمال التثبيتات الفاشلة أو المتوقفة')}</h2><p className="mt-2 text-sm text-[var(--knoux-text-muted)]">{t(`${queueStats.pending} items need attention.`, `${queueStats.pending} عنصر يحتاج إلى متابعة.`)}</p></div><button type="button" onClick={resume} disabled={!runtime.available || Boolean(busy) || queueStats.pending === 0} className="knoux-card-action knoux-card-action--primary disabled:opacity-50">{busy === 'resume' ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}{t('Resume queue', 'استكمال الطابور')}</button></div>
         <div className="mt-5 space-y-3">{queue.length === 0 ? <div className="rounded-2xl border border-dashed border-[var(--knoux-border)] p-6 text-center text-sm text-[var(--knoux-text-muted)]">{t('No installation attempts have been recorded yet.', 'لم يتم تسجيل أي محاولة تثبيت حتى الآن.')}</div> : queue.map(item => <article key={item.queueId} className="rounded-2xl border border-[var(--knoux-border)] bg-[var(--knoux-surface-muted)] p-4"><div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between"><div><p className="font-black text-[var(--knoux-text)]">{item.packageId}</p><p className="mt-1 text-xs text-[var(--knoux-text-muted)]">{t('Attempts', 'المحاولات')}: {item.attempts} · {new Date(item.queuedAt).toLocaleString()}</p>{item.lastError && <p className="mt-2 text-xs text-rose-300">{item.lastError}</p>}</div><span className={`rounded-full border px-3 py-1 text-xs font-black ${statusClass(item.status)}`}>{item.status}</span></div></article>)}</div>
       </section>
+
+      <SetupPlannedPanels available={runtime.available} />
 
       <section className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">{module.services.filter(service => service.implementationState === 'planned').map(service => <article key={service.id} className="rounded-2xl border border-dashed border-[var(--knoux-border)] p-4 opacity-70"><p className="text-sm font-black text-[var(--knoux-text)]">{t(service.nameEn, service.nameAr)}</p><p className="mt-2 text-xs leading-6 text-[var(--knoux-text-muted)]">{t(service.availabilityReasonEn ?? '', service.availabilityReasonAr ?? '')}</p></article>)}</section>
     </div>

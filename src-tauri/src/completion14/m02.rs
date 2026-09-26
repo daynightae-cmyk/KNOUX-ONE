@@ -148,7 +148,7 @@ pub struct DownloadQuarantineRecord {
 }
 
 #[derive(Debug, Clone)]
-enum Filter {
+pub(crate) enum Filter {
     Any,
     Thumbnail,
     Crash,
@@ -156,14 +156,14 @@ enum Filter {
     Installer,
 }
 #[derive(Debug, Clone)]
-struct Target {
-    id: String,
-    name_en: String,
-    name_ar: String,
-    roots: Vec<PathBuf>,
-    requires_admin: bool,
-    min_age: Duration,
-    filter: Filter,
+pub(crate) struct Target {
+    pub(crate) id: String,
+    pub(crate) name_en: String,
+    pub(crate) name_ar: String,
+    pub(crate) roots: Vec<PathBuf>,
+    pub(crate) requires_admin: bool,
+    pub(crate) min_age: Duration,
+    pub(crate) filter: Filter,
 }
 
 fn result<T>(
@@ -296,7 +296,10 @@ fn application_log_roots() -> Vec<PathBuf> {
     roots
 }
 
-fn targets(requested: &[String]) -> Vec<Target> {
+/// The allowlisted cleanup categories. `m02_planned` resolves profile targets through
+/// this same function so a scheduled profile can never name a directory the ordinary
+/// cleanup does not already cover.
+pub(crate) fn targets(requested: &[String]) -> Vec<Target> {
     let ids = if requested.is_empty() {
         vec![
             "user_temp".into(),

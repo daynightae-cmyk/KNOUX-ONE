@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "KNOUX Evidence",
+  "type": "object",
+  "required": [
+    "evidenceId",
+    "type",
+    "source",
+    "collectedAt",
+    "sensitivity"
+  ],
+  "properties": {
+    "evidenceId": {
+      "type": "string"
+    },
+    "type": {
+      "type": "string"
+    },
+    "source": {
+      "type": "string"
+    },
+    "collectedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "sensitivity": {
+      "enum": [
+        "PUBLIC",
+        "LOCAL_MACHINE",
+        "PERSONAL",
+        "SENSITIVE",
+        "SECRET"
+      ]
+    },
+    "payload": {
+      "type": [
+        "object",
+        "array",
+        "string",
+        "number",
+        "boolean",
+        "null"
+      ]
+    },
+    "contentHash": {
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  }
+}

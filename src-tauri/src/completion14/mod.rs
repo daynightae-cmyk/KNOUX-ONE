@@ -1,4 +1,17 @@
 pub mod m01;
+pub mod m01_planned;
 pub mod m02;
+pub mod m02_planned;
 pub mod m03;
+pub mod m03_archives;
+pub mod m03_audio;
+pub mod m03_exif;
+pub mod m03_images;
+pub mod m03_media;
+pub mod m03_video;
 pub mod m04;
+pub mod m04_reports;
+pub mod m09_planned;
+pub mod m10_planned;
+pub mod m11_planned;
+pub mod psbridge;

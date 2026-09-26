@@ -10,10 +10,10 @@ A service is **not** runtime verified merely because its UI, handler, or static 
 
 | State | Count |
 | --- | ---: |
-| PLANNED | 110 |
+| PLANNED | 86 |
 | GUARDED | 0 |
-| STATIC_VERIFIED | 74 |
-| PARTIAL | 6 |
+| STATIC_VERIFIED | 104 |
+| PARTIAL | 0 |
 | RUNTIME_VERIFIED | 0 |
 | BLOCKED | 0 |
 | TOTAL | 190 |
@@ -22,17 +22,17 @@ A service is **not** runtime verified merely because its UI, handler, or static 
 
 | Module | Total | PLANNED | GUARDED | STATIC_VERIFIED | PARTIAL | RUNTIME_VERIFIED | BLOCKED |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| M01 | 10 | 7 | 0 | 3 | 0 | 0 | 0 |
-| M02 | 10 | 3 | 0 | 7 | 0 | 0 | 0 |
-| M03 | 10 | 0 | 0 | 6 | 4 | 0 | 0 |
-| M04 | 10 | 0 | 0 | 8 | 2 | 0 | 0 |
+| M01 | 10 | 3 | 0 | 7 | 0 | 0 | 0 |
+| M02 | 10 | 0 | 0 | 10 | 0 | 0 | 0 |
+| M03 | 10 | 0 | 0 | 10 | 0 | 0 | 0 |
+| M04 | 10 | 0 | 0 | 10 | 0 | 0 | 0 |
 | M05 | 10 | 0 | 0 | 10 | 0 | 0 | 0 |
 | M06 | 10 | 0 | 0 | 10 | 0 | 0 | 0 |
 | M07 | 10 | 0 | 0 | 10 | 0 | 0 | 0 |
 | M08 | 10 | 0 | 0 | 10 | 0 | 0 | 0 |
-| M09 | 10 | 10 | 0 | 0 | 0 | 0 | 0 |
-| M10 | 10 | 10 | 0 | 0 | 0 | 0 | 0 |
-| M11 | 10 | 10 | 0 | 0 | 0 | 0 | 0 |
+| M09 | 10 | 3 | 0 | 7 | 0 | 0 | 0 |
+| M10 | 10 | 5 | 0 | 5 | 0 | 0 | 0 |
+| M11 | 10 | 5 | 0 | 5 | 0 | 0 | 0 |
 | M12 | 10 | 10 | 0 | 0 | 0 | 0 | 0 |
 | M13 | 10 | 10 | 0 | 0 | 0 | 0 | 0 |
 | M14 | 10 | 10 | 0 | 0 | 0 | 0 | 0 |
@@ -48,12 +48,12 @@ A service is **not** runtime verified merely because its UI, handler, or static 
 | --- | --- | --- | --- | --- | --- | --- |
 | M01-S01 | Windows & hardware discovery | STATIC_VERIFIED | static | m01.system.discover | m01_system_discover_complete | Static trace: catalog handler m01.system.discover maps to m01_system_discover_complete; Windows runtime proof is still required. |
 | M01-S02 | Winget availability verification | STATIC_VERIFIED | static | m01.winget.verify | m01_winget_verify | Static trace: catalog handler m01.winget.verify maps to m01_winget_verify; Windows runtime proof is still required. |
-| M01-S03 | Winget repair guidance | PLANNED | none | — | — | Active catalog deliberately exposes no native handler; this service must not be presented as runnable. |
-| M01-S04 | Essential software catalog | PLANNED | none | — | — | Active catalog deliberately exposes no native handler; this service must not be presented as runnable. |
+| M01-S03 | Winget repair guidance | STATIC_VERIFIED | static | m01.winget.repair | m01_winget_repair_guide | Winget is diagnosed by measuring the real executable, capturing the verbatim `winget source list` output and listing the newest diagnostic log. Each guidance step must cite the measurement that produced it, and the response reports that zero mutating actions were performed. Guidance text is never executed by the application. Windows runtime proof is still required. |
+| M01-S04 | Essential software catalog | STATIC_VERIFIED | static | m01.catalog.essential | m01_essential_catalog | The bundled recommendation catalog is resolved against the measured Windows uninstall registry, and the exact catalog bytes are reported with a SHA-256 so a policy edit is always visible. A package identifier is only reported as verified when an explicitly requested check actually succeeded. Windows runtime proof is still required. |
 | M01-S05 | Bulk essential software installation | STATIC_VERIFIED | static | m01.winget.install | m01_winget_install_queued | Static trace: catalog handler m01.winget.install maps to m01_winget_install_queued; Windows runtime proof is still required. |
 | M01-S06 | Import an installation list | PLANNED | none | — | — | Active catalog deliberately exposes no native handler; this service must not be presented as runnable. |
-| M01-S07 | Export installed application inventory | PLANNED | none | — | — | Active catalog deliberately exposes no native handler; this service must not be presented as runnable. |
-| M01-S08 | Create post-format profiles | PLANNED | none | — | — | Active catalog deliberately exposes no native handler; this service must not be presented as runnable. |
+| M01-S07 | Export installed application inventory | STATIC_VERIFIED | static | m01.apps.inventory.export | m01_installed_app_inventory_export | The uninstall registry is read across HKLM 64-bit, HKLM WOW6432Node and HKCU; system-component and update entries are excluded by a named rule and the exclusion counts are reported. The JSON, CSV or HTML report is written, hashed with SHA-256 and read back before it is reported as exported. Windows runtime proof is still required. |
+| M01-S08 | Create post-format profiles | STATIC_VERIFIED | static | m01.profiles.postformat.create | m01_post_format_profile_create | A post-format profile accepts only allowlisted native handlers with only their allowlisted parameter keys, so it cannot become an arbitrary command line. The document is written atomically, read back and hashed. No Windows scheduled task is created and no system state changes. Windows runtime proof is still required. |
 | M01-S09 | Resumable installation queue | PLANNED | none | — | — | Active catalog deliberately exposes no native handler; this service must not be presented as runnable. |
 | M01-S10 | Restore point before setup changes | PLANNED | none | — | — | Active catalog deliberately exposes no native handler; this service must not be presented as runnable. |
 | M02-S01 | User temporary files | STATIC_VERIFIED | static | m02.scan.user_temp | m02_scan_user_temp | Static trace: catalog handler m02.scan.user_temp maps to m02_scan_user_temp; Windows runtime proof is still required. |
@@ -61,18 +61,18 @@ A service is **not** runtime verified merely because its UI, handler, or static 
 | M02-S03 | Browser cache | STATIC_VERIFIED | static | m02.scan.browser_cache | m02_scan_browser_cache | Static trace: catalog handler m02.scan.browser_cache maps to m02_scan_browser_cache; Windows runtime proof is still required. |
 | M02-S04 | Thumbnail cache | STATIC_VERIFIED | static | m02.scan.thumbnail_cache | m02_scan_thumbnail_cache | Static trace: catalog handler m02.scan.thumbnail_cache maps to m02_scan_thumbnail_cache; Windows runtime proof is still required. |
 | M02-S05 | Crash dumps | STATIC_VERIFIED | static | m02.scan.crash_dumps | m02_scan_crash_dumps_complete | Static trace: catalog handler m02.scan.crash_dumps maps to m02_scan_crash_dumps_complete; Windows runtime proof is still required. |
-| M02-S06 | Delivery Optimization cache | PLANNED | none | — | — | Active catalog deliberately exposes no native handler; this service must not be presented as runnable. |
+| M02-S06 | Delivery Optimization cache | STATIC_VERIFIED | static | m02.cache.delivery | m02_delivery_cache | The real Delivery Optimization cache directories are measured with the file API under a depth ceiling, a file ceiling and a listing ceiling; hitting a ceiling is reported. The Delivery Optimization cmdlets are read when present and their absence is reported rather than faked. Nothing is removed. Windows runtime proof is still required. |
 | M02-S07 | Application & Windows logs | STATIC_VERIFIED | static | m02.scan.application_logs | m02_scan_application_logs_complete | Static trace: catalog handler m02.scan.application_logs maps to m02_scan_application_logs_complete; Windows runtime proof is still required. |
-| M02-S08 | Recycle Bin review | PLANNED | none | — | — | Active catalog deliberately exposes no native handler; this service must not be presented as runnable. |
+| M02-S08 | Recycle Bin review | STATIC_VERIFIED | static | m02.recycle.review | m02_recycle_bin_review | The Recycle Bin is enumerated through the Windows Shell namespace and sized from the shell detail columns. The number of entries that carry no size is reported, so the byte total never overstates coverage. Nothing is emptied. Windows runtime proof is still required. |
 | M02-S09 | Old Downloads review | STATIC_VERIFIED | static | m02.scan.old_downloads | m02_scan_old_downloads_complete | Static trace: catalog handler m02.scan.old_downloads maps to m02_scan_old_downloads_complete; Windows runtime proof is still required. |
-| M02-S10 | Scheduled cleanup profiles | PLANNED | none | — | — | Active catalog deliberately exposes no native handler; this service must not be presented as runnable. |
+| M02-S10 | Scheduled cleanup profiles | STATIC_VERIFIED | static | m02.cleanup.schedule | m02_cleanup_schedule | A cleanup profile is measured through the same allowlisted category list as the ordinary cleanup and is persisted and hashed like every other profile document. Applying it delegates to the existing audited cleanup execute command, so there is one deletion path, and it requires a literal confirmation token. No Windows scheduled task is registered. Windows runtime proof is still required. |
 | M03-S01 | Exact duplicate detection | STATIC_VERIFIED | static | m03.scan.exact | m03_scan_exact | Static trace: catalog handler m03.scan.exact maps to m03_scan_exact; Windows runtime proof is still required. |
 | M03-S02 | Fast partial-hash scan | STATIC_VERIFIED | static | m03.scan.fast | m03_scan_fast | Static trace: catalog handler m03.scan.fast maps to m03_scan_fast; Windows runtime proof is still required. |
-| M03-S03 | Similar-image detection | PARTIAL | static | m03.scan.images | m03_scan_images_complete | Partial: active native path exists, but audited media/archive or old-file behavior remains intentionally limited and is not runtime verified. |
-| M03-S04 | Duplicate-video detection | PARTIAL | static | m03.scan.videos | m03_scan_videos_complete | Partial: active native path exists, but audited media/archive or old-file behavior remains intentionally limited and is not runtime verified. |
-| M03-S05 | Duplicate-audio detection | PARTIAL | static | m03.scan.audio | m03_scan_audio_complete | Partial: active native path exists, but audited media/archive or old-file behavior remains intentionally limited and is not runtime verified. |
+| M03-S03 | Similar-image detection | STATIC_VERIFIED | static | m03.scan.images | m03_scan_images_complete | Static trace: catalog handler m03.scan.images maps to m03_scan_images_complete; Windows runtime proof is still required. |
+| M03-S04 | Duplicate-video detection | STATIC_VERIFIED | static | m03.scan.videos | m03_scan_videos_complete | Static trace: catalog handler m03.scan.videos maps to m03_scan_videos_complete; Windows runtime proof is still required. |
+| M03-S05 | Duplicate-audio detection | STATIC_VERIFIED | static | m03.scan.audio | m03_scan_audio_complete | Static trace: catalog handler m03.scan.audio maps to m03_scan_audio_complete; Windows runtime proof is still required. |
 | M03-S06 | Duplicate-document detection | STATIC_VERIFIED | static | m03.scan.documents | m03_scan_documents | Static trace: catalog handler m03.scan.documents maps to m03_scan_documents; Windows runtime proof is still required. |
-| M03-S07 | Duplicate-archive detection | PARTIAL | static | m03.scan.archives | m03_scan_archives_complete | Partial: active native path exists, but audited media/archive or old-file behavior remains intentionally limited and is not runtime verified. |
+| M03-S07 | Duplicate-archive detection | STATIC_VERIFIED | static | m03.scan.archives | m03_scan_archives_complete | Static trace: catalog handler m03.scan.archives maps to m03_scan_archives_complete; Windows runtime proof is still required. |
 | M03-S08 | Duplicate-folder detection | STATIC_VERIFIED | static | m03.scan.folders | m03_scan_folders | Static trace: catalog handler m03.scan.folders maps to m03_scan_folders; Windows runtime proof is still required. |
 | M03-S09 | Keeper recommendations | STATIC_VERIFIED | static | m03.keeper.plan | m03_keeper_plan | Static trace: catalog handler m03.keeper.plan maps to m03_keeper_plan; Windows runtime proof is still required. |
 | M03-S10 | Quarantine and restore | STATIC_VERIFIED | static | m03.quarantine.manage | m03_quarantine_manage | Static trace: catalog handler m03.quarantine.manage maps to m03_quarantine_manage; Windows runtime proof is still required. |
@@ -80,12 +80,12 @@ A service is **not** runtime verified merely because its UI, handler, or static 
 | M04-S02 | Largest files | STATIC_VERIFIED | static | m04.files.largest | m04_largest_files | Static trace: catalog handler m04.files.largest maps to m04_largest_files; Windows runtime proof is still required. |
 | M04-S03 | Largest folders | STATIC_VERIFIED | static | m04.folders.largest | m04_largest_folders | Static trace: catalog handler m04.folders.largest maps to m04_largest_folders; Windows runtime proof is still required. |
 | M04-S04 | File-type distribution | STATIC_VERIFIED | static | m04.types.distribution | m04_type_distribution | Static trace: catalog handler m04.types.distribution maps to m04_type_distribution; Windows runtime proof is still required. |
-| M04-S05 | Old files | PARTIAL | static | m04.files.old | m04_old_files_complete | Partial: active native path exists, but audited media/archive or old-file behavior remains intentionally limited and is not runtime verified. |
+| M04-S05 | Old files | STATIC_VERIFIED | static | m04.files.old | m04_old_files_complete | Old-file analysis measures the machine last-access policy with fsutil and the registry, labels every row LAST_ACCESS, LAST_WRITE_FALLBACK or UNKNOWN, and only says "not accessed since" when access time was measured reliable. Read-only; Windows runtime proof is still required. |
 | M04-S06 | Downloads analysis | STATIC_VERIFIED | static | m04.downloads.analyze | m04_downloads_complete | Static trace: catalog handler m04.downloads.analyze maps to m04_downloads_complete; Windows runtime proof is still required. |
 | M04-S07 | Application-data analysis | STATIC_VERIFIED | static | m04.appdata.analyze | m04_appdata_complete | Static trace: catalog handler m04.appdata.analyze maps to m04_appdata_complete; Windows runtime proof is still required. |
 | M04-S08 | External-drive analysis | STATIC_VERIFIED | static | m04.drives.external | m04_external_drives_complete | Static trace: catalog handler m04.drives.external maps to m04_external_drives_complete; Windows runtime proof is still required. |
 | M04-S09 | Low-space alerts | STATIC_VERIFIED | static | m04.space.check | m04_space_check_complete | Static trace: catalog handler m04.space.check maps to m04_space_check_complete; Windows runtime proof is still required. |
-| M04-S10 | Exportable storage reports | PARTIAL | static | m04.report.export | m04_report_export_complete | Partial: current native export serializes JSON evidence only; the catalog must not claim PDF until a tested PDF producer exists. |
+| M04-S10 | Exportable storage reports | STATIC_VERIFIED | static | m04.report.export | m04_report_export_complete | Storage reports are regenerated from the SQLite snapshot after a restart, rendered as deterministic JSON, CSV and HTML, and hashed with SHA-256 and BLAKE3 with a format-signature check. PDF is reported as unsupported with its reason rather than faked. Windows runtime proof is still required. |
 | M05-S01 | Registry startup entries | STATIC_VERIFIED | static | m05.registry.inspect | m05_registry_entries | Static trace: catalog handler m05.registry.inspect maps to m05_registry_entries; Windows runtime proof is still required. |
 | M05-S02 | Startup folders | STATIC_VERIFIED | static | m05.folders.inspect | m05_startup_folders | Static trace: catalog handler m05.folders.inspect maps to m05_startup_folders; Windows runtime proof is still required. |
 | M05-S03 | Scheduled startup tasks | STATIC_VERIFIED | static | m05.tasks.inspect | m05_scheduled_tasks | Static trace: catalog handler m05.tasks.inspect maps to m05_scheduled_tasks; Windows runtime proof is still required. |
@@ -126,35 +126,35 @@ A service is **not** runtime verified merely because its UI, handler, or static 
 | M08-S08 | Winsock and TCP/IP reset | STATIC_VERIFIED | static | m08.stack.reset | m08_stack_reset | Static trace: catalog handler m08.stack.reset maps to m08_stack_reset; Windows runtime proof is still required. |
 | M08-S09 | Proxy and firewall status | STATIC_VERIFIED | static | m08.proxy_firewall.inspect | m08_proxy_firewall_status | Static trace: catalog handler m08.proxy_firewall.inspect maps to m08_proxy_firewall_status; Windows runtime proof is still required. |
 | M08-S10 | Network diagnostic report | STATIC_VERIFIED | static | m08.report.export | m08_report_export | Static trace: catalog handler m08.report.export maps to m08_report_export; Windows runtime proof is still required. |
-| M09-S01 | Windows permission dashboard | PLANNED | none | — | — | Active catalog deliberately exposes no native handler; this service must not be presented as runnable. |
-| M09-S02 | Camera permission review | PLANNED | none | — | — | Active catalog deliberately exposes no native handler; this service must not be presented as runnable. |
-| M09-S03 | Microphone permission review | PLANNED | none | — | — | Active catalog deliberately exposes no native handler; this service must not be presented as runnable. |
-| M09-S04 | Location permission review | PLANNED | none | — | — | Active catalog deliberately exposes no native handler; this service must not be presented as runnable. |
-| M09-S05 | Advertising ID | PLANNED | none | — | — | Active catalog deliberately exposes no native handler; this service must not be presented as runnable. |
-| M09-S06 | Clipboard history cleanup | PLANNED | none | — | — | Active catalog deliberately exposes no native handler; this service must not be presented as runnable. |
+| M09-S01 | Windows permission dashboard | STATIC_VERIFIED | static | m09.permission.dashboard | m09_permission_dashboard | The per-user CapabilityAccessManager consent store is read across webcam, microphone, location and extended location, with per-application allow, deny and never-asked counts and last-used timestamps converted from Windows FILETIME. A store that does not exist is reported as absent, not as clean. No permission is changed. Windows runtime proof is still required. |
+| M09-S02 | Camera permission review | STATIC_VERIFIED | static | m09.permission.camera | m09_camera_permission | Camera consent entries are projected from the same measured consent store the dashboard uses, so the two services cannot disagree. An absent webcam store is reported as absent. Windows runtime proof is still required. |
+| M09-S03 | Microphone permission review | STATIC_VERIFIED | static | m09.permission.microphone | m09_microphone_permission | Microphone consent entries come from the same measured consent store as the dashboard, with per-application counts and real last-used times. Windows runtime proof is still required. |
+| M09-S04 | Location permission review | STATIC_VERIFIED | static | m09.permission.location | m09_location_permission | Location consent is read from the measured consent store. A capability Windows has no record of is reported as unmeasured rather than permitted. Windows runtime proof is still required. |
+| M09-S05 | Advertising ID | STATIC_VERIFIED | static | m09.advertising.id | m09_advertising_id | The stored per-user advertising identifier and its Enabled switch are read verbatim. A stored identifier with the feature switched off is reported as stored rather than active, which is what a Windows reset actually leaves behind. Nothing is reset by this service. Windows runtime proof is still required. |
+| M09-S06 | Clipboard history cleanup | STATIC_VERIFIED | static | m09.clipboard.privacy | m09_clipboard_privacy | Clipboard history state is read from the registry. The clipboard content is only described when the request explicitly opts in, is truncated to a sixty-character preview and is never stored. Clearing requires the literal confirmation token and does not clear clipboard history itself. Windows runtime proof is still required. |
 | M09-S07 | Recent-file cleanup | PLANNED | none | — | — | Active catalog deliberately exposes no native handler; this service must not be presented as runnable. |
 | M09-S08 | Browser privacy cleanup | PLANNED | none | — | — | Active catalog deliberately exposes no native handler; this service must not be presented as runnable. |
-| M09-S09 | Hosts-file inspection | PLANNED | none | — | — | Active catalog deliberately exposes no native handler; this service must not be presented as runnable. |
+| M09-S09 | Hosts-file inspection | STATIC_VERIFIED | static | m09.hosts.inspect | m09_hosts_file | The Windows hosts file is read as bytes, validated as UTF-8 and parsed into active mappings, comments and blank lines. Blocking entries and repeated addresses are counted, and an unreadable or non-UTF-8 file is reported as such rather than as empty. The file is not modified. Windows runtime proof is still required. |
 | M09-S10 | Reversible privacy profiles | PLANNED | none | — | — | Active catalog deliberately exposes no native handler; this service must not be presented as runnable. |
-| M10-S01 | Defender status | PLANNED | none | — | — | Active catalog deliberately exposes no native handler; this service must not be presented as runnable. |
+| M10-S01 | Defender status | STATIC_VERIFIED | static | m10.defender.status | m10_defender_status | Defender status, signature age, scan ages and the full exclusion list are read from Get-MpComputerStatus, Get-MpPreference, the WinDefend service and the signature registry key. Each provider is reported separately so one that stayed silent is visible. No scan is started and no setting is written. The Defender scan services remain planned because no scan has actually been run on a user machine yet. Windows runtime proof is still required. |
 | M10-S02 | Defender quick scan | PLANNED | none | — | — | Active catalog deliberately exposes no native handler; this service must not be presented as runnable. |
 | M10-S03 | Defender full scan | PLANNED | none | — | — | Active catalog deliberately exposes no native handler; this service must not be presented as runnable. |
 | M10-S04 | Defender custom scan | PLANNED | none | — | — | Active catalog deliberately exposes no native handler; this service must not be presented as runnable. |
-| M10-S05 | Firewall status | PLANNED | none | — | — | Active catalog deliberately exposes no native handler; this service must not be presented as runnable. |
-| M10-S06 | UAC status | PLANNED | none | — | — | Active catalog deliberately exposes no native handler; this service must not be presented as runnable. |
-| M10-S07 | SmartScreen status | PLANNED | none | — | — | Active catalog deliberately exposes no native handler; this service must not be presented as runnable. |
-| M10-S08 | Secure Boot & TPM | PLANNED | none | — | — | Active catalog deliberately exposes no native handler; this service must not be presented as runnable. |
+| M10-S05 | Firewall status | STATIC_VERIFIED | static | m10.firewall.status | m10_firewall_status | Every firewall profile is read with its default actions and logging state, and active rules are counted rather than listed. No rule is created, enabled or disabled. Windows runtime proof is still required. |
+| M10-S06 | UAC status | STATIC_VERIFIED | static | m10.uac.status | m10_uac_status | The machine and per-user User Account Control policy values are read and each is given its plain meaning, so a bare numeric policy value is never presented without an interpretation. The response names the machine policy as the governing scope. No value is written and no elevation is requested. Windows runtime proof is still required. |
+| M10-S07 | SmartScreen status | STATIC_VERIFIED | static | m10.smartscreen.status | m10_smartscreen_status | SmartScreen policy is probed at all six locations Windows exposes it and each readable value is reported with its origin. When no location is readable the service reports unknown rather than assuming a default. Windows runtime proof is still required. |
+| M10-S08 | Secure Boot & TPM | STATIC_VERIFIED | static | m10.secureboot.tpm | m10_secureboot_tpm_status | Secure Boot is read through Confirm-SecureBootUEFI and the firmware registry flag, and TPM through Get-Tpm and Win32_Tpm. Secure Boot being off is reported as a reading rather than an error, and a TPM no provider could reach is reported as unmeasured rather than absent. Windows runtime proof is still required. |
 | M10-S09 | Suspicious startup review | PLANNED | none | — | — | Active catalog deliberately exposes no native handler; this service must not be presented as runnable. |
 | M10-S10 | Optional hash reputation lookup | PLANNED | none | — | — | Active catalog deliberately exposes no native handler; this service must not be presented as runnable. |
 | M11-S01 | Restore point | PLANNED | none | — | — | Active catalog deliberately exposes no native handler; this service must not be presented as runnable. |
 | M11-S02 | Folder backup | PLANNED | none | — | — | Active catalog deliberately exposes no native handler; this service must not be presented as runnable. |
-| M11-S03 | Settings export | PLANNED | none | — | — | Active catalog deliberately exposes no native handler; this service must not be presented as runnable. |
+| M11-S03 | Settings export | STATIC_VERIFIED | static | m11.settings.export | m11_settings_export | An explicit document list from the KNOUX ONE app data directory is exported, each file hashed and read back, and a manifest written, hashed and read back in turn. Directory walks are emitted in sorted order with a normalised path separator so the digest is reproducible on any platform. An empty export reports everythingVerified false rather than reading as a good backup. Windows runtime proof is still required. |
 | M11-S04 | Driver export | PLANNED | none | — | — | Active catalog deliberately exposes no native handler; this service must not be presented as runnable. |
-| M11-S05 | Environment-variable export | PLANNED | none | — | — | Active catalog deliberately exposes no native handler; this service must not be presented as runnable. |
-| M11-S06 | Bookmark backup | PLANNED | none | — | — | Active catalog deliberately exposes no native handler; this service must not be presented as runnable. |
-| M11-S07 | Registry-key backup | PLANNED | none | — | — | Active catalog deliberately exposes no native handler; this service must not be presented as runnable. |
+| M11-S05 | Environment-variable export | STATIC_VERIFIED | static | m11.environment.export | m11_environment_export | Machine and per-user environment variables are read from the registry and exported, with PATH reported in the order Windows actually searches it and every entry present in both scopes named, because exporting one scope alone loses entries on restore. Windows runtime proof is still required. |
+| M11-S06 | Bookmark backup | STATIC_VERIFIED | static | m11.bookmarks.backup | m11_bookmark_backup | Browsers are discovered from real profile directories and Chromium profile names are read from Local State rather than guessed. Every Bookmarks file is validated as JSON before it is called a backup, and a Firefox profile is copied as a complete places.sqlite set including its WAL and SHM sidecars. Nothing is written inside any browser profile directory. Windows runtime proof is still required. |
+| M11-S07 | Registry-key backup | STATIC_VERIFIED | static | m11.registry.backup | m11_registry_key_backup | Static trace: catalog handler m11.registry.backup maps to m11_registry_key_backup; Windows runtime proof is still required. |
 | M11-S08 | Recovery bundle | PLANNED | none | — | — | Active catalog deliberately exposes no native handler; this service must not be presented as runnable. |
-| M11-S09 | Restore wizard | PLANNED | none | — | — | Active catalog deliberately exposes no native handler; this service must not be presented as runnable. |
+| M11-S09 | Restore wizard | STATIC_VERIFIED | static | m11.restore.inventory | m11_restore_inventory | Static trace: catalog handler m11.restore.inventory maps to m11_restore_inventory; Windows runtime proof is still required. |
 | M11-S10 | Scheduled backup | PLANNED | none | — | — | Active catalog deliberately exposes no native handler; this service must not be presented as runnable. |
 | M12-S01 | Installed applications | PLANNED | none | — | — | Active catalog deliberately exposes no native handler; this service must not be presented as runnable. |
 | M12-S02 | Safe uninstall | PLANNED | none | — | — | Active catalog deliberately exposes no native handler; this service must not be presented as runnable. |

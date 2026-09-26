@@ -104,6 +104,7 @@ pub fn scan_images(
                 hard_link_count: candidate.hard_link_count,
                 is_hard_link_alias: false,
                 protected_path: candidate.protected_path,
+                evidence: Vec::new(),
             },
         });
         if index % 16 == 0 {
@@ -187,6 +188,7 @@ pub fn scan_images(
             warnings: vec![
                 "Similar images require manual review and are never auto-selected.".into(),
             ],
+            signals: Vec::new(),
         });
     }
     result.summary.duplicate_groups_found = result.groups.len() as u64;

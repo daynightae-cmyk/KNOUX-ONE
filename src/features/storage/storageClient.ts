@@ -3,7 +3,10 @@ import { NativeClient } from '../../services/nativeClient';
 import type {
   StorageAnalysisResult,
   StorageDriveInventory,
+  StorageRedactionProfile,
   StorageReportExportResult,
+  StorageReportFormat,
+  StorageSnapshotSummary,
   StorageSpaceCheckResult,
 } from './storageContracts';
 
@@ -12,6 +15,8 @@ export interface StorageScanOptions {
   topLimit?: number;
   oldDays?: number;
   maxFiles?: number;
+  /** Absolute paths whose subtrees are skipped. Reported back so a smaller result is explainable. */
+  excludes?: string[];
 }
 
 function scanRequest(options: StorageScanOptions) {
@@ -20,6 +25,7 @@ function scanRequest(options: StorageScanOptions) {
     topLimit: options.topLimit ?? 100,
     oldDays: options.oldDays ?? 180,
     maxFiles: options.maxFiles ?? 1_000_000,
+    excludes: options.excludes ?? [],
   };
 }
 
@@ -74,10 +80,20 @@ export const storageClient = {
     });
   },
 
-  exportReport(scanId: string, fileName?: string): Promise<OperationResult<StorageReportExportResult>> {
+  exportReport(
+    scanId: string,
+    fileName?: string,
+    format: StorageReportFormat = 'all',
+    redaction: StorageRedactionProfile = 'none',
+  ): Promise<OperationResult<StorageReportExportResult>> {
     return NativeClient.executeCapability<StorageReportExportResult>('m04_s10', 'm04.report.export', {
-      request: { scanId, fileName },
+      request: { scanId, fileName, format, redaction },
     });
+  },
+
+  /** Persisted scans that can still be exported, so a report survives an app restart. */
+  reportHistory(): Promise<OperationResult<StorageSnapshotSummary[]>> {
+    return NativeClient.executeCapability<StorageSnapshotSummary[]>('m04_s10', 'm04.report.history');
   },
 
   cancel(targetOperationId: string): Promise<OperationResult<{ targetOperationId: string; cancellationRequested: boolean }>> {

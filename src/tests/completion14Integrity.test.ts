@@ -9,6 +9,7 @@ const m01 = fs.readFileSync(path.resolve('src-tauri/src/completion14/m01.rs'), '
 const m02 = fs.readFileSync(path.resolve('src-tauri/src/completion14/m02.rs'), 'utf8');
 const m03 = fs.readFileSync(path.resolve('src-tauri/src/completion14/m03.rs'), 'utf8');
 const m04 = fs.readFileSync(path.resolve('src-tauri/src/completion14/m04.rs'), 'utf8');
+const m04Reports = fs.readFileSync(path.resolve('src-tauri/src/completion14/m04_reports.rs'), 'utf8');
 
 const completedPartialIds = [
   'm01_s01', 'm01_s05',
@@ -37,9 +38,9 @@ const expectedCommands = {
 describe('fourteen partial-service completion gate', () => {
   it('keeps the catalog honest after subsequent verified modules', () => {
     expect(ALL_CAPABILITIES).toHaveLength(190);
-    expect(ALL_CAPABILITIES.filter(item => item.implementationState === 'implemented')).toHaveLength(80);
+    expect(ALL_CAPABILITIES.filter(item => item.implementationState === 'implemented')).toHaveLength(104);
     expect(ALL_CAPABILITIES.filter(item => item.implementationState === 'partial')).toHaveLength(0);
-    expect(ALL_CAPABILITIES.filter(item => item.implementationState === 'planned')).toHaveLength(110);
+    expect(ALL_CAPABILITIES.filter(item => item.implementationState === 'planned')).toHaveLength(86);
     for (const id of completedPartialIds) {
       const service = ALL_CAPABILITIES.find(item => item.id === id);
       expect(service, id).toBeDefined();
@@ -81,8 +82,17 @@ describe('fourteen partial-service completion gate', () => {
     expect(m04).toContain('accessed_at');
     expect(m04).toContain('Get-PhysicalDisk');
     expect(m04).toContain('m04://low-space-alert');
-    expect(m04).toContain('%PDF-1.4');
     expect(m04).toContain('json_evidence_path');
+    // Storage age is measured against the machine's real last-access policy, and the
+    // exported report is read from persisted evidence rather than a memory map.
+    expect(m04).toContain('disablelastaccess');
+    expect(m04).toContain('classify_age');
+    expect(m04).not.toContain('static SNAPSHOTS');
+    expect(m04Reports).toContain('load_snapshot');
+    expect(m04Reports).toContain('signature_valid');
+    // PDF is not produced; a hand-assembled document would drop non-ASCII paths.
+    expect(m04).not.toContain('%PDF');
+    expect(m04Reports).not.toContain('%PDF');
   });
 
   it('does not fabricate operating-system results in the completion engines', () => {

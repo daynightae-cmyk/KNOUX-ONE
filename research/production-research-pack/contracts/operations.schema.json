@@ -1,0 +1,72 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "KNOUX OperationResult",
+  "type": "object",
+  "required": [
+    "operationId",
+    "serviceId",
+    "status",
+    "startedAt",
+    "evidence",
+    "warnings",
+    "changes",
+    "artifacts"
+  ],
+  "properties": {
+    "operationId": {
+      "type": "string"
+    },
+    "serviceId": {
+      "type": "string",
+      "pattern": "^M\\d{2}-S\\d{2}$"
+    },
+    "status": {
+      "enum": [
+        "created",
+        "preflight",
+        "ready",
+        "running",
+        "verifying",
+        "completed",
+        "completed_with_warnings",
+        "failed",
+        "cancelled",
+        "planned",
+        "unavailable"
+      ]
+    },
+    "startedAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "completedAt": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time"
+    },
+    "summary": {
+      "type": "object"
+    },
+    "evidence": {
+      "type": "array"
+    },
+    "warnings": {
+      "type": "array"
+    },
+    "changes": {
+      "type": "array"
+    },
+    "artifacts": {
+      "type": "array"
+    },
+    "undoToken": {
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  },
+  "additionalProperties": true
+}

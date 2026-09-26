@@ -15,9 +15,9 @@ describe('unified workspace shell integrity', () => {
 
   it('derives truthful presentation state without making planned services executable', () => {
     expect(SERVICE_PRESENTATIONS).toHaveLength(ALL_CAPABILITIES.length);
-    expect(SERVICE_PRESENTATIONS.filter(item => item.state === 'implemented')).toHaveLength(74);
-    expect(SERVICE_PRESENTATIONS.filter(item => item.state === 'partial')).toHaveLength(6);
-    expect(SERVICE_PRESENTATIONS.filter(item => item.state === 'planned')).toHaveLength(110);
+    expect(SERVICE_PRESENTATIONS.filter(item => item.state === 'implemented')).toHaveLength(104);
+    expect(SERVICE_PRESENTATIONS.filter(item => item.state === 'partial')).toHaveLength(0);
+    expect(SERVICE_PRESENTATIONS.filter(item => item.state === 'planned')).toHaveLength(86);
     expect(SERVICE_PRESENTATIONS.filter(item => item.state === 'planned').every(item => !item.executable && !item.nativeCommand)).toBe(true);
     expect(SERVICE_PRESENTATIONS.filter(item => item.state === 'implemented').every(item => item.executable && item.nativeCommand)).toBe(true);
   });

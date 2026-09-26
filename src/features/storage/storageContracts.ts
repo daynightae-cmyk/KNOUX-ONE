@@ -1,9 +1,33 @@
+/** The three states a row's age can honestly be based on. These are not interchangeable. */
+export type StorageAgeBasis = 'LAST_ACCESS' | 'LAST_WRITE_FALLBACK' | 'UNKNOWN';
+
+export type StorageAgePolicyState =
+  | 'last_access_updates_enabled'
+  | 'last_access_updates_disabled'
+  | 'system_managed'
+  | 'unknown';
+
+export interface StorageAgePolicy {
+  /** Where the measurement came from: `fsutil`, `registry`, or `unknown`. */
+  source: 'fsutil' | 'registry' | 'unknown' | string;
+  /** The value Windows reported, kept verbatim as evidence. */
+  rawValue: string;
+  state: StorageAgePolicyState;
+  /** True only when access time can be treated as a real "last used" signal. */
+  lastAccessReliableForFiles: boolean;
+  noteEn: string;
+  noteAr: string;
+}
+
 export interface StorageFileItem {
   path: string;
   sizeBytes: number;
   modifiedAt: string;
   accessedAt?: string | null;
-  ageBasis?: 'last_access' | 'modified_fallback' | string;
+  createdAt?: string | null;
+  ageBasis: StorageAgeBasis;
+  /** True only when the row crossed the age threshold on its own recorded basis. */
+  isOld: boolean;
   extension: string;
   category: string;
 }
@@ -28,6 +52,10 @@ export interface StorageOldFilesSummary {
   largestFiles: StorageFileItem[];
   accessTimeSupported?: boolean;
   fallbackFileCount?: number;
+  unknownCount?: number;
+  agePolicy: StorageAgePolicy;
+  /** This service is analysis only. It never deletes, moves, or quarantines. */
+  readOnly: boolean;
 }
 
 export interface StorageAnalysisResult {
@@ -43,6 +71,8 @@ export interface StorageAnalysisResult {
   largestFolders: StorageFolderItem[];
   typeDistribution: StorageTypeItem[];
   oldFiles: StorageOldFilesSummary;
+  agePolicy: StorageAgePolicy;
+  excludedPaths: string[];
   scannedAt: string;
   warnings: string[];
 }
@@ -93,12 +123,51 @@ export interface StorageSpaceCheckResult {
   warnings: string[];
 }
 
-export interface StorageReportExportResult {
-  scanId: string;
-  format: 'json';
+/** Formats this build can produce. PDF is deliberately not among them. */
+export type StorageReportFormat = 'json' | 'csv' | 'html' | 'all';
+
+export type StorageRedactionProfile = 'none' | 'user_profile';
+
+export interface StorageReportArtifact {
+  artifactId: string;
+  format: string;
   path: string;
   byteCount: number;
-  jsonEvidencePath?: string;
+  sha256: string;
+  blake3: string;
+  /** False when the written bytes do not match the declared format's own signature. */
+  signatureValid: boolean;
+}
+
+export interface StorageUnsupportedFormat {
+  format: string;
+  reasonEn: string;
+  reasonAr: string;
+}
+
+export interface StorageReportExportResult {
+  scanId: string;
+  /** The formats actually written, joined with `+`. */
+  format: string;
+  path: string;
+  byteCount: number;
+  jsonEvidencePath: string;
+  artifacts: StorageReportArtifact[];
+  redactionProfile: StorageRedactionProfile;
+  sourceOperationId?: string | null;
+  formatsSupported: string[];
+  /** Formats a user may ask for that this build cannot honestly produce, with reasons. */
+  formatsUnsupported: StorageUnsupportedFormat[];
+  warnings: string[];
+}
+
+export interface StorageSnapshotSummary {
+  snapshotId: string;
+  rootPath: string;
+  capturedAt: string;
+  totalFiles: number;
+  totalBytes: number;
+  oldFileCount: number;
 }
 
 export interface StorageProgress {
