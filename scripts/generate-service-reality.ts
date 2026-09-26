@@ -191,6 +191,15 @@ const markdown = [
   '',
 ].join('\n');
 
+/**
+ * Git checks this file out with CRLF on a Windows clone when `core.autocrlf=true`, while the
+ * generator always emits LF. Comparing the raw bytes therefore fails on Windows and passes
+ * on Linux for identical content, which is exactly the kind of gate that reports a result it
+ * did not measure. Line endings are normalised before the comparison so the check reports
+ * staleness of content, not of the platform it ran on.
+ */
+const normaliseLineEndings = (value: string): string => value.replace(/\r\n/g, '\n');
+
 async function main() {
   await mkdir(dirname(outputJson), { recursive: true });
   const json = `${JSON.stringify(baseline, null, 2)}\n`;
@@ -198,7 +207,7 @@ async function main() {
 
   if (checkOnly) {
     const [existingJson, existingMarkdown] = await Promise.all([readFile(outputJson, 'utf8'), readFile(outputMarkdown, 'utf8')]);
-    if (existingJson !== json || existingMarkdown !== markdown) {
+    if (normaliseLineEndings(existingJson) !== json || normaliseLineEndings(existingMarkdown) !== markdown) {
       throw new Error('Service baseline is stale. Run `bun run services:generate` and commit the generated outputs.');
     }
     return;
