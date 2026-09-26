@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "KNOUX ServiceSettings",
+  "type": "object",
+  "required": [
+    "serviceId",
+    "profileName",
+    "settings"
+  ],
+  "properties": {
+    "serviceId": {
+      "type": "string"
+    },
+    "profileName": {
+      "type": "string"
+    },
+    "settings": {
+      "type": "object"
+    },
+    "updatedAt": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}
