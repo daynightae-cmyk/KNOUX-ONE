@@ -1,0 +1,26 @@
+# Keep repository text files byte-identical across platforms.
+#
+# Without this, a Windows clone with `core.autocrlf=true` checks the generated
+# service-reality baseline out with CRLF while the generator emits LF, so
+# `bun run services:check` fails on identical content. Normalising in the
+# repository is what makes the gate mean the same thing everywhere.
+* text=auto eol=lf
+
+# Binary assets must never be line-ending translated or diffed as text.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.webp binary
+*.mp4 binary
+*.mp3 binary
+*.wav binary
+*.pdf binary
+*.zip binary
+*.rar binary
+*.7z binary
+*.exe binary
+*.dll binary
+*.sqlite binary
+*.db binary
