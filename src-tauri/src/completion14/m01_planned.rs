@@ -870,7 +870,19 @@ pub struct EssentialCatalogReport {
     pub measured_at: String,
 }
 
+/// The bundled policy file is camelCase on disk.
+///
+/// Without this attribute every field name below had to be snake_case to match,
+/// which it is not: `resources/essential-software.json` writes `schemaVersion`,
+/// `nameEn`, `packageId` and so on. The mismatch made `serde_json` fail on the
+/// first field, so `load_catalog` returned `essential_catalog_unreadable` and
+/// M01-S04 reported "The bundled recommendation catalog could not be read" on
+/// every machine. The static tests could not see it because `include_str!`
+/// guarantees the bytes are present, so a test that only checked the resource
+/// was embedded passed while the parse was broken. `RawMatchRule` below already
+/// spelled its camelCase name out by hand; this makes the parents agree with it.
 #[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "camelCase")]
 struct RawCatalog {
     schema_version: u32,
     catalog_id: String,
@@ -887,6 +899,7 @@ struct RawMatchRule {
 }
 
 #[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "camelCase")]
 struct RawCatalogItem {
     id: String,
     category: String,
@@ -2377,8 +2390,9 @@ pub fn m01_post_format_profiles(
 #[cfg(test)]
 mod tests {
     use super::{
-        csv_escape, html_escape, native_command_for, parse_inventory, parse_winget_diagnosis,
-        profile_id, sanitize_file_stem, validate_target, ALLOWED_PROFILE_STEPS, INVENTORY_SCRIPT,
+        csv_escape, html_escape, load_catalog, native_command_for, parse_inventory,
+        parse_winget_diagnosis, profile_id, sanitize_file_stem, validate_target,
+        ALLOWED_PROFILE_STEPS, CATALOG_EMBEDDED, CATALOG_RESOURCE_PATH, INVENTORY_SCRIPT,
         MAX_INVENTORY_ITEMS,
     };
     use serde_json::json;
@@ -2650,5 +2664,52 @@ mod tests {
             html_escape("<script>&\"'"),
             "&lt;script&gt;&amp;&quot;&#39;"
         );
+    }
+
+    /// The regression guard for a service that had never worked.
+    ///
+    /// `the_essential_catalog_resource_is_embedded` only proved the bytes were
+    /// compiled in. Nothing ever handed those bytes to `serde_json`, so the
+    /// snake_case/camelCase mismatch between `RawCatalog` and the shipped policy
+    /// file went unnoticed while M01-S04 carried a "statically verified" label
+    /// and reported a read failure at runtime on every machine. This test
+    /// performs the real parse against the real embedded resource.
+    #[test]
+    fn the_embedded_policy_file_actually_deserialises() {
+        let (catalog, provenance) = load_catalog().expect("bundled policy must deserialise");
+        assert!(
+            !catalog.items.is_empty(),
+            "bundled policy declared no items"
+        );
+        assert_eq!(provenance.byte_count, CATALOG_EMBEDDED.len() as u64);
+        assert_eq!(provenance.bundled_resource_path, CATALOG_RESOURCE_PATH);
+        assert_eq!(provenance.declared_item_count, catalog.items.len());
+        assert!(
+            provenance.policy_override_path.is_none(),
+            "no on-disk override is expected on a clean machine"
+        );
+    }
+
+    #[test]
+    fn every_bundled_policy_item_carries_the_fields_the_report_promises() {
+        let (catalog, _) = load_catalog().expect("bundled policy must deserialise");
+        for item in &catalog.items {
+            assert!(!item.id.trim().is_empty(), "item id must not be empty");
+            assert!(
+                !item.package_id.trim().is_empty(),
+                "item {} has no package id, so it could never be verified",
+                item.id
+            );
+            assert!(
+                !item.name_en.trim().is_empty(),
+                "item {} has no name",
+                item.id
+            );
+            assert!(
+                !item.name_ar.trim().is_empty(),
+                "item {} has no Arabic name",
+                item.id
+            );
+        }
     }
 }
