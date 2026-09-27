@@ -21,6 +21,7 @@ type RuntimeRecord = {
   renderedEvidence: string;
   interpretation: string;
   capabilityIdReturnedByNative?: string;
+  applicationSha256?: string;
 };
 
 const read = (relative: string) => fs.readFileSync(path.resolve(relative), 'utf8');
@@ -56,6 +57,27 @@ describe('recorded Windows runtime evidence', () => {
     expect(String(evidence.host.os)).toBeTruthy();
     expect(String(evidence.host.applicationSha256)).toMatch(/^[0-9a-f]{64}$/);
     expect(Number(evidence.host.applicationSizeBytes)).toBeGreaterThan(0);
+  });
+
+  /**
+   * A record may pin the binary it was captured against, which matters when a
+   * later fix forces a rebuild: the first ten records ran on the first binary and
+   * the Module 01 records ran on the rebuild. A record that names a binary has to
+   * name one that this repository actually declares, otherwise a digest could be
+   * invented alongside it.
+   */
+  it('pins each record to a declared binary when it names one', () => {
+    const declared = new Set(
+      [evidence.host.applicationSha256, (evidence.host.rebuild as { applicationSha256?: string } | undefined)?.applicationSha256]
+        .filter((value): value is string => typeof value === 'string'),
+    );
+    expect(declared.size).toBeGreaterThan(0);
+    for (const value of declared) expect(value).toMatch(/^[0-9a-f]{64}$/);
+
+    for (const record of evidence.records) {
+      if (record.applicationSha256 === undefined) continue;
+      expect(declared.has(record.applicationSha256), `${record.serviceId} binary`).toBe(true);
+    }
   });
 
   it('only names implemented services', () => {

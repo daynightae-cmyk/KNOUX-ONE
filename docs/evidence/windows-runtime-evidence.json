@@ -14,7 +14,12 @@
     "bundlePath": "target/release/bundle/nsis/KNOUX ONE_1.0.0_x64-setup.exe",
     "bundleSha256": "2af22fa705181742fb8efb38dbb709d4b4f3b217ad38d2870337bfc8fdf078c3",
     "bundleSizeBytes": 8652718,
-    "webview2Runtime": "153.0.4234.48"
+    "webview2Runtime": "153.0.4234.48",
+    "rebuild": {
+      "applicationSha256": "27511a290d12edbc1a4d9b79086c787ffbaf09ccfa6ab0f1468a3a43ea39861f",
+      "applicationSizeBytes": 25867264,
+      "reason": "Rebuilt after the Module 15 S04 catalog field-name fix. Records captured after this rebuild carry their own applicationSha256; the records above were captured against the first binary."
+    }
   },
   "method": {
     "transport": "The signed release binary knoux-one.exe was launched and driven through its own WebView2 surface with the WebView2 remote-debugging switch enabled via WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS. No application code was modified and no test hook was added.",
@@ -123,6 +128,59 @@
       "artifactSha256Prefix": "a30073f00d924f25558b4fcd",
       "renderedEvidence": "Bookmark files were copied out of every real browser profile, hashed and read back. Nothing was written inside any browser profile directory. Browsers found: 2. Profiles seen: 3. Files copied: 1. Wrote into a browser profile: no. Every file verified by read-back - 1 files, 3.8 KB. brave, vivaldi, firefox, opera and opera-gx each reported as not existing on this machine. chrome Default: no bookmarks file in this profile. chrome Profile 1: no bookmarks file in this profile. edge Default: found, copied, 3.8 KB.",
       "interpretation": "Browsers are discovered from real profile directories and Chromium profile names come from Local State. A browser that is not installed is recorded as absent, which is a different claim from having no bookmarks. The copied file was independently re-hashed outside the application after the run."
+    },
+    {
+      "serviceId": "m01_s01",
+      "handlerId": "m01.system.discover",
+      "nativeCommand": "m01_system_discover_complete",
+      "capturedAt": "2026-09-26T21:27:08Z",
+      "applicationSha256": "27511a290d12edbc1a4d9b79086c787ffbaf09ccfa6ab0f1468a3a43ea39861f",
+      "stages": { "uiControlClicked": true, "ipcRoundTrip": true, "nativeExecuted": true, "resultRendered": true },
+      "renderedEvidence": "Windows hardware, firmware, storage, display and security evidence was measured. Computer: LENOVO 10AES01Y00. Windows: Microsoft Windows 10 Pro 10.0.19045. Memory: 11.89 GB. Secure Boot / TPM: N/A / N/A. Graphics: Intel(R) HD Graphics 4600. Storage: TEAM T253256GB. BIOS: FEKT83AUS. CPU: Intel(R) Core(TM) i5-4570 CPU @ 3.20GHz. Physical disks: 1. Measured at 27/09/2026 5:27:08 AM.",
+      "interpretation": "Secure Boot and TPM render as N/A rather than as off or absent, which agrees with the separate Secure Boot and TPM service that reached only one of two providers and was refused the Confirm-SecureBootUEFI privilege. This command takes roughly 33 seconds on this machine; an earlier capture that waited 20 seconds saw no rendered result and looked like a failure that was really just an unfinished measurement."
+    },
+    {
+      "serviceId": "m01_s02",
+      "handlerId": "m01.winget.verify",
+      "nativeCommand": "m01_winget_verify",
+      "capturedAt": "2026-09-26T21:26:00Z",
+      "applicationSha256": "27511a290d12edbc1a4d9b79086c787ffbaf09ccfa6ab0f1468a3a43ea39861f",
+      "stages": { "uiControlClicked": true, "ipcRoundTrip": true, "nativeExecuted": true, "resultRendered": true },
+      "renderedEvidence": "Winget v1.29.380 verified at C:\\Users\\k7\\AppData\\Local\\Microsoft\\WindowsApps\\winget.exe.",
+      "interpretation": "Winget is genuinely present on this machine, at the per-user WindowsApps alias path, and the pre-reinstall record of an absent winget belongs to a different machine. The reported version is the string the executable itself printed."
+    },
+    {
+      "serviceId": "m01_s03",
+      "handlerId": "m01.winget.repair",
+      "nativeCommand": "m01_winget_repair_guide",
+      "capturedAt": "2026-09-26T21:28:00Z",
+      "applicationSha256": "27511a290d12edbc1a4d9b79086c787ffbaf09ccfa6ab0f1468a3a43ea39861f",
+      "stages": { "uiControlClicked": true, "ipcRoundTrip": true, "nativeExecuted": true, "resultRendered": true },
+      "renderedEvidence": "Winget state was measured and conditional repair guidance was produced. Guidance only. This service executed no command and performed 0 mutating actions; it offers 1 mutating step out of 2 for you to run yourself. Steps hidden because they need elevation in this scope: 1. Winget path: C:\\Users\\k7\\AppData\\Local\\Microsoft\\WindowsApps\\winget.exe. Version: v1.29.380. Source list: read. Diagnostic logs: 10. Step 1 is read only, Confirm the reported version, with evidence: Measured winget path C:\\Users\\k7\\AppData\\Local\\Microsoft\\WindowsApps\\winget.exe and reported version v1.29.380. Step 2 changes state, Install or reinstall a single package.",
+      "interpretation": "Each rendered step carries the measurement that produced it, and the single step that needs elevation is hidden in this user scope rather than shown as something the user cannot run. The service repaired nothing and says so in a field, not only in prose."
+    },
+    {
+      "serviceId": "m01_s04",
+      "handlerId": "m01.catalog.essential",
+      "nativeCommand": "m01_essential_catalog",
+      "capturedAt": "2026-09-26T21:30:00Z",
+      "applicationSha256": "27511a290d12edbc1a4d9b79086c787ffbaf09ccfa6ab0f1468a3a43ea39861f",
+      "stages": { "uiControlClicked": true, "ipcRoundTrip": true, "nativeExecuted": true, "resultRendered": true },
+      "renderedEvidence": "Before the fix: status failed, errorCode essential_catalog_unreadable, summary The bundled recommendation catalog could not be read. After the fix: status completed, errorCode null, summary The recommendation catalog was resolved against the measured Windows uninstall registry. Policy revision 2026.09.26. Policy digest c2bbac914bd5058e. Installed here 1 / 1. Package checks passed: not requested. Table row: Google Chrome.",
+      "interpretation": "This service had never worked on any machine. RawCatalog and RawCatalogItem declared snake_case field names while resources/essential-software.json writes camelCase, so serde_json failed on the first field and load_catalog returned essential_catalog_unreadable. The existing test only parsed the resource into a serde_json::Value, which proved the file was well formed but never proved the typed struct matched it, and include_str! guaranteed the bytes were present. Two tests now perform the real deserialisation. Package checks are reported as not requested because no winget lookup was asked for, so no package identifier is claimed as verified."
+    },
+    {
+      "serviceId": "m01_s07",
+      "handlerId": "m01.apps.inventory.export",
+      "nativeCommand": "m01_installed_app_inventory_export",
+      "capturedAt": "2026-09-26T21:25:00Z",
+      "applicationSha256": "27511a290d12edbc1a4d9b79086c787ffbaf09ccfa6ab0f1468a3a43ea39861f",
+      "stages": { "uiControlClicked": true, "ipcRoundTrip": true, "nativeExecuted": true, "resultRendered": true },
+      "artifactPath": "C:\\Users\\k7\\Documents\\KNOUX ONE Exports\\knoux-installed-apps-20260927-012500.json",
+      "artifactSizeBytes": 17097,
+      "artifactSha256Prefix": "cc656706686a6e183c9906df1cb8e9ecb439b8ad42607654166bbea760cf3a92",
+      "renderedEvidence": "The installed application inventory was exported and the written file was verified. Applications: 33. File size: 16.7 KB. Read-back verified: yes. Excluded updates: 1. SHA-256 cc656706686a6e183c9906df1cb8e9ecb439b8ad42607654166bbea760cf3a92. Path C:\\Users\\k7\\Documents\\KNOUX ONE Exports\\knoux-installed-apps-20260927-012500.json.",
+      "interpretation": "The file was re-hashed outside the application after the run and the digest matches the one the UI reported exactly, with 33 application entries present. System components and update entries are excluded by a named rule and the exclusion count is reported rather than dropped silently. Real entries include 7-Zip 26.03.00.0 Igor Pavlov, Bun 1.4.2 Oven-sh, Git 2.55.0.3, Chrome 154.0.8037.58 and IDM 6.43.11 Tonec Inc."
     }
   ]
 }
