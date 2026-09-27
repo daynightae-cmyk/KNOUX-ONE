@@ -4,9 +4,9 @@
   "runtimeVerificationPolicy": "RUNTIME_VERIFIED requires a record in docs/evidence/windows-runtime-evidence.json whose four stages are all true: a React control was clicked, the call crossed the Tauri IPC boundary, the native Rust command executed against real Windows, and the result was rendered. The generator rejects a record whose handler or native command disagrees with the active catalog.",
   "globalRuntimeGate": {
     "state": "BLOCKED",
-    "reason": "21 of 101 implemented services carry recorded Windows runtime evidence. The gate stays BLOCKED while any implemented service is unproven at runtime, and the missing coverage is listed rather than summarised.",
+    "reason": "29 of 101 implemented services carry recorded Windows runtime evidence. The gate stays BLOCKED while any implemented service is unproven at runtime, and the missing coverage is listed rather than summarised.",
     "eligible": 101,
-    "verified": 21,
+    "verified": 29,
     "missing": [
       "M01-S05",
       "M01-S08",
@@ -25,15 +25,7 @@
       "M03-S09",
       "M03-S10",
       "M04-S01",
-      "M04-S02",
-      "M04-S03",
-      "M04-S04",
-      "M04-S05",
-      "M04-S06",
       "M04-S07",
-      "M04-S08",
-      "M04-S09",
-      "M04-S10",
       "M05-S01",
       "M05-S02",
       "M05-S03",
@@ -95,12 +87,12 @@
     "states": {
       "PLANNED": 89,
       "GUARDED": 0,
-      "STATIC_VERIFIED": 80,
+      "STATIC_VERIFIED": 72,
       "PARTIAL": 0,
-      "RUNTIME_VERIFIED": 21,
+      "RUNTIME_VERIFIED": 29,
       "BLOCKED": 0
     },
-    "runtimeVerifiedPercentageOfEligible": 20.79
+    "runtimeVerifiedPercentageOfEligible": 28.71
   },
   "modules": [
     {
@@ -149,9 +141,9 @@
       "counts": {
         "PLANNED": 0,
         "GUARDED": 0,
-        "STATIC_VERIFIED": 10,
+        "STATIC_VERIFIED": 2,
         "PARTIAL": 0,
-        "RUNTIME_VERIFIED": 0,
+        "RUNTIME_VERIFIED": 8,
         "BLOCKED": 0
       }
     },
@@ -879,16 +871,16 @@
       "serviceNumber": 2,
       "name": "Largest files",
       "nameAr": "أكبر الملفات حجماً",
-      "state": "STATIC_VERIFIED",
-      "verificationLevel": "static",
+      "state": "RUNTIME_VERIFIED",
+      "verificationLevel": "runtime",
       "runtime": "windows",
       "handlerId": "m04.files.largest",
       "nativeCommand": "m04_largest_files",
       "requiresElevation": false,
       "reversible": false,
       "dangerous": false,
-      "testPosture": "Static contract/integrity tests; Windows runtime and E2E proof are not recorded.",
-      "evidence": "Static trace: catalog handler m04.files.largest maps to m04_largest_files; Windows runtime proof is still required."
+      "testPosture": "Unit and contract tests plus a recorded Windows run through the React control, the Tauri IPC boundary, the native Rust command and back into the rendered UI.",
+      "evidence": "WINDOWS RUNTIME VERIFIED 2026-09-27T18:16:51Z on DESKTOP-FCJJB5O. React control click -> typed client -> Tauri IPC -> m04_largest_files -> real Windows measurement -> rendered result. Rendered: Measured size 1.27 GB, Files 50, Folders 6, Unavailable items 0, path C:\\Users\\k7\\Downloads. Largest files: an Arabic-named MP4 at 568.7 MB, blender-5.2.2-windows-x64.msi 347.9 MB, traycer-desktop-windows-x64.exe 142.3 MB, K-Lite_Codec_Pack_2000_Full.exe 54.9 MB, Urban_VPN_V4.0.0.0 (1).exe 29.3 MB, idman643build11 (1).exe 12.0 MB, ChromeSetup.exe 11.8 MB, two grok-workspace zips at 3.93 MB each, knouxrec.zip 3.28 MB. What this does and does not mean: Every row carries a real measured size and a real absolute path, and the count that produced the list (50 files) is the same count the report recorded, so the list is not padded. Unavailable items is reported as 0 rather than omitted, so an inaccessible path would be visible if one existed."
     },
     {
       "moduleId": "M04",
@@ -896,16 +888,16 @@
       "serviceNumber": 3,
       "name": "Largest folders",
       "nameAr": "أكبر المجلدات",
-      "state": "STATIC_VERIFIED",
-      "verificationLevel": "static",
+      "state": "RUNTIME_VERIFIED",
+      "verificationLevel": "runtime",
       "runtime": "windows",
       "handlerId": "m04.folders.largest",
       "nativeCommand": "m04_largest_folders",
       "requiresElevation": false,
       "reversible": false,
       "dangerous": false,
-      "testPosture": "Static contract/integrity tests; Windows runtime and E2E proof are not recorded.",
-      "evidence": "Static trace: catalog handler m04.folders.largest maps to m04_largest_folders; Windows runtime proof is still required."
+      "testPosture": "Unit and contract tests plus a recorded Windows run through the React control, the Tauri IPC boundary, the native Rust command and back into the rendered UI.",
+      "evidence": "WINDOWS RUNTIME VERIFIED 2026-09-27T18:16:51Z on DESKTOP-FCJJB5O. React control click -> typed client -> Tauri IPC -> m04_largest_folders -> real Windows measurement -> rendered result. Rendered: Largest folders: Downloads, C:\\Users\\k7\\Downloads, 50 files, 1.27 GB. Video, C:\\Users\\k7\\Downloads\\Video, 1 files, 568.7 MB. What this does and does not mean: Folder rows report the measured file count and size that produced them, so a folder total can be checked against the files listed underneath it. The single 568.7 MB video is the same file the largest-files list shows, which is the consistency this design is for."
     },
     {
       "moduleId": "M04",
@@ -913,16 +905,16 @@
       "serviceNumber": 4,
       "name": "File-type distribution",
       "nameAr": "توزيع أنواع الملفات",
-      "state": "STATIC_VERIFIED",
-      "verificationLevel": "static",
+      "state": "RUNTIME_VERIFIED",
+      "verificationLevel": "runtime",
       "runtime": "windows",
       "handlerId": "m04.types.distribution",
       "nativeCommand": "m04_type_distribution",
       "requiresElevation": false,
       "reversible": false,
       "dangerous": false,
-      "testPosture": "Static contract/integrity tests; Windows runtime and E2E proof are not recorded.",
-      "evidence": "Static trace: catalog handler m04.types.distribution maps to m04_type_distribution; Windows runtime proof is still required."
+      "testPosture": "Unit and contract tests plus a recorded Windows run through the React control, the Tauri IPC boundary, the native Rust command and back into the rendered UI.",
+      "evidence": "WINDOWS RUNTIME VERIFIED 2026-09-27T18:16:51Z on DESKTOP-FCJJB5O. React control click -> typed client -> Tauri IPC -> m04_type_distribution -> real Windows measurement -> rendered result. Rendered: File types: applications 11 files 664.0 MB, videos 4 files 572.5 MB, images 20 files 38.1 MB, archives 11 files 23.3 MB, documents 1 files 44.7 KB, other 3 files 7.23 KB. What this does and does not mean: Six buckets that sum to the 50 files the scan measured, so no file is silently dropped between classification and totals. An 'other' bucket is published rather than forcing an unfamiliar extension into a convenient category."
     },
     {
       "moduleId": "M04",
@@ -930,16 +922,16 @@
       "serviceNumber": 5,
       "name": "Old files",
       "nameAr": "الملفات القديمة النادرة الاستخدام",
-      "state": "STATIC_VERIFIED",
-      "verificationLevel": "static",
+      "state": "RUNTIME_VERIFIED",
+      "verificationLevel": "runtime",
       "runtime": "windows",
       "handlerId": "m04.files.old",
       "nativeCommand": "m04_old_files_complete",
       "requiresElevation": false,
       "reversible": false,
       "dangerous": false,
-      "testPosture": "Static contract/integrity tests; Windows runtime and E2E proof are not recorded.",
-      "evidence": "Old-file analysis measures the machine last-access policy with fsutil and the registry, labels every row LAST_ACCESS, LAST_WRITE_FALLBACK or UNKNOWN, and only says \"not accessed since\" when access time was measured reliable. Read-only; Windows runtime proof is still required."
+      "testPosture": "Unit and contract tests plus a recorded Windows run through the React control, the Tauri IPC boundary, the native Rust command and back into the rendered UI.",
+      "evidence": "WINDOWS RUNTIME VERIFIED 2026-09-27T18:16:51Z on DESKTOP-FCJJB5O. React control click -> typed client -> Tauri IPC -> m04_old_files_complete -> real Windows measurement -> rendered result. Rendered: These files were not modified since 180 days ago. This machine does not reliably keep last-access timestamps, so \"old\" here does not mean \"unused\". This service is read-only. It never deletes, moves, or quarantines anything. Access time is system-managed, it is not applied to files. Windows reports disablelastaccess = 2, so last-access timestamps are not a reliable last-used signal. Rows fall back to modification time and are described as \"not modified since\". Measured from: fsutil, value as Windows reported it: 2. What this does and does not mean: The last-access policy is measured from fsutil and reported before the result, and the service refuses to call a file 'unused' when the machine does not track access time. The wording is 'not modified since', never 'not used since'. This is the exact distinction the module doc was written for, and it holds at runtime."
     },
     {
       "moduleId": "M04",
@@ -947,16 +939,16 @@
       "serviceNumber": 6,
       "name": "Downloads analysis",
       "nameAr": "تحليل مجلد التنزيلات",
-      "state": "STATIC_VERIFIED",
-      "verificationLevel": "static",
+      "state": "RUNTIME_VERIFIED",
+      "verificationLevel": "runtime",
       "runtime": "windows",
       "handlerId": "m04.downloads.analyze",
       "nativeCommand": "m04_downloads_complete",
       "requiresElevation": false,
       "reversible": false,
       "dangerous": false,
-      "testPosture": "Static contract/integrity tests; Windows runtime and E2E proof are not recorded.",
-      "evidence": "Static trace: catalog handler m04.downloads.analyze maps to m04_downloads_complete; Windows runtime proof is still required."
+      "testPosture": "Unit and contract tests plus a recorded Windows run through the React control, the Tauri IPC boundary, the native Rust command and back into the rendered UI.",
+      "evidence": "WINDOWS RUNTIME VERIFIED 2026-09-27T18:16:51Z on DESKTOP-FCJJB5O. React control click -> typed client -> Tauri IPC -> m04_downloads_complete -> real Windows measurement -> rendered result. Rendered: MEASURED RESULTS, Downloads, C:\\Users\\k7\\Downloads. Measured size 1.27 GB, Files 50, Folders 6, Unavailable items 0. Persisted scan 2026-09-27T18:16:51.414139800+00:00, C:\\Users\\k7\\Downloads, 50 files. What this does and does not mean: This is the measurement that produced the largest-file, largest-folder, file-type and old-file views, and it was persisted, so the report export in M04-S10 could be regenerated from stored evidence rather than by walking the folder again. Unavailable items 0 means nothing was skipped silently."
     },
     {
       "moduleId": "M04",
@@ -981,16 +973,16 @@
       "serviceNumber": 8,
       "name": "External-drive analysis",
       "nameAr": "تحليل الأقراص الخارجية وUSB",
-      "state": "STATIC_VERIFIED",
-      "verificationLevel": "static",
+      "state": "RUNTIME_VERIFIED",
+      "verificationLevel": "runtime",
       "runtime": "windows",
       "handlerId": "m04.drives.external",
       "nativeCommand": "m04_external_drives_complete",
       "requiresElevation": false,
       "reversible": false,
       "dangerous": false,
-      "testPosture": "Static contract/integrity tests; Windows runtime and E2E proof are not recorded.",
-      "evidence": "Static trace: catalog handler m04.drives.external maps to m04_external_drives_complete; Windows runtime proof is still required."
+      "testPosture": "Unit and contract tests plus a recorded Windows run through the React control, the Tauri IPC boundary, the native Rust command and back into the rendered UI.",
+      "evidence": "WINDOWS RUNTIME VERIFIED 2026-09-27T18:20:00Z on DESKTOP-FCJJB5O. React control click -> typed client -> Tauri IPC -> m04_external_drives_complete -> real Windows measurement -> rendered result. Rendered: C:\\ fixed, 89.6 GB used, 89.1 GB free. D:\\ fixed, 45.7 GB used, 12.8 GB free. E:\\ optical, 0 B used, 0 B free. Per-volume monitoring: C:\\ 49.9% 89.1 GB free, D:\\ 21.9% 12.8 GB free, E:\\ 0.0% 0 B free, all marked Monitoring active. What this does and does not mean: Every volume carries its real filesystem type, so the empty E: is reported as an optical drive with 0 B rather than as a volume that failed to read. Free and used figures come from Windows, and the derived percentage is published next to the raw numbers it came from."
     },
     {
       "moduleId": "M04",
@@ -998,16 +990,16 @@
       "serviceNumber": 9,
       "name": "Low-space alerts",
       "nameAr": "تنبيهات انخفاض مساحة التخزين",
-      "state": "STATIC_VERIFIED",
-      "verificationLevel": "static",
+      "state": "RUNTIME_VERIFIED",
+      "verificationLevel": "runtime",
       "runtime": "windows",
       "handlerId": "m04.space.check",
       "nativeCommand": "m04_space_check_complete",
       "requiresElevation": false,
       "reversible": false,
       "dangerous": false,
-      "testPosture": "Static contract/integrity tests; Windows runtime and E2E proof are not recorded.",
-      "evidence": "Static trace: catalog handler m04.space.check maps to m04_space_check_complete; Windows runtime proof is still required."
+      "testPosture": "Unit and contract tests plus a recorded Windows run through the React control, the Tauri IPC boundary, the native Rust command and back into the rendered UI.",
+      "evidence": "WINDOWS RUNTIME VERIFIED 2026-09-27T18:20:30Z on DESKTOP-FCJJB5O. React control click -> typed client -> Tauri IPC -> m04_space_check_complete -> real Windows measurement -> rendered result. Rendered: Low-space threshold control with a percentage, Check now, and a per-volume result: C:\\ 49.9% 89.1 GB free, D:\\ 21.9% 12.8 GB free, E:\\ 0.0% 0 B free, each marked Monitoring active. The panel states that after a threshold check the selected threshold and interval are stored in application data, and that KNOUX ONE checks connected volumes while the desktop app is running and sends both an in-app event and a Windows toast. What this does and does not mean: No volume is below the threshold on this machine, so no alert fired, and the panel says the check ran rather than presenting silence as health. The stated monitoring behaviour is scoped to the app running, which is the honest limit of a desktop-runtime check."
     },
     {
       "moduleId": "M04",
@@ -1015,16 +1007,16 @@
       "serviceNumber": 10,
       "name": "Exportable storage reports",
       "nameAr": "تصدير تقرير مساحة الأقراص",
-      "state": "STATIC_VERIFIED",
-      "verificationLevel": "static",
+      "state": "RUNTIME_VERIFIED",
+      "verificationLevel": "runtime",
       "runtime": "windows",
       "handlerId": "m04.report.export",
       "nativeCommand": "m04_report_export_complete",
       "requiresElevation": false,
       "reversible": false,
       "dangerous": false,
-      "testPosture": "Static contract/integrity tests; Windows runtime and E2E proof are not recorded.",
-      "evidence": "Storage reports are regenerated from the SQLite snapshot after a restart, rendered as deterministic JSON, CSV and HTML, and hashed with SHA-256 and BLAKE3 with a format-signature check. PDF is reported as unsupported with its reason rather than faked. Windows runtime proof is still required."
+      "testPosture": "Unit and contract tests plus a recorded Windows run through the React control, the Tauri IPC boundary, the native Rust command and back into the rendered UI.",
+      "evidence": "WINDOWS RUNTIME VERIFIED 2026-09-27T18:22:00Z on DESKTOP-FCJJB5O. React control click -> typed client -> Tauri IPC -> m04_report_export_complete -> real Windows measurement -> rendered result. Rendered: Written 3 document(s), redaction: none. JSON signature verified, 25,283 B, SHA-256 42d9b20aed9699a309da6b7484d28edcdcfe4cfe88fc08a87723905b5e2c6b22, BLAKE3 e8ae902bb3faf4a70d48f63ef8df52da9e389ce6a9f85fbfb2ef0cc6bca51a1f. CSV and HTML written alongside. Persisted scan 2026-09-27T18:16:51.414139800+00:00, C:\\Users\\k7\\Downloads, 50 files. The report carries dataCompleteness: complete true, reasonEn Every scanned path was read, inaccessibleItems 0, excludedPathCount 0, listedFileCount 50. On-disk artifact C:\\Users\\k7\\AppData\\Roaming\\com.knoux.one\\storage-reports\\storage-report-e3aabb92-8461-470d-89c0-b2ebac1d8620.json (25283 bytes, SHA-256 starting 42d9b20aed9699a309da6b7484d28edcdcfe4cfe88fc08a87723905b5e2c6b22) was independently re-hashed outside the application after the run. What this does and does not mean: All three documents were re-hashed outside the application after the export and the JSON digest matches the one the UI reported exactly; the CSV and HTML are 12,285 B and 20,563 B. The report is regenerated from the persisted scan rather than a second walk, and it carries its own completeness statement, so a reader can tell whether the numbers are exhaustive. PDF is not offered here and is not silently implied."
     },
     {
       "moduleId": "M05",
