@@ -181,6 +181,69 @@
       "artifactSha256Prefix": "cc656706686a6e183c9906df1cb8e9ecb439b8ad42607654166bbea760cf3a92",
       "renderedEvidence": "The installed application inventory was exported and the written file was verified. Applications: 33. File size: 16.7 KB. Read-back verified: yes. Excluded updates: 1. SHA-256 cc656706686a6e183c9906df1cb8e9ecb439b8ad42607654166bbea760cf3a92. Path C:\\Users\\k7\\Documents\\KNOUX ONE Exports\\knoux-installed-apps-20260927-012500.json.",
       "interpretation": "The file was re-hashed outside the application after the run and the digest matches the one the UI reported exactly, with 33 application entries present. System components and update entries are excluded by a named rule and the exclusion count is reported rather than dropped silently. Real entries include 7-Zip 26.03.00.0 Igor Pavlov, Bun 1.4.2 Oven-sh, Git 2.55.0.3, Chrome 154.0.8037.58 and IDM 6.43.11 Tonec Inc."
+    },
+    {
+      "serviceId": "m02_s01",
+      "handlerId": "m02.scan.user_temp",
+      "nativeCommand": "m02_scan_user_temp",
+      "capturedAt": "2026-09-26T20:21:28Z",
+      "applicationSha256": "27511a290d12edbc1a4d9b79086c787ffbaf09ccfa6ab0f1468a3a43ea39861f",
+      "stages": { "uiControlClicked": true, "ipcRoundTrip": true, "nativeExecuted": true, "resultRendered": true },
+      "renderedEvidence": "Measured preview: 10,030 files found, 908.8 MB, Type CLEAN to confirm deletion. Your temporary files: 5,000 files, 336.1 MB, verified snapshot available. Selected tools 3. Saved operations 1. Cleanup history records Device scan 27/09/2026 8:21:28 PM completed, 10,030 files, 908.8 MB.",
+      "interpretation": "Reached through the Cleanup areas list with the user_temp category ticked and Scan selected areas pressed. Nothing was deleted: the destructive control requires typing CLEAN and the confirmation input stays disabled. Two further notes. The count 5,000 is suspiciously round and matches the browser cache count exactly, which is the signature of a per-category ceiling; this main scan panel does not report that a ceiling was hit, unlike the scheduled-profile path in M02-S10 which states that the measured size is a floor. M02-S02 windows_temp and M02-S05 crash_dumps are marked Admin and were not reachable without elevation."
+    },
+    {
+      "serviceId": "m02_s03",
+      "handlerId": "m02.scan.browser_cache",
+      "nativeCommand": "m02_scan_browser_cache",
+      "capturedAt": "2026-09-26T20:21:28Z",
+      "applicationSha256": "27511a290d12edbc1a4d9b79086c787ffbaf09ccfa6ab0f1468a3a43ea39861f",
+      "stages": { "uiControlClicked": true, "ipcRoundTrip": true, "nativeExecuted": true, "resultRendered": true },
+      "renderedEvidence": "Browser temporary files: 5,000 files, 502.2 MB, verified snapshot available. Part of the same 10,030 files / 908.8 MB measured preview.",
+      "interpretation": "Same measurement run as M02-S01. Exactly 5,000 files, the same round number as the user temporary files count, so this category also appears to have reached a per-category ceiling that the panel does not disclose."
+    },
+    {
+      "serviceId": "m02_s04",
+      "handlerId": "m02.scan.thumbnail_cache",
+      "nativeCommand": "m02_scan_thumbnail_cache",
+      "capturedAt": "2026-09-26T20:21:28Z",
+      "applicationSha256": "27511a290d12edbc1a4d9b79086c787ffbaf09ccfa6ab0f1468a3a43ea39861f",
+      "stages": { "uiControlClicked": true, "ipcRoundTrip": true, "nativeExecuted": true, "resultRendered": true },
+      "renderedEvidence": "Image thumbnail files: 30 files, 70.4 MB, verified snapshot available. Part of the same 10,030 files / 908.8 MB measured preview.",
+      "interpretation": "Same measurement run. This count is well below any plausible ceiling, so it is the one category in the run that looks complete."
+    },
+    {
+      "serviceId": "m02_s06",
+      "handlerId": "m02.cache.delivery",
+      "nativeCommand": "m02_delivery_cache",
+      "capturedAt": "2026-09-26T20:24:00Z",
+      "applicationSha256": "27511a290d12edbc1a4d9b79086c787ffbaf09ccfa6ab0f1468a3a43ea39861f",
+      "stages": { "uiControlClicked": true, "ipcRoundTrip": true, "nativeExecuted": true, "resultRendered": true },
+      "renderedEvidence": "The Delivery Optimization cache was measured read-only; nothing was removed. Cache size 0 B. Files counted 0. Readable roots 0 / 2. Deleted no. program_data_cache: root does not exist, C:\\ProgramData\\Microsoft\\Windows\\DeliveryOptimization\\Cache, root_does_not_exist. service_profile_cache: root does not exist, C:\\WINDOWS\\ServiceProfiles\\NetworkService\\AppData\\Local\\Microsoft\\Windows\\DeliveryOptimization\\Cache, root_does_not_exist. Delivery Optimization status query: completed. Reported cache size: 2.0 GB. Fifteen transfer rows, all Paused, with real transfer hashes.",
+      "interpretation": "This is the two-providers-disagree case working as designed. The file walk measures 0 B and 0 files because neither root exists on this machine, while the Delivery Optimization cmdlet reports 2.0 GB. Both readings are shown and neither is reconciled into a single number, so a user cannot mistake one provider's answer for the machine's real cache size. A missing root is reported as root_does_not_exist rather than as an empty cache."
+    },
+    {
+      "serviceId": "m02_s08",
+      "handlerId": "m02.recycle.review",
+      "nativeCommand": "m02_recycle_bin_review",
+      "capturedAt": "2026-09-26T20:26:00Z",
+      "applicationSha256": "27511a290d12edbc1a4d9b79086c787ffbaf09ccfa6ab0f1468a3a43ea39861f",
+      "stages": { "uiControlClicked": true, "ipcRoundTrip": true, "nativeExecuted": true, "resultRendered": true },
+      "renderedEvidence": "The Recycle Bin was reviewed read-only; nothing was emptied. Read-only review. Entries found 0. Sized entries 0 / 0. Total size 0 B. Emptied no. Empty Name / Original location / Deleted / Size table.",
+      "interpretation": "The Recycle Bin is genuinely empty on this machine and is reported as zero with a real sized-versus-unsized split, rather than padded. Nothing was emptied. This agrees with the pre-reinstall reading of an empty Recycle Bin on the previous machine, so it is a stable property rather than a coincidence."
+    },
+    {
+      "serviceId": "m02_s10",
+      "handlerId": "m02.cleanup.schedule",
+      "nativeCommand": "m02_cleanup_schedule",
+      "capturedAt": "2026-09-26T20:28:00Z",
+      "applicationSha256": "27511a290d12edbc1a4d9b79086c787ffbaf09ccfa6ab0f1468a3a43ea39861f",
+      "stages": { "uiControlClicked": true, "ipcRoundTrip": true, "nativeExecuted": true, "resultRendered": true },
+      "artifactPath": "C:\\Users\\k7\\AppData\\Roaming\\com.knoux.one\\cleanup-profiles\\weekly-tidy.json",
+      "artifactSizeBytes": 739,
+      "artifactSha256Prefix": "1f6458ed8e7f7305b416eef067d750a33ad39c5f297426f497437f484ebcab70",
+      "renderedEvidence": "The cleanup profile was measured and saved as a dry run. Nothing was removed. Dry run only. Nothing was removed, not_registered: this service records the profile and measures it; no Windows scheduled task was created. Files measured 10000. Measured size 883.1 MB. Deleted 0, 0 B. Profile file verified: yes. At least one category hit its item ceiling, so the measured size is a floor, not a total. SHA-256 1f6458ed8e7f7305b416eef067d750a33ad39c5f297426f497437f484ebcab70.",
+      "interpretation": "This is the one path that states the ceiling honestly: it says the measured size is a floor rather than a total. The profile file was re-hashed outside the application and matches the reported digest exactly, and the persisted document carries profileId, targets, rejectedTargets, dryRunDefault, confirmationToken, osSchedulerRegistration and run bookkeeping. The response states plainly that no Windows scheduled task was created, and the Apply for real control stayed disabled because no confirmation token had been typed."
     }
   ]
 }
