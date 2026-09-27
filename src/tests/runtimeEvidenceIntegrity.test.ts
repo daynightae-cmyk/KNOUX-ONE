@@ -60,19 +60,29 @@ describe('recorded Windows runtime evidence', () => {
   });
 
   /**
-   * A record may pin the binary it was captured against, which matters when a
-   * later fix forces a rebuild: the first ten records ran on the first binary and
-   * the Module 01 records ran on the rebuild. A record that names a binary has to
-   * name one that this repository actually declares, otherwise a digest could be
-   * invented alongside it.
+   * A record may pin the binary it was captured against, which matters when a later
+   * repair forces a rebuild. Three binaries are in play here: the first build, the one
+   * after the M01 catalog repair, and the one after the M02 ceiling fix.
+   *
+   * What this actually proves is internal consistency: a reading may not be attributed
+   * to a binary the evidence file never declares. It does **not** prove a declared
+   * digest corresponds to a real build. Editing a digest everywhere at once keeps the
+   * file self-consistent and this test still passes, because confirming the binary
+   * would mean rebuilding it and re-hashing the artefact, which a unit test cannot do.
+   * The digests in `host.binaries` are reproducible by hand from the recorded builds.
    */
   it('pins each record to a declared binary when it names one', () => {
-    const declared = new Set(
-      [evidence.host.applicationSha256, (evidence.host.rebuild as { applicationSha256?: string } | undefined)?.applicationSha256]
-        .filter((value): value is string => typeof value === 'string'),
+    const declared = new Map<string, number>(
+      ((evidence.host.binaries as { applicationSha256: string; applicationSizeBytes: number }[]) ?? []).map(entry => [
+        entry.applicationSha256,
+        entry.applicationSizeBytes,
+      ]),
     );
-    expect(declared.size).toBeGreaterThan(0);
-    for (const value of declared) expect(value).toMatch(/^[0-9a-f]{64}$/);
+    expect(declared.size, 'at least one binary must be declared').toBeGreaterThan(0);
+    for (const [sha, size] of declared) {
+      expect(sha, 'declared binary digest').toMatch(/^[0-9a-f]{64}$/);
+      expect(size, `declared size for ${sha.slice(0, 8)}`).toBeGreaterThan(0);
+    }
 
     for (const record of evidence.records) {
       if (record.applicationSha256 === undefined) continue;

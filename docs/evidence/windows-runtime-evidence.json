@@ -15,11 +15,23 @@
     "bundleSha256": "2af22fa705181742fb8efb38dbb709d4b4f3b217ad38d2870337bfc8fdf078c3",
     "bundleSizeBytes": 8652718,
     "webview2Runtime": "153.0.4234.48",
-    "rebuild": {
-      "applicationSha256": "27511a290d12edbc1a4d9b79086c787ffbaf09ccfa6ab0f1468a3a43ea39861f",
-      "applicationSizeBytes": 25867264,
-      "reason": "Rebuilt after the Module 15 S04 catalog field-name fix. Records captured after this rebuild carry their own applicationSha256; the records above were captured against the first binary."
-    }
+    "binaries": [
+      {
+        "applicationSha256": "317c64d18558712055bd42606de27105922b43368c79a9451058d87492ef7964",
+        "applicationSizeBytes": 25899008,
+        "note": "First build of this evidence effort. Records captured before the M15 and M01 repairs."
+      },
+      {
+        "applicationSha256": "27511a290d12edbc1a4d9b79086c787ffbaf09ccfa6ab0f1468a3a43ea39861f",
+        "applicationSizeBytes": 25867264,
+        "note": "Rebuilt after the Module 15 S04 catalog field-name repair."
+      },
+      {
+        "applicationSha256": "886afdabc8b8796007997388fa36644542ab9f9d94e7002f6e9c24686410e44b",
+        "applicationSizeBytes": 25867264,
+        "note": "Rebuilt after the Module 02 scan-ceiling disclosure fix. All Module 04 records were captured against this binary."
+      }
+    ]
   },
   "method": {
     "transport": "The signed release binary knoux-one.exe was launched and driven through its own WebView2 surface with the WebView2 remote-debugging switch enabled via WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS. No application code was modified and no test hook was added.",
@@ -244,6 +256,89 @@
       "artifactSha256Prefix": "1f6458ed8e7f7305b416eef067d750a33ad39c5f297426f497437f484ebcab70",
       "renderedEvidence": "The cleanup profile was measured and saved as a dry run. Nothing was removed. Dry run only. Nothing was removed, not_registered: this service records the profile and measures it; no Windows scheduled task was created. Files measured 10000. Measured size 883.1 MB. Deleted 0, 0 B. Profile file verified: yes. At least one category hit its item ceiling, so the measured size is a floor, not a total. SHA-256 1f6458ed8e7f7305b416eef067d750a33ad39c5f297426f497437f484ebcab70.",
       "interpretation": "This is the one path that states the ceiling honestly: it says the measured size is a floor rather than a total. The profile file was re-hashed outside the application and matches the reported digest exactly, and the persisted document carries profileId, targets, rejectedTargets, dryRunDefault, confirmationToken, osSchedulerRegistration and run bookkeeping. The response states plainly that no Windows scheduled task was created, and the Apply for real control stayed disabled because no confirmation token had been typed."
+    },
+    {
+      "serviceId": "m04_s02",
+      "handlerId": "m04.files.largest",
+      "nativeCommand": "m04_largest_files",
+      "capturedAt": "2026-09-27T18:16:51Z",
+      "applicationSha256": "886afdabc8b8796007997388fa36644542ab9f9d94e7002f6e9c24686410e44b",
+      "stages": { "uiControlClicked": true, "ipcRoundTrip": true, "nativeExecuted": true, "resultRendered": true },
+      "renderedEvidence": "Measured size 1.27 GB, Files 50, Folders 6, Unavailable items 0, path C:\\Users\\k7\\Downloads. Largest files: an Arabic-named MP4 at 568.7 MB, blender-5.2.2-windows-x64.msi 347.9 MB, traycer-desktop-windows-x64.exe 142.3 MB, K-Lite_Codec_Pack_2000_Full.exe 54.9 MB, Urban_VPN_V4.0.0.0 (1).exe 29.3 MB, idman643build11 (1).exe 12.0 MB, ChromeSetup.exe 11.8 MB, two grok-workspace zips at 3.93 MB each, knouxrec.zip 3.28 MB.",
+      "interpretation": "Every row carries a real measured size and a real absolute path, and the count that produced the list (50 files) is the same count the report recorded, so the list is not padded. Unavailable items is reported as 0 rather than omitted, so an inaccessible path would be visible if one existed."
+    },
+    {
+      "serviceId": "m04_s03",
+      "handlerId": "m04.folders.largest",
+      "nativeCommand": "m04_largest_folders",
+      "capturedAt": "2026-09-27T18:16:51Z",
+      "applicationSha256": "886afdabc8b8796007997388fa36644542ab9f9d94e7002f6e9c24686410e44b",
+      "stages": { "uiControlClicked": true, "ipcRoundTrip": true, "nativeExecuted": true, "resultRendered": true },
+      "renderedEvidence": "Largest folders: Downloads, C:\\Users\\k7\\Downloads, 50 files, 1.27 GB. Video, C:\\Users\\k7\\Downloads\\Video, 1 files, 568.7 MB.",
+      "interpretation": "Folder rows report the measured file count and size that produced them, so a folder total can be checked against the files listed underneath it. The single 568.7 MB video is the same file the largest-files list shows, which is the consistency this design is for."
+    },
+    {
+      "serviceId": "m04_s04",
+      "handlerId": "m04.types.distribution",
+      "nativeCommand": "m04_type_distribution",
+      "capturedAt": "2026-09-27T18:16:51Z",
+      "applicationSha256": "886afdabc8b8796007997388fa36644542ab9f9d94e7002f6e9c24686410e44b",
+      "stages": { "uiControlClicked": true, "ipcRoundTrip": true, "nativeExecuted": true, "resultRendered": true },
+      "renderedEvidence": "File types: applications 11 files 664.0 MB, videos 4 files 572.5 MB, images 20 files 38.1 MB, archives 11 files 23.3 MB, documents 1 files 44.7 KB, other 3 files 7.23 KB.",
+      "interpretation": "Six buckets that sum to the 50 files the scan measured, so no file is silently dropped between classification and totals. An 'other' bucket is published rather than forcing an unfamiliar extension into a convenient category."
+    },
+    {
+      "serviceId": "m04_s05",
+      "handlerId": "m04.files.old",
+      "nativeCommand": "m04_old_files_complete",
+      "capturedAt": "2026-09-27T18:16:51Z",
+      "applicationSha256": "886afdabc8b8796007997388fa36644542ab9f9d94e7002f6e9c24686410e44b",
+      "stages": { "uiControlClicked": true, "ipcRoundTrip": true, "nativeExecuted": true, "resultRendered": true },
+      "renderedEvidence": "These files were not modified since 180 days ago. This machine does not reliably keep last-access timestamps, so \"old\" here does not mean \"unused\". This service is read-only. It never deletes, moves, or quarantines anything. Access time is system-managed, it is not applied to files. Windows reports disablelastaccess = 2, so last-access timestamps are not a reliable last-used signal. Rows fall back to modification time and are described as \"not modified since\". Measured from: fsutil, value as Windows reported it: 2.",
+      "interpretation": "The last-access policy is measured from fsutil and reported before the result, and the service refuses to call a file 'unused' when the machine does not track access time. The wording is 'not modified since', never 'not used since'. This is the exact distinction the module doc was written for, and it holds at runtime."
+    },
+    {
+      "serviceId": "m04_s06",
+      "handlerId": "m04.downloads.analyze",
+      "nativeCommand": "m04_downloads_complete",
+      "capturedAt": "2026-09-27T18:16:51Z",
+      "applicationSha256": "886afdabc8b8796007997388fa36644542ab9f9d94e7002f6e9c24686410e44b",
+      "stages": { "uiControlClicked": true, "ipcRoundTrip": true, "nativeExecuted": true, "resultRendered": true },
+      "renderedEvidence": "MEASURED RESULTS, Downloads, C:\\Users\\k7\\Downloads. Measured size 1.27 GB, Files 50, Folders 6, Unavailable items 0. Persisted scan 2026-09-27T18:16:51.414139800+00:00, C:\\Users\\k7\\Downloads, 50 files.",
+      "interpretation": "This is the measurement that produced the largest-file, largest-folder, file-type and old-file views, and it was persisted, so the report export in M04-S10 could be regenerated from stored evidence rather than by walking the folder again. Unavailable items 0 means nothing was skipped silently."
+    },
+    {
+      "serviceId": "m04_s08",
+      "handlerId": "m04.drives.external",
+      "nativeCommand": "m04_external_drives_complete",
+      "capturedAt": "2026-09-27T18:20:00Z",
+      "applicationSha256": "886afdabc8b8796007997388fa36644542ab9f9d94e7002f6e9c24686410e44b",
+      "stages": { "uiControlClicked": true, "ipcRoundTrip": true, "nativeExecuted": true, "resultRendered": true },
+      "renderedEvidence": "C:\\ fixed, 89.6 GB used, 89.1 GB free. D:\\ fixed, 45.7 GB used, 12.8 GB free. E:\\ optical, 0 B used, 0 B free. Per-volume monitoring: C:\\ 49.9% 89.1 GB free, D:\\ 21.9% 12.8 GB free, E:\\ 0.0% 0 B free, all marked Monitoring active.",
+      "interpretation": "Every volume carries its real filesystem type, so the empty E: is reported as an optical drive with 0 B rather than as a volume that failed to read. Free and used figures come from Windows, and the derived percentage is published next to the raw numbers it came from."
+    },
+    {
+      "serviceId": "m04_s09",
+      "handlerId": "m04.space.check",
+      "nativeCommand": "m04_space_check_complete",
+      "capturedAt": "2026-09-27T18:20:30Z",
+      "applicationSha256": "886afdabc8b8796007997388fa36644542ab9f9d94e7002f6e9c24686410e44b",
+      "stages": { "uiControlClicked": true, "ipcRoundTrip": true, "nativeExecuted": true, "resultRendered": true },
+      "renderedEvidence": "Low-space threshold control with a percentage, Check now, and a per-volume result: C:\\ 49.9% 89.1 GB free, D:\\ 21.9% 12.8 GB free, E:\\ 0.0% 0 B free, each marked Monitoring active. The panel states that after a threshold check the selected threshold and interval are stored in application data, and that KNOUX ONE checks connected volumes while the desktop app is running and sends both an in-app event and a Windows toast.",
+      "interpretation": "No volume is below the threshold on this machine, so no alert fired, and the panel says the check ran rather than presenting silence as health. The stated monitoring behaviour is scoped to the app running, which is the honest limit of a desktop-runtime check."
+    },
+    {
+      "serviceId": "m04_s10",
+      "handlerId": "m04.report.export",
+      "nativeCommand": "m04_report_export_complete",
+      "capturedAt": "2026-09-27T18:22:00Z",
+      "applicationSha256": "886afdabc8b8796007997388fa36644542ab9f9d94e7002f6e9c24686410e44b",
+      "stages": { "uiControlClicked": true, "ipcRoundTrip": true, "nativeExecuted": true, "resultRendered": true },
+      "artifactPath": "C:\\Users\\k7\\AppData\\Roaming\\com.knoux.one\\storage-reports\\storage-report-e3aabb92-8461-470d-89c0-b2ebac1d8620.json",
+      "artifactSizeBytes": 25283,
+      "artifactSha256Prefix": "42d9b20aed9699a309da6b7484d28edcdcfe4cfe88fc08a87723905b5e2c6b22",
+      "renderedEvidence": "Written 3 document(s), redaction: none. JSON signature verified, 25,283 B, SHA-256 42d9b20aed9699a309da6b7484d28edcdcfe4cfe88fc08a87723905b5e2c6b22, BLAKE3 e8ae902bb3faf4a70d48f63ef8df52da9e389ce6a9f85fbfb2ef0cc6bca51a1f. CSV and HTML written alongside. Persisted scan 2026-09-27T18:16:51.414139800+00:00, C:\\Users\\k7\\Downloads, 50 files. The report carries dataCompleteness: complete true, reasonEn Every scanned path was read, inaccessibleItems 0, excludedPathCount 0, listedFileCount 50.",
+      "interpretation": "All three documents were re-hashed outside the application after the export and the JSON digest matches the one the UI reported exactly; the CSV and HTML are 12,285 B and 20,563 B. The report is regenerated from the persisted scan rather than a second walk, and it carries its own completeness statement, so a reader can tell whether the numbers are exhaustive. PDF is not offered here and is not silently implied."
     }
   ]
 }
