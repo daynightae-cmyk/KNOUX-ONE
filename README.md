@@ -5,20 +5,26 @@
 
 KNOUX ONE is a Windows desktop workspace built with **Tauri 2, Rust, React 19, and TypeScript**. The project follows an evidence-first rule: a service is marked implemented only when an allowlisted native handler, typed contract, verification path, and tests exist.
 
+The desktop application is the product. `knoux-one.vercel.app` serves the renderer only, with every native operation disabled, and it is not evidence that any service works on Windows — see [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md).
+
 ## Current verified implementation matrix
 
 The generated service-reality baseline is the detailed evidence authority. Run `bun run services:check` to verify it has not drifted.
 
+<!-- service-reality:begin -->
 | Evidence state | Count |
 |---|---:|
 | Modules | 19 |
 | Services | 190 |
-| Statically verified native paths | 74 |
-| Partial native paths with documented limits | 6 |
-| Planned, non-executable | 110 |
-| Runtime verified on Windows in repository evidence | 0 |
+| Statically verified native paths | 72 |
+| Partial native paths with documented limits | 0 |
+| Planned, non-executable | 89 |
+| Runtime verified on Windows in repository evidence | 29 |
+<!-- service-reality:end -->
 
-The active catalog contains 80 native-linked services across M01–M08 and M15. Six are classified partial by the generated evidence baseline (four media/archive services in M03 and two evidence/export services in M04), leaving 74 statically verified. This is not a claim that 80 services have been runtime-verified on Windows.
+**This table is generated.** `scripts/generate-service-reality.ts` rewrites the block above from the same counts that produce the baseline, and `services:check` fails when the two disagree, so the README cannot drift away from the evidence it summarises.
+
+The active catalog contains **101 implemented services** — 29 runtime verified on Windows and 72 statically verified. Those are different claims and the distinction matters: a statically verified service has an allowlisted native command, a typed contract and passing tests, but nobody has yet driven its full path on Windows. **The global runtime gate is BLOCKED at 29 of 101 (28.71%)**, and the 72 services still missing runtime evidence are listed by service id in the generated baseline rather than summarised as "mostly verified". No count in this repository is a production-readiness claim; verification so far covers one machine on one day.
 
 M09–M14 and M16–M19 remain planned and expose no handler. Browser preview never fabricates host readings or successful desktop operations. See [`REAL_IMPLEMENTATION_MATRIX.md`](REAL_IMPLEMENTATION_MATRIX.md) and the generated [`docs/services/service-reality-baseline.md`](docs/services/service-reality-baseline.md) for exact service evidence and limitations.
 
