@@ -9,6 +9,7 @@ import { NATIVE_COMMANDS } from '../src/services/nativeCommandRegistry';
 const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const outputJson = resolve(projectRoot, 'docs/services/service-reality-baseline.json');
 const outputMarkdown = resolve(projectRoot, 'docs/services/service-reality-baseline.md');
+const outputReadme = resolve(projectRoot, 'README.md');
 const runtimeEvidencePath = resolve(projectRoot, 'docs/evidence/windows-runtime-evidence.json');
 
 type RuntimeStages = {
@@ -123,6 +124,30 @@ type BaselineService = {
   testPosture: string;
   evidence: string;
 };
+
+/**
+ * README.md quotes the totals table a reader lands on first, so it has to be held to
+ * the same standard as the generated baseline. This rewrites only the fenced totals
+ * table, matched on its `<!-- service-reality:begin -->` markers, and leaves the rest
+ * of the prose alone. It returns the rendered block so the caller can compare.
+ */
+function renderReadmeTotals(stateTotals: Record<ServiceState, number>, gate: { verified: number; eligible: number }): string {
+  const total = stateTotals.PLANNED + stateTotals.GUARDED + stateTotals.STATIC_VERIFIED
+    + stateTotals.PARTIAL + stateTotals.RUNTIME_VERIFIED + stateTotals.BLOCKED;
+  const lines = [
+    '<!-- service-reality:begin -->',
+    '| Evidence state | Count |',
+    '|---|---:|',
+    '| Modules | 19 |',
+    `| Services | ${total} |`,
+    `| Statically verified native paths | ${stateTotals.STATIC_VERIFIED} |`,
+    `| Partial native paths with documented limits | ${stateTotals.PARTIAL} |`,
+    `| Planned, non-executable | ${stateTotals.PLANNED + stateTotals.GUARDED} |`,
+    `| Runtime verified on Windows in repository evidence | ${stateTotals.RUNTIME_VERIFIED} |`,
+    '<!-- service-reality:end -->',
+  ];
+  return lines.join('\n');
+}
 
 function stateFor(
   service: { id: string; implementationState?: string; handlerId?: string },
@@ -375,9 +400,35 @@ const markdown = [
  */
 const normaliseLineEndings = (value: string): string => value.replace(/\r\n/g, '\n');
 
+/**
+ * README.md quotes the same totals a reader lands on first, so it is rewritten from the
+ * same numbers rather than maintained by hand. Only the region between the two markers is
+ * replaced; everything else in the file is left untouched.
+ */
+const README_BEGIN = '<!-- service-reality:begin -->';
+const README_END = '<!-- service-reality:end -->';
+
+function applyReadmeTotals(readme: string, rendered: string): string {
+  const begin = readme.indexOf(README_BEGIN);
+  const end = readme.indexOf(README_END);
+  if (begin === -1 || end === -1 || end < begin) {
+    throw new Error(
+      `README.md has no ${README_BEGIN} / ${README_END} pair, so its totals table cannot be generated. ` +
+      'Restore the markers or this gate cannot protect the file.',
+    );
+  }
+  return `${readme.slice(0, begin)}${rendered}${readme.slice(end + README_END.length)}`;
+}
+
 async function main() {
   await mkdir(dirname(outputJson), { recursive: true });
   const json = `${JSON.stringify(baseline, null, 2)}\n`;
+  const readmeTotals = renderReadmeTotals(counts as Record<ServiceState, number>, {
+    verified: globalRuntimeGate.verified,
+    eligible: globalRuntimeGate.eligible,
+  });
+  const existingReadme = await readFile(outputReadme, 'utf8');
+  const readme = applyReadmeTotals(existingReadme, readmeTotals);
   const checkOnly = process.argv.includes('--check');
 
   if (checkOnly) {
@@ -385,10 +436,20 @@ async function main() {
     if (normaliseLineEndings(existingJson) !== json || normaliseLineEndings(existingMarkdown) !== markdown) {
       throw new Error('Service baseline is stale. Run `bun run services:generate` and commit the generated outputs.');
     }
+    if (normaliseLineEndings(existingReadme) !== normaliseLineEndings(readme)) {
+      throw new Error(
+        'README.md quotes service totals that disagree with the generated baseline. ' +
+        'Run `bun run services:generate` and commit README.md with it.',
+      );
+    }
     return;
   }
 
-  await Promise.all([writeFile(outputJson, json), writeFile(outputMarkdown, markdown)]);
+  await Promise.all([
+    writeFile(outputJson, json),
+    writeFile(outputMarkdown, markdown),
+    writeFile(outputReadme, readme),
+  ]);
 }
 
 await main();
