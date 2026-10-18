@@ -360,14 +360,96 @@ for (const number of [5, 6, 7]) {
   });
 }
 
-const module16 = catalog.find(item => item.id === 'm16');
-module16?.services.forEach(service => {
-  service.handlerId = undefined;
-  service.status = 'planned';
-  service.implementationState = 'planned';
-  service.availabilityReasonEn = 'Module 16 is reserved for its dedicated independently verified phase.';
-  service.availabilityReasonAr = 'القسم 16 محجوز لمرحلته المستقلة الخاضعة للتحقق.';
-});
+setModule('m16', 'Code & Project Tools', 'أدوات المشاريع والأكواد',
+  'Local-first project engineering: discovery, health, dependency, environment, source, cache, Git and runtime evidence measured with explicit native commands and typed envelopes.',
+  'هندسة مشاريع محلية بالكامل: الاكتشاف والصحة والتبعيات والبيئة والمصدر والكاش وGit وحالة التشغيل، مقاسة عبر أوامر محلية صريحة ومغلّفات موثقة.');
+
+/**
+ * Module 16 handlers are declared per service on purpose, like Module 15.
+ *
+ * The native workspace numbers its commands 1..10 in its own order, which does not
+ * match the catalog: the catalog names S05 "Dependency audit", S06
+ * "Environment-variable validator", S07 "Build-artifact cleanup" and S08
+ * "Project-size analyzer". Only commands whose measurement matches the service name
+ * may be published against it. Discovery, health, the task runner, Git workspace
+ * status, runtime orchestration and report export are real commands executed by the
+ * workspace, but no catalog service names them, so S01..S04 and S09..S10 stay
+ * planned rather than being pointed at a command that measures something else.
+ */
+const m16Implemented: Array<[number, string, string, string]> = [
+  [5, 'm16.dependencies.audit',
+    'Manifest files, lockfiles, declared dependency names, versions and pinning state are read from the real project tree. Vulnerabilities are not scanned: the audit commands a human would run are listed verbatim as guidance and nothing is executed.',
+    'تُقرأ ملفات المشروع وقوائم الأقفال وأسماء التبعيات المعلنة وإصداراتها وحالة التثبيت من شجرة المشروع الفعلية. لا تُفحص الثغرات هنا: تُعرض أوامر التدقيق التي سيشغلها المستخدم كإرشاد حرفي دون تنفيذ أي أمر.'],
+  [6, 'm16.environment.audit',
+    'Runtime environment files are compared against their template counterparts by key name only; missing keys, obsolete keys, empty values and malformed lines are reported and no value is ever read back.',
+    'تُقارن ملفات البيئة الفعلية بنظيراتها القالبية بأسماء المفاتيح فقط؛ وتُبلَّغ المفاتيح المفقودة والقديمة والقيم الفارغة والأسطر غير الصحيحة دون قراءة أي قيمة.'],
+  [7, 'm16.cache.manage',
+    'Build-artifact directories inside the selected project (node_modules, target, dist, .next, __pycache__ and peers) are measured with bounded walks, and cleaning requires the literal confirmation token CLEAN; every deletion is re-verified after it happens.',
+    'تُقاس مجلدات مخلفات البناء داخل المشروع المحدد (node_modules وtarget وdist و‎.next و‎__pycache__ وما يماثلها) بمسح محدود، ويتطلب التنظيف الرمز الحرفي CLEAN، ويُتحقق من كل حذف بعد تنفيذه.'],
+  [8, 'm16.source.analyze',
+    'The project source tree is counted by language and bytes with bounded depth, and test files, config files, TODO markers, merge-conflict markers and the largest files are reported as measured rows.',
+    'تُحسب شجرة مصدر المشروع حسب اللغة والبايتر بعمق محدود، وتُعرض ملفات الاختبار والإعداد وعلامات TODO وعلامات تعارض الدمج وأكبر الملفات كصفوف مقاسة.'],
+];
+for (const [number, handler, en, ar] of m16Implemented) implemented('m16', number, handler, en, ar);
+
+const m16UnavailableReasonEn =
+  'No native command measures what this service names. S01 (clone a Git repository), S02 (approved project templates), S03 (git init), S04 (GitHub publishing wizard), S09 (JSON & YAML tools) and S10 (API testing workspace) are not implemented; the Code & Project Workspace exposes project discovery, task listing and report export as workspace tools instead, and those commands honestly report that no catalog service owns them.';
+const m16UnavailableReasonAr =
+  'لا يوجد أمر محلي يقيس ما يسمّيه هذا القسم. الأقسام S01 (استنساخ مستودع) وS02 (قوالب المشاريع) وS03 (تهيئة Git) وS04 (معالج النشر على GitHub) وS09 (أدوات JSON وYAML) وS10 (ورشة اختبار API) غير منفذة؛ وتعرض مساحة عمل المشاريع أدوات مثل الاكتشاف وسرد المهام وتصدير التقرير كأدوات مساحة عمل تعلن بوضوح أنها غير مربوطة بخدمة في الفهرس.';
+for (const number of [1, 2, 3, 4, 9, 10]) {
+  patchService('m16', number, {
+    handlerId: undefined,
+    status: 'planned',
+    implementationState: 'planned',
+    availabilityReasonEn: m16UnavailableReasonEn,
+    availabilityReasonAr: m16UnavailableReasonAr,
+    runtime: 'desktop',
+    requiresAdmin: false,
+    supportsPreview: false,
+    supportsDryRun: false,
+    supportsCancel: false,
+    supportsUndo: false,
+    supportsQuarantine: false,
+  });
+}
+
+setModule('m17', 'Logs & Diagnostics', 'السجلات والتشخيص',
+  'Read Windows event logs, crash history, BugCheck evidence, reliability records, service failures, update events, hardware warnings and network state with explicit native commands, and export redacted support bundles whose hashes are verified.',
+  'قراءة أحداث ويندوز وسجل الأعطال وأدلة الشاشة الزرقاء وسجلات الموثوقية وفشل الخدمات وأحداث التحديث وتحذيرات العتاد وحالة الشبكة بأوامر محلية صريحة، وتصدير حزم دعم منقحة يتم التحقق من بصماتها.');
+
+const m17Implemented: Array<[number, string, string, string]> = [
+  [1, 'm17.events.query',
+    'Windows event records are read through the structured event API across the requested channels, with provider, event id, level, time and message rows, and critical/error/warning counts derived from the rows themselves.',
+    'تُقرأ سجلات أحداث ويندوز عبر واجهة الأحداث المهيكلة من القنوات المطلوبة، مع صفوف المزود ومعرّف الحدث والمستوى والوقت والرسالة، وتُشتق أعداد الحرجة والأخطاء والتحذيرات من الصفوف نفسها.'],
+  [2, 'm17.crashes.correlate',
+    'Application crash events are correlated per application with faulting module, exception code and occurrence counts, so a recurring crash is named by the evidence that repeats.',
+    'تُربط أحداث انهيار التطبيقات لكل تطبيق مع الوحدة المتسببة ورمز الاستثناء وعدد التكرارات، فيُسمّى الانهيار المتكرر بالأدلة المتكررة نفسها.'],
+  [3, 'm17.bsod.triage',
+    'BugCheck events are read with their code, parameters and dump path, and the minidump store is inventoried with per-file size and readability. Debugger-based analysis stays reported as unavailable rather than simulated.',
+    'تُقرأ أحداث الشاشة الزرقاء مع رمزها ومعاملاتها ومسار التفريغ، ويُحصر مخزن الملفات المصغرة بحجم كل ملف وقابليته للقراءة. ويُبلَّغ عن التحليل بالمنقّح كميزة غير متاحة بدل محاكاته.'],
+  [4, 'm17.reliability.timeline',
+    'Reliability Monitor records are read from the Windows reliability provider and grouped by day so incident clusters are shown against real timestamps.',
+    'تُقرأ سجلات مراقب الموثوقية من مزود ويندوز وتُجمَّع يوميًا لتظهر عناقيد الأعطال مقابل أوقات حقيقية.'],
+  [5, 'm17.services.diagnose',
+    'Service failure events are read together with the measured service inventory, so automatic services that are not running are named from live state and not from an assumption.',
+    'تُقرأ أحداث فشل الخدمات مع جرد الخدمات المقاس، فتُسمّى الخدمات التلقائية غير العاملة من الحالة الحية لا من افتراض.'],
+  [6, 'm17.updates.analyze',
+    'Windows Update events are read with install result codes, and installed hotfixes are listed from the live update inventory so an update listed twice can be told apart.',
+    'تُقرأ أحداث تحديث ويندوز مع رموز نتائج التثبيت، وتُسرد التحديثات المثبتة من الجرد الحي للتمييز بين تحديث وتكراره.'],
+  [7, 'm17.hardware.warnings',
+    'Hardware, driver, storage and kernel warning events are read from the system channel and grouped by category so a failing device is visible without reading the raw log.',
+    'تُقرأ أحداث تحذيرات العتاد والتعريفات والتخزين والنواة من قناة النظام وتُجمَّع حسب الفئة ليظهر الجهاز المتعطل دون قراءة السجل الخام.'],
+  [8, 'm17.network.diagnose',
+    'Network adapters, addresses, gateways and DNS servers are read from the live configuration, and a probe target is resolved, pinged and TCP-tested with the measured interface and latency reported.',
+    'تُقرأ محولات الشبكة والعناوين والبوابات وخوادم DNS من الإعداد الحي، ويُحلّل هدف الفحص ويُختبَر عبر ping وTCP مع عرض الواجهة والزمن المقاس.'],
+  [9, 'm17.bundle.export',
+    'A support bundle is written as a real ZIP containing the supplied evidence, an optional live system summary and a manifest, each hashed with SHA-256, and the archive hash is read back before the export is reported.',
+    'تُكتب حزمة الدعم كملف ZIP حقيقي يحتوي الأدلة المقدمة وملخص نظام حي اختياريًا وبيانًا، وتُجزّأ كلها بـSHA-256، ويُقرأ تجزئة الملف الناتج مجددًا قبل الإبلاغ عن التصدير.'],
+  [10, 'm17.report.export',
+    'A redacted diagnostic report is written as JSON, Markdown or HTML with secret and user-path redaction counted, the file size measured, and its SHA-256 read back before the report is reported as exported.',
+    'يُكتب تقرير تشخيصي منقح بصيغة JSON أو Markdown أو HTML مع عدّ العناصر المنقحة من الأسرار ومسارات المستخدم، وقياس حجم الملف، وقراءة SHA-256 مجددًا قبل الإبلاغ عن التصدير.'],
+];
+for (const [number, handler, en, ar] of m17Implemented) implemented('m17', number, handler, en, ar);
 
 export const MODULES_CATALOG: KnouxModule[] = catalog;
 export const ALL_CAPABILITIES: KnouxCapability[] = MODULES_CATALOG.flatMap(module => module.services);

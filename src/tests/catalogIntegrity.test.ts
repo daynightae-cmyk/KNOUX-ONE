@@ -12,9 +12,9 @@ describe('KNOUX ONE honest capability catalog', () => {
     for (const module of MODULES_CATALOG) expect(module.services, module.id).toHaveLength(10);
     expect(ALL_CAPABILITIES).toHaveLength(190);
     expect(new Set(ALL_CAPABILITIES.map(item => item.id)).size).toBe(190);
-    expect(ALL_CAPABILITIES.filter(item => item.implementationState === 'implemented')).toHaveLength(101);
+    expect(ALL_CAPABILITIES.filter(item => item.implementationState === 'implemented')).toHaveLength(115);
     expect(ALL_CAPABILITIES.filter(item => item.implementationState === 'partial')).toHaveLength(0);
-    expect(ALL_CAPABILITIES.filter(item => item.implementationState === 'planned')).toHaveLength(89);
+    expect(ALL_CAPABILITIES.filter(item => item.implementationState === 'planned')).toHaveLength(75);
   });
 
   it('never exposes a planned service as an executable handler', () => {
@@ -35,12 +35,124 @@ describe('KNOUX ONE honest capability catalog', () => {
     }
   });
 
-  it('keeps Module 16 honestly planned', () => {
+  /**
+   * Module 16 is asserted by service *number*, like Module 15.
+   *
+   * The Module 16 branch numbered its commands 1..10 in its own order, which does
+   * not match the catalog: the workspace's command #3 audits dependencies but the
+   * catalog names service 3 "Initialize Git". Only four commands measure what a
+   * catalog service names, so only those four may be published; discovery, health,
+   * the task runner, Git workspace status, runtime orchestration and report export
+   * are real commands executed by the workspace but owned by no catalog service.
+   */
+  it('binds every Module 16 service to the command that actually measures it', () => {
     const module = MODULES_CATALOG.find(item => item.id === 'm16');
     expect(module).toBeDefined();
-    for (const service of module!.services) {
-      expect(service.implementationState, service.id).toBe('planned');
-      expect(service.handlerId, service.id).toBeUndefined();
+
+    const byServiceNumber = new Map(module!.services.map(service => [service.serviceNumber, service]));
+    expect(byServiceNumber.size, 'service numbers must be unique').toBe(10);
+
+    const expected: Record<number, string | undefined> = {
+      // S01 clone, S02 templates, S03 git init, S04 publishing wizard: not implemented.
+      1: undefined,
+      2: undefined,
+      3: undefined,
+      4: undefined,
+      5: 'm16.dependencies.audit',
+      6: 'm16.environment.audit',
+      7: 'm16.cache.manage',
+      8: 'm16.source.analyze',
+      // S09 JSON & YAML tools and S10 API testing workspace: not implemented.
+      9: undefined,
+      10: undefined,
+    };
+
+    for (const [serviceNumber, handlerId] of Object.entries(expected)) {
+      const service = byServiceNumber.get(Number(serviceNumber));
+      expect(service, `m16 service ${serviceNumber} exists`).toBeDefined();
+      expect(service!.handlerId, `m16 service ${serviceNumber} (${service!.nameEn})`).toBe(handlerId);
+      expect(service!.implementationState, `m16 service ${serviceNumber} state`).toBe(
+        handlerId ? 'implemented' : 'planned',
+      );
+    }
+  });
+
+  it('keeps the six unimplemented Module 16 services honestly planned', () => {
+    const module = MODULES_CATALOG.find(item => item.id === 'm16');
+    expect(module).toBeDefined();
+    for (const serviceNumber of [1, 2, 3, 4, 9, 10]) {
+      const service = module!.services.find(item => item.serviceNumber === serviceNumber);
+      expect(service, `m16_s${String(serviceNumber).padStart(2, '0')} exists`).toBeDefined();
+      expect(service!.handlerId, service!.id).toBeUndefined();
+      expect(service!.status, service!.id).toBe('planned');
+      expect(service!.implementationState, service!.id).toBe('planned');
+      expect(service!.availabilityReasonEn, service!.id).toMatch(/not implemented|no catalog service/i);
+    }
+  });
+
+  it('never lets a Module 16 command claim a service id it does not serve', () => {
+    const projects = read('src-tauri/src/projects/mod.rs');
+    expect(projects).toContain('const M16_UNEXPOSED_SERVICE: &str = "m16_unexposed";');
+    expect(projects).toContain('const M16_DEPENDENCY_AUDIT_SERVICE: &str = "m16_s05";');
+    expect(projects).toContain('const M16_ENVIRONMENT_AUDIT_SERVICE: &str = "m16_s06";');
+    expect(projects).toContain('const M16_CACHE_MANAGE_SERVICE: &str = "m16_s07";');
+    expect(projects).toContain('const M16_SOURCE_ANALYZE_SERVICE: &str = "m16_s08";');
+    const pairs: Array<[string, string]> = [
+      ['m16.projects.discover', 'M16_UNEXPOSED_SERVICE'],
+      ['m16.projects.health', 'M16_UNEXPOSED_SERVICE'],
+      ['m16.dependencies.audit', 'M16_DEPENDENCY_AUDIT_SERVICE'],
+      ['m16.commands.execute', 'M16_UNEXPOSED_SERVICE'],
+      ['m16.environment.audit', 'M16_ENVIRONMENT_AUDIT_SERVICE'],
+      ['m16.source.analyze', 'M16_SOURCE_ANALYZE_SERVICE'],
+      ['m16.cache.manage', 'M16_CACHE_MANAGE_SERVICE'],
+      ['m16.git.workspace', 'M16_UNEXPOSED_SERVICE'],
+      ['m16.runtime.orchestrate', 'M16_UNEXPOSED_SERVICE'],
+      ['m16.reports.export', 'M16_UNEXPOSED_SERVICE'],
+    ];
+    for (const [handler, constant] of pairs) {
+      expect(projects, `${handler} reports ${constant}`).toMatch(
+        new RegExp(`${constant},\\s*"${handler.replaceAll('.', '\\.')}"`),
+      );
+    }
+  });
+
+  /**
+   * Module 17 is a one-to-one module: the ten Windows diagnostics commands were
+   * designed against the ten catalog service names, so every service must be
+   * implemented and bound by service number.
+   */
+  it('binds every Module 17 service to the command that actually measures it', () => {
+    const module = MODULES_CATALOG.find(item => item.id === 'm17');
+    expect(module).toBeDefined();
+
+    const byServiceNumber = new Map(module!.services.map(service => [service.serviceNumber, service]));
+    expect(byServiceNumber.size, 'service numbers must be unique').toBe(10);
+
+    const expected: Record<number, string> = {
+      1: 'm17.events.query',
+      2: 'm17.crashes.correlate',
+      3: 'm17.bsod.triage',
+      4: 'm17.reliability.timeline',
+      5: 'm17.services.diagnose',
+      6: 'm17.updates.analyze',
+      7: 'm17.hardware.warnings',
+      8: 'm17.network.diagnose',
+      9: 'm17.bundle.export',
+      10: 'm17.report.export',
+    };
+
+    for (const [serviceNumber, handlerId] of Object.entries(expected)) {
+      const service = byServiceNumber.get(Number(serviceNumber));
+      expect(service, `m17 service ${serviceNumber} exists`).toBeDefined();
+      expect(service!.handlerId, `m17 service ${serviceNumber} (${service!.nameEn})`).toBe(handlerId);
+      expect(service!.implementationState, `m17 service ${serviceNumber} state`).toBe('implemented');
+      expect(service!.status, service!.id).toBe('available');
+    }
+
+    const diagnostics = read('src-tauri/src/diagnostics/mod.rs');
+    for (const [serviceNumber, handlerId] of Object.entries(expected)) {
+      const serviceId = `m17_s${String(serviceNumber).padStart(2, '0')}`;
+      expect(diagnostics, `${handlerId} reports ${serviceId}`).toContain(`"${serviceId}","${handlerId}"`);
     }
   });
 
