@@ -1,5 +1,5 @@
 import { ALL_CAPABILITIES, MODULES_CATALOG } from '../data/capabilitiesCatalog';
-import { PARTIAL_SERVICE_IDS } from '../data/serviceVerification';
+import { PARTIAL_SERVICE_IDS, RUNTIME_VERIFIED_SERVICE_IDS } from '../data/serviceVerification';
 import type { ImplementationState, KnouxCapability, RiskLevel } from '../types';
 import { resolveNativeCommand } from './nativeCommandRegistry';
 import { getWorkspaceForModule } from '../shell/workspaceRegistry';

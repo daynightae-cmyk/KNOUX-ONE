@@ -21,6 +21,7 @@ import {
 import { useKnoux } from '../../context/KnouxContext';
 import { MODULES_CATALOG } from '../../data/capabilitiesCatalog';
 import { getOfficialKnouxLogo } from '../../data/officialBrand';
+import { RUNTIME_VERIFIED_SERVICE_IDS } from '../../data/serviceVerification';
 import { NativeClient } from '../../services/nativeClient';
 import { getServiceEvidenceState } from '../../services/servicePresentation';
 import {
@@ -93,14 +94,29 @@ export const DashboardView: React.FC = () => {
   const capabilityCounts = useMemo(() => {
 
     const services = MODULES_CATALOG.flatMap(module => module.services);
-    return services.reduce(
-      (counts, service) => {
+    const counts = services.reduce(
+      (acc, service) => {
         const state = getServiceEvidenceState(service);
-        counts[state] += 1;
-        return counts;
+        acc[state] += 1;
+        return acc;
       },
       { implemented: 0, partial: 0, planned: 0, requires_configuration: 0, unsupported: 0 } as Record<'implemented' | 'partial' | 'planned' | 'requires_configuration' | 'unsupported', number>,
     );
+    // `implemented` covers both kinds of proof, so a bare total would read as
+    // "101 verified services" when only 29 were driven on real Windows. Splitting the
+    // number here is what lets the headline say which claim it is making.
+    const runtimeVerified = services.filter(service => RUNTIME_VERIFIED_SERVICE_IDS.has(service.id)).length;
+    const implemented = counts.implemented;
+    return {
+      ...counts,
+      implemented,
+      runtimeVerified,
+      staticVerifiedOnly: implemented - runtimeVerified,
+      runtimeUnproven: implemented - runtimeVerified,
+      runtimeCoveragePercent: implemented === 0
+        ? 0
+        : Math.round((runtimeVerified / implemented) * 10000) / 100,
+    };
   }, []);
 
   const recommendations = useMemo(() => {
@@ -217,9 +233,16 @@ export const DashboardView: React.FC = () => {
             <div className="mt-5 flex flex-wrap gap-2">
               <span className="knoux-chip knoux-chip--accent"><Monitor className="h-3.5 w-3.5" />{runtime.available ? t('Desktop connected', 'سطح المكتب متصل') : t('Web preview', 'معاينة الويب')}</span>
                             <span className="knoux-chip"><Layers3 className="h-3.5 w-3.5" />19 {t('workspaces', 'مساحة عمل')}</span>
-              <span className="knoux-chip"><TerminalSquare className="h-3.5 w-3.5" />{capabilityCounts.implemented} {t('statically verified services', 'خدمة موثقة ساكنًا')}</span>
-
+              <span className="knoux-chip"><TerminalSquare className="h-3.5 w-3.5" />{capabilityCounts.runtimeVerified} {t('runtime verified on Windows', 'موثّقة فعليًا على ويندوز')}</span>
+              <span className="knoux-chip">{capabilityCounts.staticVerifiedOnly} {t('statically verified only', 'موثّقة ساكنًا فقط')}</span>
             </div>
+
+            <p className="mt-3 max-w-3xl text-[12px] font-medium leading-6 text-[var(--knoux-text-muted)]">
+              {t(
+                `Runtime gate BLOCKED at ${capabilityCounts.runtimeVerified} of ${capabilityCounts.implemented} implemented services (${capabilityCounts.runtimeCoveragePercent}%). The remaining ${capabilityCounts.runtimeUnproven} have an allowlisted native command and passing tests, but nobody has yet driven them on Windows.`,
+                `بوابة التحقق التشغيلي مغلقة: ${capabilityCounts.runtimeVerified} من ${capabilityCounts.implemented} خدمة منفَّذة (${capabilityCounts.runtimeCoveragePercent}٪). الـ${capabilityCounts.runtimeUnproven} خدمة المتبقية لها أمر أصلي مسموح به واختبارات ناجحة، لكن لم تُشغَّل بعد على ويندوز.`,
+              )}
+            </p>
 
             <div className="mt-7 flex flex-wrap gap-3">
               <button type="button" onClick={runSmartScan} disabled={isScanning} className="knoux-card-action knoux-card-action--primary min-w-[160px]">
@@ -293,7 +316,8 @@ export const DashboardView: React.FC = () => {
             <h2 className="mt-2 text-[24px] font-black tracking-[-.03em] text-[var(--knoux-text)]">{t('Organized by outcome—not module codes', 'منظمة حسب الهدف، لا حسب رموز الأقسام')}</h2>
           </div>
           <div className="flex flex-wrap gap-2">
-            <span className="knoux-chip knoux-chip--success">{capabilityCounts.implemented} {t('ready', 'جاهزة')}</span>
+            <span className="knoux-chip knoux-chip--success">{capabilityCounts.runtimeVerified} {t('runtime verified', 'موثّقة فعليًا')}</span>
+            <span className="knoux-chip">{capabilityCounts.staticVerifiedOnly} {t('statically verified only', 'موثّقة ساكنًا فقط')}</span>
             <span className="knoux-chip knoux-chip--accent">{capabilityCounts.partial} {t('desktop previews', 'معاينة سطح المكتب')}</span>
             <span className="knoux-chip">{capabilityCounts.planned} {t('roadmap', 'ضمن الخطة')}</span>
           </div>
