@@ -30,5 +30,26 @@ silently promoted to implemented or verified.
 - Automatic update channel and rollback policy.
 
 ## Historical branches
-- The eight unmerged historical branches listed in the audit remain untouched
-  until their unique commits are reviewed or archived.
+- All eight historical branches were reviewed on 2026-10-20 and their unique
+  content was either already present in `main` or preserved under
+  `docs/history/`. The branches were then deleted. The M03/M15/M16 engineering
+  directive and integration checklist that were the only genuinely unique files
+  anywhere are now in `docs/history/`, with headers stating they are already
+  executed.
+
+## Accepted dependency advisory
+- `glib 0.18.5` — GHSA-wrw7-89jp-8q8g / RUSTSEC-2024-0429 — unsound
+  `Iterator`/`DoubleEndedIterator` impls for `glib::VariantStrIter`.
+  - The crate reaches the dependency graph only through `gtk`, which `tao`
+    depends on under `cfg(any(target_os = "linux", target_os = "dragonfly",
+    target_os = "freebsd", target_os = "openbsd"))`. KNOUX ONE ships Windows-only
+    `nsis`/`msi` bundles, so `glib` is never compiled into the shipped binary.
+  - The fix landed in `glib` 0.20.0. No published `tao` release requires a `gtk`
+    new enough to pull that in (`gtk` 0.19 requires `glib` 0.22 but every
+    published `tao` still requires `gtk ^0.18`), so the lockfile cannot be moved
+    to a non-vulnerable `glib` from this repository.
+  - This is enforced rather than asserted: `bun run verify:windows-deps` resolves
+    the dependency graph for `x86_64-pc-windows-msvc` and fails if `glib` ever
+    becomes reachable. The gate runs in the Windows native CI job.
+  - Revisit when an upstream `tao`/`gtk` release makes `glib >= 0.20` reachable.
+
