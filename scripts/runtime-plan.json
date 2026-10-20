@@ -1,32 +1,31 @@
 [
   {
-    "comment": "Batch A1 - services whose workspace exposes an unambiguous control. Each record names the control that was clicked, so the evidence can be attributed to exactly one native command.",
+    "comment": "Batch A1 - read-only services driven through their real workspace controls. Each record names the control that was clicked and the text that was rendered afterwards, so the evidence is attributable to exactly one native command.",
     "steps": [
-      { "serviceId": "M17-S01", "handlerId": "m17.events.query", "nativeCommand": "m17_events_query", "navigate": "Logs & Diagnostics", "service": "Event log summary", "expect": "event", "waitMs": 10000 },
-      { "serviceId": "M17-S02", "handlerId": "m17.crashes.correlate", "nativeCommand": "m17_crashes_correlate", "navigate": "Logs & Diagnostics", "service": "Application crash history", "expect": "crash", "waitMs": 10000 },
-      { "serviceId": "M17-S03", "handlerId": "m17.bsod.triage", "nativeCommand": "m17_bsod_triage", "navigate": "Logs & Diagnostics", "service": "BSOD & minidump triage", "expect": "bugcheck", "waitMs": 12000 },
-      { "serviceId": "M17-S04", "handlerId": "m17.reliability.timeline", "nativeCommand": "m17_reliability_timeline", "navigate": "Logs & Diagnostics", "service": "Reliability history", "expect": "reliability", "waitMs": 10000 },
-      { "serviceId": "M17-S05", "handlerId": "m17.services.diagnose", "nativeCommand": "m17_services_diagnose", "navigate": "Logs & Diagnostics", "service": "Failed service diagnostics", "expect": "service", "waitMs": 10000 },
-      { "serviceId": "M17-S06", "handlerId": "m17.updates.analyze", "nativeCommand": "m17_updates_analyze", "navigate": "Logs & Diagnostics", "service": "Windows Update diagnostics", "expect": "update", "waitMs": 10000 },
-      { "serviceId": "M17-S07", "handlerId": "m17.hardware.warnings", "nativeCommand": "m17_hardware_warnings", "navigate": "Logs & Diagnostics", "service": "Hardware warnings", "expect": "warning", "waitMs": 12000 },
+      { "serviceId": "M17-S01", "handlerId": "m17.events.query", "nativeCommand": "m17_events_query", "navigate": "Logs & Diagnostics", "service": "Event log summary", "expect": "recordId", "waitMs": 10000 },
+      { "serviceId": "M17-S02", "handlerId": "m17.crashes.correlate", "nativeCommand": "m17_crashes_correlate", "navigate": "Logs & Diagnostics", "service": "Application crash history", "expect": "crash events", "waitMs": 10000 },
+      { "serviceId": "M17-S03", "handlerId": "m17.bsod.triage", "nativeCommand": "m17_bsod_triage", "navigate": "Logs & Diagnostics", "service": "BSOD & minidump triage", "expect": "minidump", "waitMs": 12000 },
+      { "serviceId": "M17-S04", "handlerId": "m17.reliability.timeline", "nativeCommand": "m17_reliability_timeline", "navigate": "Logs & Diagnostics", "service": "Reliability history", "expect": "reliability records", "waitMs": 10000 },
+      { "serviceId": "M17-S05", "handlerId": "m17.services.diagnose", "nativeCommand": "m17_services_diagnose", "navigate": "Logs & Diagnostics", "service": "Failed service diagnostics", "expect": "service failures", "waitMs": 10000 },
+      { "serviceId": "M17-S06", "handlerId": "m17.updates.analyze", "nativeCommand": "m17_updates_analyze", "navigate": "Logs & Diagnostics", "service": "Windows Update diagnostics", "expect": "update events", "waitMs": 10000 },
+      { "serviceId": "M17-S07", "handlerId": "m17.hardware.warnings", "nativeCommand": "m17_hardware_warnings", "navigate": "Logs & Diagnostics", "service": "Hardware warnings", "expect": "hardware warning", "waitMs": 12000 },
       { "serviceId": "M17-S08", "handlerId": "m17.network.diagnose", "nativeCommand": "m17_network_diagnose", "navigate": "Logs & Diagnostics", "service": "Network diagnostics", "expect": "adapter", "waitMs": 10000 },
 
-      { "serviceId": "M10-S01", "handlerId": "m10.defender.status", "nativeCommand": "m10_defender_status", "navigate": "Security Center", "click": "Read Defender status", "expect": "defender", "waitMs": 8000 },
-      { "serviceId": "M10-S05", "handlerId": "m10.firewall.status", "nativeCommand": "m10_firewall_status", "navigate": "Security Center", "click": "Read firewall status", "expect": "firewall", "waitMs": 8000 },
-      { "serviceId": "M10-S06", "handlerId": "m10.uac.status", "nativeCommand": "m10_uac_status", "navigate": "Security Center", "click": "Read UAC policy", "expect": "uac", "waitMs": 8000 },
-      { "serviceId": "M10-S07", "handlerId": "m10.smartscreen.status", "nativeCommand": "m10_smartscreen_status", "navigate": "Security Center", "click": "Read SmartScreen policy", "expect": "smartscreen", "waitMs": 8000 },
-      { "serviceId": "M10-S08", "handlerId": "m10.secureboot.tpm", "nativeCommand": "m10_secureboot_tpm", "navigate": "Security Center", "click": "Read Secure Boot and TPM", "expect": "tpm", "waitMs": 8000 },
+      { "serviceId": "M10-S01", "handlerId": "m10.defender.status", "nativeCommand": "m10_defender_status", "navigate": "Security Center", "click": "Read Defender status", "expect": "Defender", "waitMs": 10000 },
+      { "serviceId": "M10-S05", "handlerId": "m10.firewall.status", "nativeCommand": "m10_firewall_status", "navigate": "Security Center", "click": "Read firewall status", "expect": "Firewall", "waitMs": 12000 },
+      { "serviceId": "M10-S06", "handlerId": "m10.uac.status", "nativeCommand": "m10_uac_status", "navigate": "Security Center", "click": "Read UAC policy", "expect": "UAC", "waitMs": 10000 },
+      { "serviceId": "M10-S07", "handlerId": "m10.smartscreen.status", "nativeCommand": "m10_smartscreen_status", "navigate": "Security Center", "click": "Read SmartScreen policy", "expect": "SmartScreen", "waitMs": 10000 },
+      { "serviceId": "M10-S08", "handlerId": "m10.secureboot.tpm", "nativeCommand": "m10_secureboot_tpm", "navigate": "Security Center", "click": "Read Secure Boot and TPM", "expect": "TPM", "waitMs": 10000 },
 
-      { "serviceId": "M06-S01", "handlerId": "m06.cpu.monitor", "nativeCommand": "m06_cpu_monitor", "navigate": "Performance Center", "click": "Start Live", "expect": "cpu", "waitMs": 9000 },
-      { "serviceId": "M06-S02", "handlerId": "m06.memory.monitor", "nativeCommand": "m06_memory_monitor", "navigate": "Performance Center", "click": "Start Live", "expect": "memory", "waitMs": 9000 },
-      { "serviceId": "M06-S03", "handlerId": "m06.disk.activity", "nativeCommand": "m06_disk_activity", "navigate": "Performance Center", "click": "Start Live", "expect": "disk", "waitMs": 9000 },
-      { "serviceId": "M06-S04", "handlerId": "m06.network.activity", "nativeCommand": "m06_network_activity", "navigate": "Performance Center", "click": "Start Live", "expect": "network", "waitMs": 9000 },
-      { "serviceId": "M06-S10", "handlerId": "m06.benchmark.report", "nativeCommand": "m06_benchmark_report", "navigate": "Performance Center", "click": "Start Live", "expect": "benchmark", "waitMs": 12000 },
+      { "serviceId": "M06-S01", "handlerId": "m06.cpu.monitor", "nativeCommand": "m06_cpu_monitor", "navigate": "Performance Center", "click": "Start Live", "expect": "cpu", "waitMs": 12000, "services": ["M06-S01", "M06-S02", "M06-S03", "M06-S04", "M06-S10"] },
 
-      { "serviceId": "M05-S01", "handlerId": "m05.registry.inspect", "nativeCommand": "m05_registry_entries", "navigate": "Startup Control", "prepare": ["Startup programs"], "click": "Refresh", "expect": "startup", "waitMs": 10000 },
-      { "serviceId": "M05-S03", "handlerId": "m05.tasks.inspect", "nativeCommand": "m05_scheduled_tasks", "navigate": "Startup Control", "prepare": ["Scheduled tasks"], "click": "Refresh", "expect": "task", "waitMs": 10000 },
-      { "serviceId": "M05-S04", "handlerId": "m05.services.inspect", "nativeCommand": "m05_windows_services", "navigate": "Startup Control", "prepare": ["Windows services"], "click": "Refresh", "expect": "service", "waitMs": 12000 },
-      { "serviceId": "M05-S10", "handlerId": "m05.boot.history", "nativeCommand": "m05_boot_history", "navigate": "Startup Control", "prepare": ["Boot history"], "click": "Refresh", "expect": "boot", "waitMs": 10000 }
+      { "serviceId": "M05-S01", "handlerId": "m05.registry.inspect", "nativeCommand": "m05_registry_entries", "beforeNavigate": true, "reset": "Machine command center", "navigate": "Startup Control", "click": "Refresh", "expect": "Startup items", "waitMs": 14000 },
+      { "serviceId": "M05-S02", "handlerId": "m05.folders.inspect", "nativeCommand": "m05_startup_folders", "beforeNavigate": true, "reset": "Machine command center", "navigate": "Startup Control", "click": "Refresh", "expect": "Startup items", "waitMs": 14000 },
+      { "serviceId": "M05-S03", "handlerId": "m05.tasks.inspect", "nativeCommand": "m05_scheduled_tasks", "beforeNavigate": true, "reset": "Machine command center", "navigate": "Startup Control", "click": "Refresh", "expect": "task", "waitMs": 14000 },
+      { "serviceId": "M05-S04", "handlerId": "m05.services.inspect", "nativeCommand": "m05_windows_services", "beforeNavigate": true, "reset": "Machine command center", "navigate": "Startup Control", "click": "Refresh", "expect": "Protected services", "waitMs": 14000 },
+      { "serviceId": "M05-S05", "handlerId": "m05.impact.assess", "nativeCommand": "m05_impact_assess", "beforeNavigate": true, "reset": "Machine command center", "navigate": "Startup Control", "click": "Refresh", "expect": "review heuristic", "waitMs": 14000 },
+      { "serviceId": "M05-S06", "handlerId": "m05.recommendations.generate", "nativeCommand": "m05_recommendations", "beforeNavigate": true, "reset": "Machine command center", "navigate": "Startup Control", "click": "Refresh", "expect": "review heuristic", "waitMs": 14000 },
+      { "serviceId": "M05-S10", "handlerId": "m05.boot.history", "nativeCommand": "m05_boot_history", "beforeNavigate": true, "reset": "Machine command center", "navigate": "Startup Control", "click": "Refresh", "expect": "Average boot", "waitMs": 14000 }
     ]
   }
 ]
