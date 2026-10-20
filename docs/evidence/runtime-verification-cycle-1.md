@@ -256,6 +256,31 @@ application actually uses, and
 `src/tests/nativeJsonContract.test.ts` now refuses any script that pipes an
 array into `ConvertTo-Json`.
 
+**`EventLogException` — the boot history query died on a host without the log.**
+
+The native test above caught a second failure on the Windows runner, which has
+no `Microsoft-Windows-Diagnostics-Performance/Operational` log at all:
+
+```
+Get-WinEvent : The parameter is incorrect
+FullyQualifiedErrorId : System.Diagnostics.Eventing.Reader.EventLogException
+```
+
+`Get-WinEvent` raises a **terminating** exception for a log that does not
+exist, and `-ErrorAction SilentlyContinue` does not suppress it. The script
+aborted before it wrote anything, so the empty-result defect above was only
+one of the two ways this query could produce nothing.
+
+The query is now guarded, the way the other event queries in the repository
+already are, and the script writes an empty array on a host without the log
+and a populated one on a host with it. Both were produced against
+`powershell.exe` 5.1.
+
+Every other `Get-WinEvent` in the native sources was checked for the same
+exposure: the remaining ones read the `System` or `Application` log, which
+always exist, or already sit inside a `try`/`catch` that turns a missing
+channel into a reported warning.
+
 ### Observation recorded, not a defect
 `M05-S09` is named "Change restoration" and owns `m05.restore.manage`. The
 startup workspace also uses `m05.startup.change` to disable an entry, and that
