@@ -281,6 +281,42 @@ exposure: the remaining ones read the `System` or `Application` log, which
 always exist, or already sit inside a `try`/`catch` that turns a missing
 channel into a reported warning.
 
+**`Test-NetConnection` — the network query never came back.**
+
+The network diagnostics query did not finish. It was measured at **48.8
+seconds** on the cycle host, and it did not return at all within two minutes
+on a filtered network. The user saw a diagnostic that stayed on "Reading…"
+forever.
+
+`Test-NetConnection` has no timeout of its own. It sends an ICMP echo and
+waits for the reply to expire before it tries TCP, so on a host where the
+echo is dropped the query is bound by the operating system's reply timeout,
+not by anything the application controls.
+
+The probe is now written against .NET directly, with an explicit timeout on
+each part:
+
+| Step | Bound |
+| --- | --- |
+| DNS resolution | the system resolver |
+| ICMP probe | 3 s |
+| TCP connect | 5 s |
+| Route lookup | the CIM query that was already there |
+
+The same measurement on the cycle host is now **52 ms** of ping round trip
+and a successful TCP connect, with the source address and the interface
+alias still reported, and the query is bounded at roughly 8 seconds instead
+of running for a minute or more.
+
+The reported `latencyMs` is the measured round trip rather than the total
+time the probe happened to take, which is what the field claims to be.
+
+The rest of the query is slower on this host for a reason outside the
+application: `Get-NetIPConfiguration` and `Get-NetAdapter` are CIM queries
+and take 15 to 30 seconds each here. The command is dispatched with
+`spawn_blocking`, so the window stays responsive and shows the measurement
+in progress rather than freezing.
+
 ### Observation recorded, not a defect
 `M05-S09` is named "Change restoration" and owns `m05.restore.manage`. The
 startup workspace also uses `m05.startup.change` to disable an entry, and that
