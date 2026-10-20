@@ -192,7 +192,7 @@ pub fn diagnose(
 
 #[cfg(test)]
 mod tests {
-    use super::validate_target;
+    use super::{network_script, validate_target};
     #[test]
     fn rejects_command_injection_target() {
         assert!(validate_target(Some("1.1.1.1;Remove-Item C:\\")).is_err());
