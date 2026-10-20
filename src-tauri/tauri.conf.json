@@ -12,6 +12,7 @@
   "app": {
     "windows": [
       {
+        "label": "main",
         "title": "KNOUX ONE — Windows Intelligence & Developer Suite",
         "width": 1280,
         "height": 830,
@@ -19,11 +20,17 @@
         "fullscreen": false,
         "decorations": true,
         "center": true,
-        "splashscreen": {
-          "imagePath": "icons/splash.png",
-          "resize": true,
-          "backgroundColor": "#0b0717"
-        }
+        "visible": false
+      },
+      {
+        "label": "splashscreen",
+        "title": "KNOUX ONE",
+        "width": 480,
+        "height": 480,
+        "decorations": false,
+        "resizable": false,
+        "center": true,
+        "url": "splashscreen.html"
       }
     ],
     "security": {

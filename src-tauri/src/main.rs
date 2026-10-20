@@ -20,6 +20,17 @@ mod system;
 mod windows_repair;
 mod winget;
 
+#[tauri::command]
+async fn close_splashscreen(app: tauri::AppHandle) {
+    if let Some(splash) = app.get_webview_window("splashscreen") {
+        let _ = splash.close();
+    }
+    if let Some(main) = app.get_webview_window("main") {
+        let _ = main.show();
+        let _ = main.set_focus();
+    }
+}
+
 fn main() {
     tauri::Builder::default()
         .plugin(tauri_plugin_updater::Builder::new().build())
@@ -193,7 +204,8 @@ fn main() {
             diagnostics::m17_hardware_warnings,
             diagnostics::m17_network_diagnose,
             diagnostics::m17_bundle_export,
-            diagnostics::m17_report_export
+            diagnostics::m17_report_export,
+            close_splashscreen
         ])
         .run(tauri::generate_context!())
         .expect("error while running KNOUX ONE");
