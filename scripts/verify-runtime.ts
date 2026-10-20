@@ -31,12 +31,16 @@ type PlanStep = {
   serviceId: string;
   handlerId: string;
   nativeCommand: string;
-  /** Display name of the service card to act on. */
-  service: string;
+  /** Display name of the service card to act on (card-scoped click). */
+  service?: string;
+  /** Exact text of a control to click (used when the workspace has no cards). */
+  click?: string;
   /** Optional action-button text inside that card. */
   action?: string;
   /** Optional navigation click performed before the service action. */
   navigate?: string;
+  /** Optional sequence of clicks performed before the service action. */
+  prepare?: string[];
   /** Text that must appear in the rendered result for the step to pass. */
   expect?: string;
   /** Milliseconds to wait for the native result to render. */
@@ -173,7 +177,11 @@ const sleep = (ms: number): Promise<void> => new Promise(resolve => setTimeout(r
 
 async function main(): Promise<void> {
   const args = parseArgs(process.argv.slice(2));
-  const plan = JSON.parse(readFileSync(args.planPath, 'utf8')) as PlanStep[];
+  const parsed = JSON.parse(readFileSync(args.planPath, 'utf8')) as PlanStep[] | { comment?: string; steps: PlanStep[] };
+  const plan = Array.isArray(parsed) ? parsed : parsed.steps;
+  if (plan.length === 0) {
+    throw new Error(`No steps found in ${args.planPath}`);
+  }
 
   const target = await findTarget(args.port, 'KNOUX');
   const cdp = await Cdp.connect(target.webSocketDebuggerUrl);
@@ -202,6 +210,26 @@ async function main(): Promise<void> {
       await sleep(1200);
     }
 
+    for (const prepare of step.prepare ?? []) {
+      await cdp.evaluate(TEXT_CLICK_SCRIPT(prepare));
+      await sleep(1400);
+    }
+
+    const clickScript = step.click
+      ? TEXT_CLICK_SCRIPT(step.click)
+      : CARD_CLICK_SCRIPT(step.service ?? '', step.action ?? null);
+    if (!step.click && !step.service) {
+      records.push({
+        serviceId: step.serviceId,
+        handlerId: step.handlerId,
+        nativeCommand: step.nativeCommand,
+        status: 'control_not_specified',
+        startedAt,
+        detail: 'The step names neither a control nor a service card.',
+      });
+      console.log(`SKIP  ${step.serviceId}: no control specified`);
+      continue;
+    }
     const before = await cdp.evaluate<string>(BODY_TEXT_SCRIPT);
     const click = await cdp.evaluate<{
       ok: boolean;
@@ -210,7 +238,7 @@ async function main(): Promise<void> {
       heading?: string;
       disabled?: boolean;
       available?: string[];
-    }>(CARD_CLICK_SCRIPT(step.service, step.action ?? null));
+    }>(clickScript);
 
     if (!click.ok) {
       records.push({
