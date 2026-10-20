@@ -52,6 +52,9 @@ type PlanStep = {
   services?: string[];
   /** Text that must appear in the rendered result for the step to pass. */
   expect?: string;
+  /** Text that must appear in the page before the result is read. The driver
+   *  waits for it instead of guessing how long a measurement takes. */
+  waitFor?: string;
   /** Milliseconds to wait for the native result to render. */
   waitMs?: number;
 };
@@ -125,12 +128,18 @@ class Cdp {
 async function findTarget(port: number, titlePart: string): Promise<Target> {
   const response = await fetch(`http://127.0.0.1:${port}/json/list`);
   const targets = (await response.json()) as Target[];
+  // The branded splashscreen is a page target of its own and carries the same
+  // title, so it has to be excluded explicitly. The application window is the
+  // page that is not the splash.
   const page = targets.find(
-    target => target.type === 'page' && target.title.toLowerCase().includes(titlePart.toLowerCase()),
+    target =>
+      target.type === 'page' &&
+      !target.url.includes('splashscreen') &&
+      target.title.toLowerCase().includes(titlePart.toLowerCase()),
   );
   if (!page) {
     throw new Error(
-      `no page target titled like "${titlePart}". Targets: ${targets.map(t => `${t.type}:${t.title}`).join(' | ')}`,
+      `no application page target titled like "${titlePart}". Targets: ${targets.map(t => `${t.type}:${t.title}:${t.url}`).join(' | ')}`,
     );
   }
   return page;
@@ -170,6 +179,7 @@ const TEXT_CLICK_SCRIPT = (label: string): string => `(() => {
     if (!text.includes(wanted)) continue;
     const r = node.getBoundingClientRect();
     if (r.width === 0 || r.height === 0) continue;
+    if (node.disabled) return { ok: false, reason: 'control is disabled', label: text.slice(0, 120) };
     node.scrollIntoView({ block: 'center' });
     node.click();
     return { ok: true, label: (node.innerText || '').trim().slice(0, 120) };
@@ -212,6 +222,34 @@ const PANEL_TEXT_SCRIPT = (heading: string | null, label: string | null): string
 })()`;
 
 const sleep = (ms: number): Promise<void> => new Promise(resolve => setTimeout(resolve, ms));
+
+type ClickResult = {
+  ok: boolean;
+  reason?: string;
+  label?: string;
+  heading?: string;
+  disabled?: boolean;
+  available?: string[];
+};
+
+/**
+ * Clicks a control and waits for it to become usable.
+ *
+ * A workspace is a lazily loaded view, so the control can still be missing a
+ * moment after the navigation, and a control that is busy is disabled. Waiting
+ * for it is honest: the control is either there or it is not, and a control
+ * that never appears is recorded as missing rather than as a pass.
+ */
+async function clickWithRetry(cdp: Cdp, script: string): Promise<ClickResult> {
+  let result = await cdp.evaluate<ClickResult>(script);
+  let attempt = 0;
+  while (!result.ok && attempt < 40) {
+    attempt += 1;
+    await sleep(1000);
+    result = await cdp.evaluate<ClickResult>(script);
+  }
+  return result;
+}
 
 async function main(): Promise<void> {
   const args = parseArgs(process.argv.slice(2));
@@ -269,7 +307,7 @@ async function main(): Promise<void> {
     }
 
     for (const prepare of step.prepare ?? []) {
-      await cdp.evaluate(TEXT_CLICK_SCRIPT(prepare));
+      await clickWithRetry(cdp, TEXT_CLICK_SCRIPT(prepare));
       await sleep(1400);
     }
 
@@ -289,30 +327,41 @@ async function main(): Promise<void> {
       continue;
     }
     const beforeClick = await cdp.evaluate<string>(BODY_TEXT_SCRIPT);
-    const click = await cdp.evaluate<{
-      ok: boolean;
-      reason?: string;
-      label?: string;
-      heading?: string;
-      disabled?: boolean;
-      available?: string[];
-    }>(clickScript);
+    const settled = await clickWithRetry(cdp, clickScript);
 
-    if (!click.ok) {
+    if (!settled.ok) {
       records.push({
         serviceId: step.serviceId,
         handlerId: step.handlerId,
         nativeCommand: step.nativeCommand,
         status: 'control_not_found',
         startedAt,
-        detail: click.reason ?? 'control not found',
-        availableHeadings: click.available ?? [],
+        detail: settled.reason ?? 'control not found',
+        availableHeadings: settled.available ?? [],
       });
-      console.log(`SKIP  ${step.serviceId}: ${click.reason}`);
+      console.log(`SKIP  ${step.serviceId}: ${settled.reason}`);
       continue;
     }
 
-    await sleep(step.waitMs ?? 4000);
+    const clickLabel = settled.label;
+    const clickHeading = settled.heading;
+
+    // A measurement that takes its own time is waited for, not guessed at. The
+    // step may name the text that marks the result as rendered.
+    const budget = step.waitMs ?? 4000;
+    if (step.waitFor) {
+      const wanted = step.waitFor.toLowerCase();
+      const deadline = Date.now() + budget;
+      for (;;) {
+        const page = await cdp.evaluate<string>(BODY_TEXT_SCRIPT);
+        if (page.toLowerCase().includes(wanted)) break;
+        if (Date.now() >= deadline) break;
+        await sleep(500);
+      }
+      await sleep(500);
+    } else {
+      await sleep(budget);
+    }
 
     const beforeSnapshot = step.beforeNavigate ? before : beforeClick;
     const after = await cdp.evaluate<string>(BODY_TEXT_SCRIPT);
@@ -328,7 +377,7 @@ async function main(): Promise<void> {
     // The panel that owns the clicked control is the fallback evidence: it is
     // the area the user actually sees after the command runs.
     const panelText = await cdp.evaluate<string | null>(
-      PANEL_TEXT_SCRIPT(step.service ?? null, click.label ?? null),
+      PANEL_TEXT_SCRIPT(step.service ?? null, clickLabel ?? null),
     );
     const evidence = (delta.length > 0 ? delta : (panelText ?? '')).trim();
 
@@ -347,8 +396,8 @@ async function main(): Promise<void> {
         status: failureMarker ? 'rendered_with_error' : evidence.length === 0 ? 'no_visible_change' : 'completed',
         startedAt,
         capturedAt: new Date().toISOString(),
-        controlText: click.label,
-        cardHeading: click.heading,
+        controlText: clickLabel,
+        cardHeading: clickHeading,
         expectation: step.expect ?? null,
         expectationMet,
         failureMarker: failureMarker ? failureMarker[0] : null,
