@@ -7,6 +7,7 @@
  */
 
 import React, { Suspense, useEffect } from 'react';
+import { invoke } from '@tauri-apps/api/core';
 import { KnouxProvider, useKnoux } from './context/KnouxContext';
 import { Header } from './components/layout/Header';
 import { Sidebar } from './components/layout/Sidebar';
@@ -58,10 +59,9 @@ const AppContent: React.FC = () => {
   }, [currentRoute, selectedServiceId, setSelectedServiceId]);
 
   useEffect(() => {
-    const tauri = (window as unknown as { __TAURI__?: { invoke: (command: string) => Promise<unknown> } }).__TAURI__;
-    if (!tauri) return;
+    if (!('__TAURI_INTERNALS__' in window)) return;
     const timer = window.setTimeout(() => {
-      tauri.invoke('close_splashscreen').catch(() => {});
+      invoke('close_splashscreen').catch(() => {});
     }, 400);
     return () => window.clearTimeout(timer);
   }, []);
