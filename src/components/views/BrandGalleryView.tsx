@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Check,
   Copy,
@@ -94,9 +94,17 @@ export const BrandGalleryView: React.FC = () => {
     );
   }, [query]);
 
+  const copyResetTimer = useRef<number | null>(null);
+
+  useEffect(() => () => {
+    if (copyResetTimer.current !== null) window.clearTimeout(copyResetTimer.current);
+  }, []);
+
   const handleCopy = (url: string) => {
     navigator.clipboard.writeText(url);
     setCopiedUrl(url);
+    if (copyResetTimer.current !== null) window.clearTimeout(copyResetTimer.current);
+    copyResetTimer.current = window.setTimeout(() => setCopiedUrl(null), 1800);
   };
 
   return (
