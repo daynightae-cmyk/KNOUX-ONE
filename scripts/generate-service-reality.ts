@@ -31,6 +31,8 @@ type RuntimeRecord = {
   artifactPath?: string;
   artifactSha256Prefix?: string;
   artifactSizeBytes?: number;
+  /** Filled in by loadRuntimeEvidence from the evidence file's top-level host block. */
+  hostMachine?: string;
 };
 
 type RuntimeEvidence = {
@@ -63,6 +65,11 @@ async function loadRuntimeEvidence(): Promise<Map<string, RuntimeRecord>> {
   const parsed = JSON.parse(raw) as RuntimeEvidence;
   if (parsed.schemaVersion !== 1) {
     throw new Error(`Runtime evidence schemaVersion ${parsed.schemaVersion} is not supported; expected 1.`);
+  }
+
+  const hostMachine = typeof parsed.host?.machine === 'string' ? parsed.host.machine.trim() : '';
+  if (!hostMachine) {
+    throw new Error('Runtime evidence does not name the machine it was captured on (host.machine).');
   }
 
   const byService = new Map<string, RuntimeRecord>();
@@ -99,7 +106,7 @@ async function loadRuntimeEvidence(): Promise<Map<string, RuntimeRecord>> {
     if (!record.renderedEvidence.trim() || !record.interpretation.trim()) {
       throw new Error(`Runtime evidence for ${record.serviceId} must carry rendered evidence and an interpretation.`);
     }
-    byService.set(record.serviceId, record);
+    byService.set(record.serviceId, { ...record, hostMachine });
   }
   return byService;
 }
@@ -196,8 +203,12 @@ function evidenceFor(
     const capability = runtime.capabilityIdReturnedByNative
       ? ` The OperationResult envelope returned capabilityId ${runtime.capabilityIdReturnedByNative}.`
       : '';
+    const hostMachine = runtime.hostMachine;
+    if (!hostMachine) {
+      throw new Error(`Runtime evidence for ${serviceId} was loaded without a captured host machine.`);
+    }
     return (
-      `WINDOWS RUNTIME VERIFIED ${runtime.capturedAt} on ${'DESKTOP-FCJJB5O'}. ` +
+      `WINDOWS RUNTIME VERIFIED ${runtime.capturedAt} on ${hostMachine}. ` +
       `React control click -> typed client -> Tauri IPC -> ${runtime.nativeCommand} -> real Windows measurement -> rendered result. ` +
       `Rendered: ${runtime.renderedEvidence}${capability}${artifact} ` +
       `What this does and does not mean: ${runtime.interpretation}`
