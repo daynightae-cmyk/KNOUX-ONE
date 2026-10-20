@@ -12,9 +12,9 @@ describe('KNOUX ONE honest capability catalog', () => {
     for (const module of MODULES_CATALOG) expect(module.services, module.id).toHaveLength(10);
     expect(ALL_CAPABILITIES).toHaveLength(190);
     expect(new Set(ALL_CAPABILITIES.map(item => item.id)).size).toBe(190);
-    expect(ALL_CAPABILITIES.filter(item => item.implementationState === 'implemented')).toHaveLength(115);
+    expect(ALL_CAPABILITIES.filter(item => item.implementationState === 'implemented')).toHaveLength(118);
     expect(ALL_CAPABILITIES.filter(item => item.implementationState === 'partial')).toHaveLength(0);
-    expect(ALL_CAPABILITIES.filter(item => item.implementationState === 'planned')).toHaveLength(75);
+    expect(ALL_CAPABILITIES.filter(item => item.implementationState === 'planned')).toHaveLength(72);
   });
 
   it('never exposes a planned service as an executable handler', () => {
@@ -218,12 +218,10 @@ describe('KNOUX ONE honest capability catalog', () => {
       2: 'm15.path.audit',
       3: 'm15.git.audit',
       4: 'm15.runtime.inspect',
-      // 5 (virtualenv paths / pip state), 6 (dotnet --list-sdks) and
-      // 7 (JAVA_HOME, JDK, Android SDK tools) have no native implementation.
-      5: undefined,
-      6: undefined,
-      7: undefined,
-      8: 'm15.ports.manage',
+      5: 'm15.repositories.scan',
+      6: 'm15.projects.audit',
+      7: 'm15.caches.manage',
+      8: 'm15.http.execute',
       9: 'm15.ports.manage',
       10: 'm15.report.export',
     };
@@ -238,16 +236,48 @@ describe('KNOUX ONE honest capability catalog', () => {
     }
   });
 
-  it('keeps the three unimplemented Module 15 services honestly planned', () => {
+  /**
+   * Every Module 15 capability is implemented natively, so no service may share
+   * a handler with another service and none may stay planned.
+   */
+  it('gives every Module 15 service its own exclusive native command', () => {
     const module = MODULES_CATALOG.find(item => item.id === 'm15');
     expect(module).toBeDefined();
-    for (const serviceNumber of [5, 6, 7]) {
-      const service = module!.services.find(item => item.serviceNumber === serviceNumber);
-      expect(service, `m15_s0${serviceNumber} exists`).toBeDefined();
-      expect(service!.handlerId, service!.id).toBeUndefined();
-      expect(service!.status, service!.id).toBe('planned');
-      expect(service!.implementationState, service!.id).toBe('planned');
-      expect(service!.availabilityReasonEn, service!.id).toMatch(/not implemented|stays planned/i);
+
+    const handlers = module!.services.map(service => service.handlerId);
+    expect(handlers.every(Boolean), 'every m15 service owns a handler').toBe(true);
+    expect(new Set(handlers).size, 'm15 handlers are exclusive').toBe(handlers.length);
+
+    for (const service of module!.services) {
+      expect(service.status, service.id).toBe('available');
+      expect(service.implementationState, service.id).toBe('implemented');
+    }
+  });
+
+  /**
+   * The Rust envelope, the catalog and the frontend store must name the same
+   * service for the same capability. They previously used three different
+   * numberings, so seven of ten results were attributed to the wrong service.
+   */
+  it('uses one numbering for Module 15 across the engine, the catalog, and the store', () => {
+    const store = read('src/features/developer/developerStore.ts');
+    const handlerToService: Record<string, string> = {
+      'm15.environment.discover': 'm15_s01',
+      'm15.path.audit': 'm15_s02',
+      'm15.git.audit': 'm15_s03',
+      'm15.runtime.inspect': 'm15_s04',
+      'm15.repositories.scan': 'm15_s05',
+      'm15.projects.audit': 'm15_s06',
+      'm15.caches.manage': 'm15_s07',
+      'm15.http.execute': 'm15_s08',
+      'm15.ports.manage': 'm15_s09',
+      'm15.report.export': 'm15_s10',
+    };
+
+    for (const [handler, serviceId] of Object.entries(handlerToService)) {
+      expect(store, `${handler} is logged as ${serviceId}`).toContain(
+        `'${serviceId}', '${handler}'`,
+      );
     }
   });
 
@@ -256,12 +286,12 @@ describe('KNOUX ONE honest capability catalog', () => {
    * mapping alone cannot prove the Rust envelope names the right one. The Rust
    * source is the only place that truth lives, so it is asserted directly.
    */
-  it('derives the Module 15 port capability id from the request action', () => {
+  it('derives the Module 15 port capability id from the merged service', () => {
     const developer = read('src-tauri/src/developer/mod.rs');
-    expect(developer).toContain('const M15_PORT_VIEWER_SERVICE: &str = "m15_s08";');
-    expect(developer).toContain('const M15_PORT_TERMINATION_SERVICE: &str = "m15_s09";');
-    expect(developer).toContain('PortManageRequest::Inspect => M15_PORT_VIEWER_SERVICE');
-    expect(developer).toContain('PortManageRequest::Terminate { .. } => M15_PORT_TERMINATION_SERVICE');
+    expect(developer).toContain('const M15_PORTS_SERVICE: &str = "m15_s09";');
+    expect(developer).toContain(
+      'PortManageRequest::Inspect | PortManageRequest::Terminate { .. } => M15_PORTS_SERVICE',
+    );
   });
 
   it('never lets a Module 15 command claim a service id it does not serve', () => {
@@ -272,12 +302,19 @@ describe('KNOUX ONE honest capability catalog', () => {
     expect(developer).toMatch(/M15_GIT_CONFIGURATION_SERVICE,\s*\n\s*"m15\.git\.audit"/);
     expect(developer).toMatch(/M15_NODE_PACKAGE_MANAGER_SERVICE,\s*\n\s*"m15\.runtime\.inspect"/);
 
-    // Commands with no catalog service must not borrow another service's identity.
-    expect(developer).toContain('const M15_UNEXPOSED_SERVICE: &str = "m15_unexposed";');
-    for (const unexposed of ['m15.repositories.scan', 'm15.projects.audit', 'm15.caches.manage', 'm15.http.execute']) {
-      expect(developer, `${unexposed} reports M15_UNEXPOSED_SERVICE`).toMatch(
-        new RegExp(`M15_UNEXPOSED_SERVICE,\\s*\\n\\s*"${unexposed.replaceAll('.', '\\.')}"`),
+    // Commands that are now catalog services must report their own service id.
+    const exposed: Array<[string, string]> = [
+      ['M15_REPOSITORY_SCAN_SERVICE', 'm15.repositories.scan'],
+      ['M15_PROJECT_AUDIT_SERVICE', 'm15.projects.audit'],
+      ['M15_CACHE_MANAGE_SERVICE', 'm15.caches.manage'],
+      ['M15_HTTP_EXECUTE_SERVICE', 'm15.http.execute'],
+    ];
+    for (const [constant, handler] of exposed) {
+      expect(developer, `${constant} exists`).toContain(`const ${constant}: &str = "m15_s`);
+      expect(developer, `${handler} reports ${constant}`).toMatch(
+        new RegExp(`${constant},\\s*\\n\\s*"${handler.replaceAll('.', '\\.')}"`),
       );
     }
+    expect(developer, 'no command reports a placeholder service id').not.toContain('M15_UNEXPOSED_SERVICE');
   });
 });

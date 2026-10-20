@@ -6,21 +6,21 @@
 
 A service is **not** runtime verified merely because its UI, handler, or static test exists. `RUNTIME_VERIFIED` requires a record in `docs/evidence/windows-runtime-evidence.json` whose four stages are all true: a React control was clicked, the call crossed the Tauri IPC boundary, the native Rust command executed against real Windows, and the result was rendered back into the UI.
 
-**Global native runtime gate: BLOCKED.** 29 of 115 implemented services carry recorded Windows runtime evidence. The gate stays BLOCKED while any implemented service is unproven at runtime, and the missing coverage is listed rather than summarised.
+**Global native runtime gate: BLOCKED.** 29 of 118 implemented services carry recorded Windows runtime evidence. The gate stays BLOCKED while any implemented service is unproven at runtime, and the missing coverage is listed rather than summarised.
 
-Runtime-verified coverage of implemented services: **29 / 115** (25.22%).
+Runtime-verified coverage of implemented services: **29 / 118** (24.58%).
 
-Services still missing runtime evidence (86):
+Services still missing runtime evidence (89):
 
-M01-S05, M01-S08, M02-S02, M02-S05, M02-S07, M02-S09, M03-S01, M03-S02, M03-S03, M03-S04, M03-S05, M03-S06, M03-S07, M03-S08, M03-S09, M03-S10, M04-S01, M04-S07, M05-S01, M05-S02, M05-S03, M05-S04, M05-S05, M05-S06, M05-S07, M05-S08, M05-S09, M05-S10, M06-S01, M06-S02, M06-S03, M06-S04, M06-S05, M06-S06, M06-S07, M06-S08, M06-S09, M06-S10, M07-S01, M07-S02, M07-S03, M07-S04, M07-S05, M07-S06, M07-S07, M07-S08, M07-S09, M07-S10, M08-S01, M08-S02, M08-S03, M08-S04, M08-S05, M08-S06, M08-S07, M08-S08, M08-S09, M08-S10, M09-S02, M09-S03, M09-S04, M09-S06, M10-S01, M10-S05, M10-S06, M11-S07, M11-S09, M15-S02, M15-S04, M15-S08, M15-S09, M15-S10, M16-S05, M16-S06, M16-S07, M16-S08, M17-S01, M17-S02, M17-S03, M17-S04, M17-S05, M17-S06, M17-S07, M17-S08, M17-S09, M17-S10
+M01-S05, M01-S08, M02-S02, M02-S05, M02-S07, M02-S09, M03-S01, M03-S02, M03-S03, M03-S04, M03-S05, M03-S06, M03-S07, M03-S08, M03-S09, M03-S10, M04-S01, M04-S07, M05-S01, M05-S02, M05-S03, M05-S04, M05-S05, M05-S06, M05-S07, M05-S08, M05-S09, M05-S10, M06-S01, M06-S02, M06-S03, M06-S04, M06-S05, M06-S06, M06-S07, M06-S08, M06-S09, M06-S10, M07-S01, M07-S02, M07-S03, M07-S04, M07-S05, M07-S06, M07-S07, M07-S08, M07-S09, M07-S10, M08-S01, M08-S02, M08-S03, M08-S04, M08-S05, M08-S06, M08-S07, M08-S08, M08-S09, M08-S10, M09-S02, M09-S03, M09-S04, M09-S06, M10-S01, M10-S05, M10-S06, M11-S07, M11-S09, M15-S02, M15-S04, M15-S05, M15-S06, M15-S07, M15-S08, M15-S09, M15-S10, M16-S05, M16-S06, M16-S07, M16-S08, M17-S01, M17-S02, M17-S03, M17-S04, M17-S05, M17-S06, M17-S07, M17-S08, M17-S09, M17-S10
 
 ## Totals
 
 | State | Count |
 | --- | ---: |
-| PLANNED | 75 |
+| PLANNED | 72 |
 | GUARDED | 0 |
-| STATIC_VERIFIED | 86 |
+| STATIC_VERIFIED | 89 |
 | PARTIAL | 0 |
 | RUNTIME_VERIFIED | 29 |
 | BLOCKED | 0 |
@@ -44,7 +44,7 @@ M01-S05, M01-S08, M02-S02, M02-S05, M02-S07, M02-S09, M03-S01, M03-S02, M03-S03,
 | M12 | 10 | 10 | 0 | 0 | 0 | 0 | 0 |
 | M13 | 10 | 10 | 0 | 0 | 0 | 0 | 0 |
 | M14 | 10 | 10 | 0 | 0 | 0 | 0 | 0 |
-| M15 | 10 | 3 | 0 | 5 | 0 | 2 | 0 |
+| M15 | 10 | 0 | 0 | 8 | 0 | 2 | 0 |
 | M16 | 10 | 6 | 0 | 4 | 0 | 0 | 0 |
 | M17 | 10 | 0 | 0 | 10 | 0 | 0 | 0 |
 | M18 | 10 | 10 | 0 | 0 | 0 | 0 | 0 |
@@ -170,7 +170,7 @@ M01-S05, M01-S08, M02-S02, M02-S05, M02-S07, M02-S09, M03-S01, M03-S02, M03-S03,
 | M12-S04 | Bulk application updates | PLANNED | none | — | — | Active catalog deliberately exposes no native handler; this service must not be presented as runnable. |
 | M12-S05 | Application installation | PLANNED | none | — | — | Active catalog deliberately exposes no native handler; this service must not be presented as runnable. |
 | M12-S06 | Driver inventory | PLANNED | none | — | — | Active catalog deliberately exposes no native handler; this service must not be presented as runnable. |
-| M12-S07 | Driver export | PLANNED | none | — | — | Active catalog deliberately exposes no native handler; this service must not be presented as runnable. |
+| M12-S07 | Driver package export | PLANNED | none | — | — | Active catalog deliberately exposes no native handler; this service must not be presented as runnable. |
 | M12-S08 | Missing-driver detection | PLANNED | none | — | — | Active catalog deliberately exposes no native handler; this service must not be presented as runnable. |
 | M12-S09 | Default application manager | PLANNED | none | — | — | Active catalog deliberately exposes no native handler; this service must not be presented as runnable. |
 | M12-S10 | Software report | PLANNED | none | — | — | Active catalog deliberately exposes no native handler; this service must not be presented as runnable. |
@@ -198,11 +198,11 @@ M01-S05, M01-S08, M02-S02, M02-S05, M02-S07, M02-S09, M03-S01, M03-S02, M03-S03,
 | M15-S02 | PATH editor | STATIC_VERIFIED | static | m15.path.audit | m15_path_audit | Static trace: catalog handler m15.path.audit maps to m15_path_audit; Windows runtime proof is still required. |
 | M15-S03 | Git configuration | RUNTIME_VERIFIED | runtime | m15.git.audit | m15_git_audit | WINDOWS RUNTIME VERIFIED 2026-09-26T22:55:56Z on DESKTOP-FCJJB5O. React control click -> typed client -> Tauri IPC -> m15_git_audit -> real Windows measurement -> rendered result. Rendered: Global Git configuration audit. Reads selected non-secret settings only. Tokens, passwords, and credential payloads are never collected. Version: git version 2.55.0.windows.3. Default branch: main. user.name: daynightae-cmyk. user.email: 293348050+daynightae-cmyk@users.noreply.github.com. core.autocrlf: true. Credential helper: -. Signing key: Not configured. Commit signing: Disabled. No Git configuration findings. The OperationResult envelope returned capabilityId m15_s03. What this does and does not mean: The OperationResult envelope returned capabilityId m15_s03, which is the Git configuration service. Before the Module 15 mapping fix this command returned m15_s04 and was published as Node & package-manager status. An unset credential.helper is rendered as an absent value rather than as a configured one. |
 | M15-S04 | Node & package-manager status | STATIC_VERIFIED | static | m15.runtime.inspect | m15_runtime_inspect | Reads installed package managers plus the npm prefix and the PYTHONHOME, RUSTUP_HOME, CARGO_HOME and DOTNET_ROOT developer homes from the real environment, reporting an unset variable as unset. This service was previously published against `m15_git_audit`, which measures Git configuration, and has been re-bound to `m15_runtime_inspect`; the Rust envelope capability id was corrected in the same change. Windows runtime proof is still required. |
-| M15-S05 | Python & virtual environments | PLANNED | none | — | — | No native command measures what this service names. Module 15 handlers used to be assigned by array position, which published the git, package-manager, port, repository, project, cache and HTTP commands against eight of the ten Module 15 services. The pairing is now explicit and these three services stay planned rather than being pointed at a command that measures something else. `m15.repositories.scan`, `m15.projects.audit`, `m15.caches.manage` and `m15.http.execute` are implemented and allowlisted but exposed by no catalog service, so their envelopes report `m15_unexposed` instead of borrowing another service identity. |
-| M15-S06 | .NET SDK status | PLANNED | none | — | — | No native command measures what this service names. Module 15 handlers used to be assigned by array position, which published the git, package-manager, port, repository, project, cache and HTTP commands against eight of the ten Module 15 services. The pairing is now explicit and these three services stay planned rather than being pointed at a command that measures something else. `m15.repositories.scan`, `m15.projects.audit`, `m15.caches.manage` and `m15.http.execute` are implemented and allowlisted but exposed by no catalog service, so their envelopes report `m15_unexposed` instead of borrowing another service identity. |
-| M15-S07 | Java & Android tools | PLANNED | none | — | — | No native command measures what this service names. Module 15 handlers used to be assigned by array position, which published the git, package-manager, port, repository, project, cache and HTTP commands against eight of the ten Module 15 services. The pairing is now explicit and these three services stay planned rather than being pointed at a command that measures something else. `m15.repositories.scan`, `m15.projects.audit`, `m15.caches.manage` and `m15.http.execute` are implemented and allowlisted but exposed by no catalog service, so their envelopes report `m15_unexposed` instead of borrowing another service identity. |
-| M15-S08 | Local port viewer | STATIC_VERIFIED | static | m15.ports.manage | m15_ports_manage | Reads listening TCP and UDP endpoints from the Windows networking providers with the bound process name, command line and protected status. The native command is shared with M15-S09 and this service is the read-only listing mode; the Rust envelope derives its capability id from the request action so the two services cannot be confused. Nothing is terminated. Windows runtime proof is still required. |
-| M15-S09 | Process & port termination | STATIC_VERIFIED | static | m15.ports.manage | m15_ports_manage | Shares `m15_ports_manage` with M15-S08 in its termination mode. Termination requires the literal token `STOP <pid>`, refuses protected processes and the application's own process, re-reads the port table to confirm the target is still listening, and reports whether taskkill.exe actually succeeded. No process is terminated without that token. Windows runtime proof is still required. |
+| M15-S05 | Repository intelligence scanner | STATIC_VERIFIED | static | m15.repositories.scan | m15_repositories_scan | Static trace: catalog handler m15.repositories.scan maps to m15_repositories_scan; Windows runtime proof is still required. |
+| M15-S06 | Multi-ecosystem project health | STATIC_VERIFIED | static | m15.projects.audit | m15_projects_audit | Static trace: catalog handler m15.projects.audit maps to m15_projects_audit; Windows runtime proof is still required. |
+| M15-S07 | Developer cache control | STATIC_VERIFIED | static | m15.caches.manage | m15_caches_manage | Static trace: catalog handler m15.caches.manage maps to m15_caches_manage; Windows runtime proof is still required. |
+| M15-S08 | Local HTTP & API laboratory | STATIC_VERIFIED | static | m15.http.execute | m15_http_execute | Reads listening TCP and UDP endpoints from the Windows networking providers with the bound process name, command line and protected status. The native command is shared with M15-S09 and this service is the read-only listing mode; the Rust envelope derives its capability id from the request action so the two services cannot be confused. Nothing is terminated. Windows runtime proof is still required. |
+| M15-S09 | Ports & process control | STATIC_VERIFIED | static | m15.ports.manage | m15_ports_manage | Shares `m15_ports_manage` with M15-S08 in its termination mode. Termination requires the literal token `STOP <pid>`, refuses protected processes and the application's own process, re-reads the port table to confirm the target is still listening, and reports whether taskkill.exe actually succeeded. No process is terminated without that token. Windows runtime proof is still required. |
 | M15-S10 | Developer health report | STATIC_VERIFIED | static | m15.report.export | m15_report_export | Static trace: catalog handler m15.report.export maps to m15_report_export; Windows runtime proof is still required. |
 | M16-S01 | Clone Git repository | PLANNED | none | — | — | Active catalog deliberately exposes no native handler; this service must not be presented as runnable. |
 | M16-S02 | Approved project templates | PLANNED | none | — | — | Active catalog deliberately exposes no native handler; this service must not be presented as runnable. |

@@ -327,38 +327,27 @@ const m15Implemented: Array<[number, string, string, string]> = [
   [4, 'm15.runtime.inspect',
     'Installed package managers and the developer home directories (npm prefix, PYTHONHOME, RUSTUP_HOME, CARGO_HOME, DOTNET_ROOT) are read from the real environment. A variable that is not set is reported as unset rather than guessed.',
     'تُقرأ مديرو الحزم المثبتون ومجلدات بيئات التطوير (بادئة npm وPYTHONHOME وRUSTUP_HOME وCARGO_HOME وDOTNET_ROOT) من البيئة الفعلية، ويُبلَّغ عن المتغير غير المضبوط كغير مضبوط دون افتراض.'],
-  [8, 'm15.ports.manage',
-    'Listening TCP and UDP endpoints are read from the Windows networking providers together with the bound process name, command line and protected status. This service only lists; it terminates nothing.',
-    'تُقرأ نقاط نهاية TCP وUDP النشطة من مزودي شبكة ويندوز مع اسم العملية المرتبطة وسطر الأوامر وحالة الحماية. تكتفي هذه الخدمة بالعرض ولا تُنهي أي عملية.'],
+  [5, 'm15.repositories.scan',
+    'Local Git repositories are located and each one is measured for its real remote, current branch, working-tree state and last commit. Remote URLs are redacted and no repository file is written.',
+    'تُحدد مستودعات Git المحلية وتُقاس عن مستودعها البعيد الحقيقي وفرعها الحالي وحالة شجرة عملها وآخر التزام فيها. تُنقَّح الروابط البعيدة ولا يُكتب أي ملف داخل المستودع.'],
+  [6, 'm15.projects.audit',
+    'Project manifests and lockfiles for Node, Rust, Python, Go, Java and .NET are read to report the declared dependencies, the toolchain each project needs and the measured state of its working tree.',
+    'تُقرأ ملفات تعريف المشاريع وأقفالها لمشاريع Node وRust وPython وGo وJava وdotnet لإبلاغ عن التبعيات المعلنة وأدوات البناء التي يحتاجها كل مشروع والحالة المقاسة لشجرة عمله.'],
+  [7, 'm15.caches.manage',
+    'Recognised package-manager and build cache directories are measured with bounded walks. Cleaning is restricted to those allowlisted paths and requires the literal confirmation token CLEAN; every deletion is re-verified afterwards.',
+    'تُقاس مجلدات ذاكرة مديري الحزم والبناء المعروفة بمسح محدود. يقتصر التنظيف على المسارات المسموح بها ويتطلب الرمز الحرفي CLEAN، ويُتحقق من كل حذف بعده.'],
+  [8, 'm15.http.execute',
+    'One HTTP or HTTPS request supplied explicitly by the user is sent with a capped timeout and a capped response preview. Only HTTP and HTTPS are accepted, no secret is stored and no generic shell command is exposed.',
+    'يُرسل طلب HTTP أو HTTPS واحدًا يحدده المستخدم صراحةً مع مهلة محدودة ومعاينة استجابة محدودة. لا تُقبل إلا بروتوكولا HTTP وHTTPS ولا تُخزَّن أي سر ولا يُتاح أمر صدفة عام.'],
   [9, 'm15.ports.manage',
-    'Termination requires the literal token STOP <pid>, refuses protected processes and the application\'s own process, re-reads the port table to confirm the target is still listening, and reports whether taskkill.exe actually succeeded. No process is terminated without that token.',
-    'يتطلب إنهاء العملية الرمز الحرفي STOP <pid>، ويرفض العمليات المحمية وعملية التطبيق نفسها، ويعيد قراءة جدول المنافذ للتأكد من أن العملية ما زالت تستمع، ويبلّغ عن نجاح taskkill.exe فعليًا. لا تُنهي أي عملية دون ذلك الرمز.'],
+    'Listening TCP and UDP endpoints are read from the Windows networking providers together with the bound process name and command line. Termination requires the literal token STOP <pid>, refuses protected processes and the application\'s own process, re-reads the port table to confirm the target is still listening, and reports whether taskkill.exe actually succeeded.',
+    'تُقرأ نقاط نهاية TCP وUDP النشطة من مزودي شبكة ويندوز مع اسم العملية المرتبطة وسطر الأوامر. يتطلب إنهاء العملية الرمز الحرفي STOP <pid>، ويرفض العمليات المحمية وعملية التطبيق نفسها، ويعيد قراءة جدول المنافذ للتأكد من أن العملية ما زالت تستمع، ويبلّغ عن نجاح taskkill.exe فعليًا.'],
   [10, 'm15.report.export',
-    'A developer health report is assembled from the measured toolchain, PATH, package-manager and port evidence, written, hashed and read back before it is reported as exported.',
-    'يُجمَّع تقرير حالة المطور من أدلة أدوات التطوير وPATH ومديري الحزم والمنافذ المقاسة، ثم يُكتب ويُجزَّأ ويُقرأ مجددًا قبل الإبلاغ عن تصديره.'],
+    'A developer health report is assembled from the measured toolchain, PATH, package-manager, repository, project, cache and port evidence, written, hashed and read back before it is reported as exported.',
+    'يُجمَّع تقرير حالة المطور من أدلة أدوات التطوير وPATH ومديري الحزم والمستودعات والمشاريع والذاكرة المؤقتة والمنافذ المقاسة، ثم يُكتب ويُجزَّأ ويُقرأ مجددًا قبل الإبلاغ عن تصديره.'],
 ];
 for (const [number, handler, en, ar] of m15Implemented) implemented('m15', number, handler, en, ar);
 
-const m15UnavailableReasonEn =
-  'No native command measures what this service names. M15-S05 (virtualenv paths and pip state), M15-S06 (dotnet --list-sdks) and M15-S07 (JAVA_HOME, JDK and Android SDK command-line tools) are not implemented, so this service stays planned instead of being pointed at a command that measures something else.';
-const m15UnavailableReasonAr =
-  'لا يوجد أمر محلي يقيس ما يسمّيه هذا القسم. الأقسام M15-S05 وM15-S06 وM15-S07 غير منفذة، لذلك يبقى هذا القسم مخططًا بدلًا من ربطه بأمر يقيس شيئًا آخر.';
-for (const number of [5, 6, 7]) {
-  patchService('m15', number, {
-    handlerId: undefined,
-    status: 'planned',
-    implementationState: 'planned',
-    availabilityReasonEn: m15UnavailableReasonEn,
-    availabilityReasonAr: m15UnavailableReasonAr,
-    runtime: 'desktop',
-    requiresAdmin: false,
-    supportsPreview: false,
-    supportsDryRun: false,
-    supportsCancel: false,
-    supportsUndo: false,
-    supportsQuarantine: false,
-  });
-}
 
 setModule('m16', 'Code & Project Tools', 'أدوات المشاريع والأكواد',
   'Local-first project engineering: discovery, health, dependency, environment, source, cache, Git and runtime evidence measured with explicit native commands and typed envelopes.',

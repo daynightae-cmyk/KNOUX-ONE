@@ -24,22 +24,18 @@ use walkdir::WalkDir;
 const M15_GIT_CONFIGURATION_SERVICE: &str = "m15_s03";
 /// Catalog service id for `m15.runtime.inspect`.
 const M15_NODE_PACKAGE_MANAGER_SERVICE: &str = "m15_s04";
-/// Catalog service id for the read-only listing mode of `m15.ports.manage`.
-const M15_PORT_VIEWER_SERVICE: &str = "m15_s08";
-/// Catalog service id for the confirmed-termination mode of `m15.ports.manage`.
-const M15_PORT_TERMINATION_SERVICE: &str = "m15_s09";
+/// Catalog service id for `m15.ports.manage`, which owns both the read-only
+/// listing and the confirmed termination of a listening process.
+const M15_PORTS_SERVICE: &str = "m15_s09";
 
-/// Capability id for a native command that is implemented and allowlisted but is
-/// not exposed by any catalog service.
-///
-/// `m15.repositories.scan`, `m15.projects.audit`, `m15.caches.manage` and
-/// `m15.http.execute` are all real, typed, tested commands with no service that
-/// routes to them. They previously claimed Module 15 service ids that name a
-/// different feature, which is a false statement in a typed envelope. Module 16 is
-/// reserved by `catalogIntegrity.test.ts` for exposing exactly this kind of work,
-/// so these commands stay registered and report that they are unexposed rather
-/// than borrowing another service's identity.
-const M15_UNEXPOSED_SERVICE: &str = "m15_unexposed";
+/// Catalog service id for `m15.repositories.scan`.
+const M15_REPOSITORY_SCAN_SERVICE: &str = "m15_s05";
+/// Catalog service id for `m15.projects.audit`.
+const M15_PROJECT_AUDIT_SERVICE: &str = "m15_s06";
+/// Catalog service id for `m15.caches.manage`.
+const M15_CACHE_MANAGE_SERVICE: &str = "m15_s07";
+/// Catalog service id for `m15.http.execute`.
+const M15_HTTP_EXECUTE_SERVICE: &str = "m15_s08";
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -892,7 +888,7 @@ pub async fn m15_repositories_scan(
     .map_err(|error| format!("repository_scan_join_failed:{error}"))?;
     Ok(success(
         op_id,
-        M15_UNEXPOSED_SERVICE,
+        M15_REPOSITORY_SCAN_SERVICE,
         "m15.repositories.scan",
         started_at,
         timer,
@@ -946,13 +942,12 @@ pub fn m15_ports_manage(
 ) -> Result<OperationResult<PortManageResult>, String> {
     let started_at = Utc::now().to_rfc3339();
     let timer = Instant::now();
-    // One command serves two catalog services: read-only listing (M15-S08) and
-    // confirmed termination (M15-S09). The envelope has to name the service that
-    // was actually invoked, so the id follows the request action instead of being
-    // hardcoded to whichever service the command happened to be written against.
+    // One command serves one catalog service: "Ports & process control". The
+    // envelope names that service, and the request action still decides whether
+    // the run lists endpoints or terminates a process behind the STOP <pid>
+    // confirmation.
     let capability_id = match &request {
-        PortManageRequest::Inspect => M15_PORT_VIEWER_SERVICE,
-        PortManageRequest::Terminate { .. } => M15_PORT_TERMINATION_SERVICE,
+        PortManageRequest::Inspect | PortManageRequest::Terminate { .. } => M15_PORTS_SERVICE,
     };
     #[cfg(not(target_os = "windows"))]
     {
@@ -1155,7 +1150,7 @@ pub async fn m15_projects_audit(
     .map_err(|error| format!("project_audit_join_failed:{error}"))?;
     Ok(success(
         op_id,
-        M15_UNEXPOSED_SERVICE,
+        M15_PROJECT_AUDIT_SERVICE,
         "m15.projects.audit",
         started_at,
         timer,
@@ -1352,7 +1347,7 @@ pub async fn m15_caches_manage(
     .map_err(|error| format!("cache_worker_join_failed:{error}"))?;
     Ok(success(
         op_id,
-        M15_UNEXPOSED_SERVICE,
+        M15_CACHE_MANAGE_SERVICE,
         "m15.caches.manage",
         started_at,
         timer,
@@ -1427,7 +1422,7 @@ pub async fn m15_http_execute(
     {
         return Ok(failure(
             op_id,
-            M15_UNEXPOSED_SERVICE,
+            M15_HTTP_EXECUTE_SERVICE,
             "m15.http.execute",
             started_at,
             timer,
@@ -1443,7 +1438,7 @@ pub async fn m15_http_execute(
         match response {
             Ok(data) => Ok(success(
                 op_id,
-                M15_UNEXPOSED_SERVICE,
+                M15_HTTP_EXECUTE_SERVICE,
                 "m15.http.execute",
                 started_at,
                 timer,
@@ -1454,7 +1449,7 @@ pub async fn m15_http_execute(
             )),
             Err(error) => Ok(failure(
                 op_id,
-                M15_UNEXPOSED_SERVICE,
+                M15_HTTP_EXECUTE_SERVICE,
                 "m15.http.execute",
                 started_at,
                 timer,
