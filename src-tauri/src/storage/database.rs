@@ -42,7 +42,9 @@ pub fn migrate(connection: &Connection) -> Result<(), String> {
         .execute_batch(include_str!("../../migrations/004_storage_reports.sql"))
         .map_err(|error| format!("migration_004_failed: {error}"))?;
     connection
-        .execute_batch(include_str!("../../migrations/005_projects_and_diagnostics.sql"))
+        .execute_batch(include_str!(
+            "../../migrations/005_projects_and_diagnostics.sql"
+        ))
         .map_err(|error| format!("migration_005_failed: {error}"))?;
     connection
         .execute(

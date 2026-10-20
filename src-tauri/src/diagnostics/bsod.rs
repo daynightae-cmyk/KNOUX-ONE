@@ -7,18 +7,40 @@ use serde::Deserialize;
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
-struct RawBugcheck { time_created: Option<String>, code: Option<String>, parameters: Option<Vec<String>>, dump_path: Option<String>, message: Option<String> }
+struct RawBugcheck {
+    time_created: Option<String>,
+    code: Option<String>,
+    parameters: Option<Vec<String>>,
+    dump_path: Option<String>,
+    message: Option<String>,
+}
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
-struct RawDump { path: String, file_name: String, size_bytes: u64, modified_at: String, readable: bool }
+struct RawDump {
+    path: String,
+    file_name: String,
+    size_bytes: u64,
+    modified_at: String,
+    readable: bool,
+}
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
-struct RawEnvelope { bugchecks: Vec<RawBugcheck>, minidumps: Vec<RawDump>, debugger_path: Option<String>, warnings: Vec<String> }
+struct RawEnvelope {
+    bugchecks: Vec<RawBugcheck>,
+    minidumps: Vec<RawDump>,
+    debugger_path: Option<String>,
+    warnings: Vec<String>,
+}
 
 pub fn triage(request: &BsodTriageRequest) -> Result<BsodTriageResult, DiagnosticError> {
     let hours = request.hours.clamp(1, 24 * 365);
-    let include = if request.include_minidump_inventory { "$true" } else { "$false" };
-    let script = format!(r#"
+    let include = if request.include_minidump_inventory {
+        "$true"
+    } else {
+        "$false"
+    };
+    let script = format!(
+        r#"
 $start=(Get-Date).AddHours(-{hours}); $warnings=@(); $bugchecks=@(); $dumps=@()
 try {{
   $events=Get-WinEvent -FilterHashtable @{{LogName='System';StartTime=$start;Id=1001}} -ErrorAction Stop | Where-Object {{$_.ProviderName -match 'BugCheck|WER-SystemErrorReporting'}}
@@ -35,7 +57,8 @@ if({include}){{
 }}
 $debugger=(Get-Command windbg.exe,kd.exe,cdb.exe -ErrorAction SilentlyContinue | Select-Object -First 1 -ExpandProperty Source)
 [pscustomobject]@{{bugchecks=@($bugchecks);minidumps=@($dumps);debuggerPath=$debugger;warnings=@($warnings)}} | ConvertTo-Json -Depth 7 -Compress
-"#);
+"#
+    );
     let (raw, _) = run_json::<RawEnvelope>(&script)?;
     Ok(BsodTriageResult {
         bugchecks: raw.bugchecks.into_iter().map(|item| BugcheckEvidence { time_created: item.time_created.unwrap_or_default(), code: item.code.filter(|v| !v.is_empty()), parameters: item.parameters.unwrap_or_default(), dump_path: item.dump_path.filter(|v| !v.is_empty()), message: item.message.unwrap_or_default() }).collect(),

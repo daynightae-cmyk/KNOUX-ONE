@@ -7,7 +7,8 @@ pub fn canonical_existing(path: &str) -> Result<PathBuf, ProjectError> {
     if !candidate.exists() {
         return Err(ProjectError::PathNotFound(path.to_string()));
     }
-    dunce::canonicalize(&candidate).map_err(|error| ProjectError::PathNotFound(format!("{path}: {error}")))
+    dunce::canonicalize(&candidate)
+        .map_err(|error| ProjectError::PathNotFound(format!("{path}: {error}")))
 }
 
 pub fn normalize(path: &Path) -> String {
@@ -30,7 +31,9 @@ pub fn is_protected_windows_path(path: &Path) -> bool {
             "c:\\programdata".into(),
         ]);
     }
-    roots.iter().any(|root| normalized == *root || normalized.starts_with(&format!("{root}\\")))
+    roots
+        .iter()
+        .any(|root| normalized == *root || normalized.starts_with(&format!("{root}\\")))
         || normalized.contains(":\\system volume information")
         || normalized.contains(":\\$recycle.bin")
         || normalized.contains("\\windowsapps")
@@ -39,7 +42,10 @@ pub fn is_protected_windows_path(path: &Path) -> bool {
 pub fn validate_project_root(path: &str) -> Result<PathBuf, ProjectError> {
     let canonical = canonical_existing(path)?;
     if !canonical.is_dir() {
-        return Err(ProjectError::PathNotFound(format!("Not a directory: {}", canonical.display())));
+        return Err(ProjectError::PathNotFound(format!(
+            "Not a directory: {}",
+            canonical.display()
+        )));
     }
     if is_protected_windows_path(&canonical) {
         return Err(ProjectError::ProtectedPath(canonical.display().to_string()));
@@ -51,7 +57,9 @@ pub fn validate_inside_root(root: &Path, candidate: &Path) -> Result<PathBuf, Pr
     let canonical = dunce::canonicalize(candidate)
         .map_err(|error| ProjectError::PathNotFound(format!("{}: {error}", candidate.display())))?;
     if !canonical.starts_with(root) {
-        return Err(ProjectError::OutsideProjectRoot(canonical.display().to_string()));
+        return Err(ProjectError::OutsideProjectRoot(
+            canonical.display().to_string(),
+        ));
     }
     Ok(canonical)
 }
@@ -68,5 +76,7 @@ pub fn redacted_path(path: &Path) -> String {
 }
 
 pub fn contains_shell_metacharacters(value: &str) -> bool {
-    ['&', '|', ';', '>', '<', '`', '\n', '\r'].iter().any(|character| value.contains(*character))
+    ['&', '|', ';', '>', '<', '`', '\n', '\r']
+        .iter()
+        .any(|character| value.contains(*character))
 }

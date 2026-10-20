@@ -1,19 +1,40 @@
 use serde_json::Value;
 
-const SECRET_LABELS: &[&str] = &["password", "passwd", "pwd", "token", "secret", "api_key", "apikey", "authorization", "cookie", "credential"];
+const SECRET_LABELS: &[&str] = &[
+    "password",
+    "passwd",
+    "pwd",
+    "token",
+    "secret",
+    "api_key",
+    "apikey",
+    "authorization",
+    "cookie",
+    "credential",
+];
 
 pub fn redact_text(input: &str) -> (String, usize) {
     let mut count = 0usize;
-    let username = std::env::var("USERNAME").ok().filter(|value| !value.is_empty());
-    let userprofile = std::env::var("USERPROFILE").ok().filter(|value| !value.is_empty());
+    let username = std::env::var("USERNAME")
+        .ok()
+        .filter(|value| !value.is_empty());
+    let userprofile = std::env::var("USERPROFILE")
+        .ok()
+        .filter(|value| !value.is_empty());
     let mut output = input.to_string();
     if let Some(profile) = userprofile {
         let replaced = output.matches(&profile).count();
-        if replaced > 0 { output = output.replace(&profile, "%USERPROFILE%"); count += replaced; }
+        if replaced > 0 {
+            output = output.replace(&profile, "%USERPROFILE%");
+            count += replaced;
+        }
     }
     if let Some(name) = username {
         let needle = format!("\\Users\\{name}\\");
-        let replaced = output.to_lowercase().matches(&needle.to_lowercase()).count();
+        let replaced = output
+            .to_lowercase()
+            .matches(&needle.to_lowercase())
+            .count();
         if replaced > 0 {
             output = replace_case_insensitive(&output, &needle, "\\Users\\<USER>\\");
             count += replaced;
@@ -21,11 +42,20 @@ pub fn redact_text(input: &str) -> (String, usize) {
     }
     for line in output.lines().map(str::to_string).collect::<Vec<_>>() {
         let lower = line.to_lowercase();
-        if SECRET_LABELS.iter().any(|label| lower.contains(label)) && (line.contains('=') || line.contains(':')) {
-            let redacted = if let Some(index) = line.find('=') { format!("{}=<REDACTED>", &line[..index]) }
-                else if let Some(index) = line.find(':') { format!("{}: <REDACTED>", &line[..index]) }
-                else { line.clone() };
-            if redacted != line { output = output.replace(&line, &redacted); count += 1; }
+        if SECRET_LABELS.iter().any(|label| lower.contains(label))
+            && (line.contains('=') || line.contains(':'))
+        {
+            let redacted = if let Some(index) = line.find('=') {
+                format!("{}=<REDACTED>", &line[..index])
+            } else if let Some(index) = line.find(':') {
+                format!("{}: <REDACTED>", &line[..index])
+            } else {
+                line.clone()
+            };
+            if redacted != line {
+                output = output.replace(&line, &redacted);
+                count += 1;
+            }
         }
     }
     (output, count)
@@ -49,14 +79,26 @@ fn replace_case_insensitive(source: &str, needle: &str, replacement: &str) -> St
 pub fn redact_json(value: &Value) -> (Value, usize) {
     fn visit(value: &Value, count: &mut usize) -> Value {
         match value {
-            Value::String(text) => { let (redacted, hits) = redact_text(text); *count += hits; Value::String(redacted) }
-            Value::Array(items) => Value::Array(items.iter().map(|item| visit(item, count)).collect()),
+            Value::String(text) => {
+                let (redacted, hits) = redact_text(text);
+                *count += hits;
+                Value::String(redacted)
+            }
+            Value::Array(items) => {
+                Value::Array(items.iter().map(|item| visit(item, count)).collect())
+            }
             Value::Object(map) => {
                 let mut output = serde_json::Map::new();
                 for (key, item) in map {
-                    if SECRET_LABELS.iter().any(|label| key.to_lowercase().contains(label)) {
-                        output.insert(key.clone(), Value::String("<REDACTED>".into())); *count += 1;
-                    } else { output.insert(key.clone(), visit(item, count)); }
+                    if SECRET_LABELS
+                        .iter()
+                        .any(|label| key.to_lowercase().contains(label))
+                    {
+                        output.insert(key.clone(), Value::String("<REDACTED>".into()));
+                        *count += 1;
+                    } else {
+                        output.insert(key.clone(), visit(item, count));
+                    }
                 }
                 Value::Object(output)
             }

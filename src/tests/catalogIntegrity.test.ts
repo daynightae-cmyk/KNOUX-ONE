@@ -149,7 +149,7 @@ describe('KNOUX ONE honest capability catalog', () => {
       expect(service!.status, service!.id).toBe('available');
     }
 
-    const diagnostics = read('src-tauri/src/diagnostics/mod.rs');
+    const diagnostics = read('src-tauri/src/diagnostics/mod.rs').replace(/\s+/g, '');
     for (const [serviceNumber, handlerId] of Object.entries(expected)) {
       const serviceId = `m17_s${String(serviceNumber).padStart(2, '0')}`;
       expect(diagnostics, `${handlerId} reports ${serviceId}`).toContain(`"${serviceId}","${handlerId}"`);

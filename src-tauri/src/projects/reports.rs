@@ -19,27 +19,69 @@ use super::{
 };
 
 fn sanitize_file_name(value: &str) -> String {
-    value.chars().map(|character| if character.is_ascii_alphanumeric() || matches!(character, '-' | '_') { character } else { '_' }).collect()
+    value
+        .chars()
+        .map(|character| {
+            if character.is_ascii_alphanumeric() || matches!(character, '-' | '_') {
+                character
+            } else {
+                '_'
+            }
+        })
+        .collect()
 }
 
 pub fn export_report(app: &AppHandle, request: ReportsExportRequest) -> ReportsExportResult {
     let root = match validate_project_root(&request.project_path) {
         Ok(path) => path,
-        Err(error) => return ReportsExportResult { report_id: String::new(), report_path: String::new(), format: request.format, size_bytes: 0, created_at: Utc::now().to_rfc3339(), warnings: vec![error.to_string()] },
+        Err(error) => {
+            return ReportsExportResult {
+                report_id: String::new(),
+                report_path: String::new(),
+                format: request.format,
+                size_bytes: 0,
+                created_at: Utc::now().to_rfc3339(),
+                warnings: vec![error.to_string()],
+            }
+        }
     };
     let format = request.format.to_ascii_lowercase();
     if !matches!(format.as_str(), "json" | "markdown" | "md" | "html" | "csv") {
-        return ReportsExportResult { report_id: String::new(), report_path: String::new(), format, size_bytes: 0, created_at: Utc::now().to_rfc3339(), warnings: vec!["unsupported_report_format".into()] };
+        return ReportsExportResult {
+            report_id: String::new(),
+            report_path: String::new(),
+            format,
+            size_bytes: 0,
+            created_at: Utc::now().to_rfc3339(),
+            warnings: vec!["unsupported_report_format".into()],
+        };
     }
-    let health = audit_health(ProjectHealthRequest { project_path: root.to_string_lossy().to_string() });
-    let dependencies = audit_dependencies(DependencyAuditRequest { project_path: root.to_string_lossy().to_string() });
-    let environment = audit_environment(EnvironmentAuditRequest { project_path: root.to_string_lossy().to_string() });
-    let source = analyze_source(SourceAnalyzeRequest { project_path: root.to_string_lossy().to_string() });
-    let git = workspace_status(GitWorkspaceRequest { project_path: root.to_string_lossy().to_string() });
+    let health = audit_health(ProjectHealthRequest {
+        project_path: root.to_string_lossy().to_string(),
+    });
+    let dependencies = audit_dependencies(DependencyAuditRequest {
+        project_path: root.to_string_lossy().to_string(),
+    });
+    let environment = audit_environment(EnvironmentAuditRequest {
+        project_path: root.to_string_lossy().to_string(),
+    });
+    let source = analyze_source(SourceAnalyzeRequest {
+        project_path: root.to_string_lossy().to_string(),
+    });
+    let git = workspace_status(GitWorkspaceRequest {
+        project_path: root.to_string_lossy().to_string(),
+    });
     let created_at = Utc::now().to_rfc3339();
-    let project_name = root.file_name().and_then(|value| value.to_str()).unwrap_or("project");
+    let project_name = root
+        .file_name()
+        .and_then(|value| value.to_str())
+        .unwrap_or("project");
     let report_id = Uuid::new_v4().to_string();
-    let displayed_path = if request.redact_absolute_paths { redacted_path(&root) } else { root.to_string_lossy().to_string() };
+    let displayed_path = if request.redact_absolute_paths {
+        redacted_path(&root)
+    } else {
+        root.to_string_lossy().to_string()
+    };
     let evidence = json!({
         "reportId": report_id,
         "createdAt": created_at,
@@ -86,28 +128,81 @@ pub fn export_report(app: &AppHandle, request: ReportsExportRequest) -> ReportsE
         _ => unreachable!(),
     };
 
-    let extension = if format == "markdown" { "md" } else { format.as_str() };
+    let extension = if format == "markdown" {
+        "md"
+    } else {
+        format.as_str()
+    };
     let reports_dir = match app.path().app_data_dir() {
         Ok(path) => path.join("project-reports"),
-        Err(error) => return ReportsExportResult { report_id, report_path: String::new(), format, size_bytes: 0, created_at, warnings: vec![format!("app_data_dir_unavailable: {error}")] },
+        Err(error) => {
+            return ReportsExportResult {
+                report_id,
+                report_path: String::new(),
+                format,
+                size_bytes: 0,
+                created_at,
+                warnings: vec![format!("app_data_dir_unavailable: {error}")],
+            }
+        }
     };
     if let Err(error) = fs::create_dir_all(&reports_dir) {
-        return ReportsExportResult { report_id, report_path: String::new(), format, size_bytes: 0, created_at, warnings: vec![format!("report_directory_create_failed: {error}")] };
+        return ReportsExportResult {
+            report_id,
+            report_path: String::new(),
+            format,
+            size_bytes: 0,
+            created_at,
+            warnings: vec![format!("report_directory_create_failed: {error}")],
+        };
     }
-    let file_name = format!("{}-{}-{}.{}", sanitize_file_name(project_name), Utc::now().format("%Y%m%d-%H%M%S"), &report_id[..8], extension);
+    let file_name = format!(
+        "{}-{}-{}.{}",
+        sanitize_file_name(project_name),
+        Utc::now().format("%Y%m%d-%H%M%S"),
+        &report_id[..8],
+        extension
+    );
     let report_path: PathBuf = reports_dir.join(file_name);
     if let Err(error) = fs::write(&report_path, content.as_bytes()) {
-        return ReportsExportResult { report_id, report_path: String::new(), format, size_bytes: 0, created_at, warnings: vec![format!("report_write_failed: {error}")] };
+        return ReportsExportResult {
+            report_id,
+            report_path: String::new(),
+            format,
+            size_bytes: 0,
+            created_at,
+            warnings: vec![format!("report_write_failed: {error}")],
+        };
     }
-    let size_bytes = fs::metadata(&report_path).map(|metadata| metadata.len()).unwrap_or(0);
+    let size_bytes = fs::metadata(&report_path)
+        .map(|metadata| metadata.len())
+        .unwrap_or(0);
     if size_bytes == 0 {
-        return ReportsExportResult { report_id, report_path: report_path.to_string_lossy().to_string(), format, size_bytes, created_at, warnings: vec!["report_verification_failed: empty_file".into()] };
+        return ReportsExportResult {
+            report_id,
+            report_path: report_path.to_string_lossy().to_string(),
+            format,
+            size_bytes,
+            created_at,
+            warnings: vec!["report_verification_failed: empty_file".into()],
+        };
     }
-    ReportsExportResult { report_id, report_path: report_path.to_string_lossy().to_string(), format, size_bytes, created_at, warnings: Vec::new() }
+    ReportsExportResult {
+        report_id,
+        report_path: report_path.to_string_lossy().to_string(),
+        format,
+        size_bytes,
+        created_at,
+        warnings: Vec::new(),
+    }
 }
 
 fn html_escape(value: &str) -> String {
-    value.replace('&', "&amp;").replace('<', "&lt;").replace('>', "&gt;").replace('"', "&quot;")
+    value
+        .replace('&', "&amp;")
+        .replace('<', "&lt;")
+        .replace('>', "&gt;")
+        .replace('"', "&quot;")
 }
 
 fn csv_escape(value: &str) -> String {

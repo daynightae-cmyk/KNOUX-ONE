@@ -7,16 +7,43 @@ use serde::Deserialize;
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
-struct RawFailure { service_name: Option<String>, display_name: Option<String>, start_mode: Option<String>, state: Option<String>, process_id: Option<u32>, event_id: Option<u32>, time_created: Option<String>, message: Option<String> }
+struct RawFailure {
+    service_name: Option<String>,
+    display_name: Option<String>,
+    start_mode: Option<String>,
+    state: Option<String>,
+    process_id: Option<u32>,
+    event_id: Option<u32>,
+    time_created: Option<String>,
+    message: Option<String>,
+}
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
-struct RawEnvelope { failures: Vec<RawFailure>, automatic_not_running: Vec<RawFailure>, warnings: Vec<String> }
+struct RawEnvelope {
+    failures: Vec<RawFailure>,
+    automatic_not_running: Vec<RawFailure>,
+    warnings: Vec<String>,
+}
 
-fn map(item: RawFailure) -> ServiceFailure { ServiceFailure { service_name: item.service_name.filter(|v| !v.is_empty()), display_name: item.display_name.filter(|v| !v.is_empty()), start_mode: item.start_mode.filter(|v| !v.is_empty()), state: item.state.filter(|v| !v.is_empty()), process_id: item.process_id, event_id: item.event_id, time_created: item.time_created.filter(|v| !v.is_empty()), message: item.message.unwrap_or_default() } }
+fn map(item: RawFailure) -> ServiceFailure {
+    ServiceFailure {
+        service_name: item.service_name.filter(|v| !v.is_empty()),
+        display_name: item.display_name.filter(|v| !v.is_empty()),
+        start_mode: item.start_mode.filter(|v| !v.is_empty()),
+        state: item.state.filter(|v| !v.is_empty()),
+        process_id: item.process_id,
+        event_id: item.event_id,
+        time_created: item.time_created.filter(|v| !v.is_empty()),
+        message: item.message.unwrap_or_default(),
+    }
+}
 
-pub fn diagnose(request: &ServiceDiagnosticsRequest) -> Result<ServiceDiagnosticsResult, DiagnosticError> {
+pub fn diagnose(
+    request: &ServiceDiagnosticsRequest,
+) -> Result<ServiceDiagnosticsResult, DiagnosticError> {
     let hours = request.hours.clamp(1, 24 * 90);
-    let script = format!(r#"
+    let script = format!(
+        r#"
 $start=(Get-Date).AddHours(-{hours});$failures=@();$automatic=@();$warnings=@()
 try {{
   Get-WinEvent -FilterHashtable @{{LogName='System';ProviderName='Service Control Manager';StartTime=$start;Id=7000,7001,7009,7011,7022,7023,7024,7031,7034}} -ErrorAction Stop | ForEach-Object {{
@@ -31,7 +58,12 @@ try {{
   }}
 }} catch {{$warnings += "Service inventory: $($_.Exception.Message)"}}
 [pscustomobject]@{{failures=@($failures);automaticNotRunning=@($automatic);warnings=@($warnings)}} | ConvertTo-Json -Depth 6 -Compress
-"#);
+"#
+    );
     let (raw, _) = run_json::<RawEnvelope>(&script)?;
-    Ok(ServiceDiagnosticsResult { failures: raw.failures.into_iter().map(map).collect(), automatic_not_running: raw.automatic_not_running.into_iter().map(map).collect(), warnings: raw.warnings })
+    Ok(ServiceDiagnosticsResult {
+        failures: raw.failures.into_iter().map(map).collect(),
+        automatic_not_running: raw.automatic_not_running.into_iter().map(map).collect(),
+        warnings: raw.warnings,
+    })
 }

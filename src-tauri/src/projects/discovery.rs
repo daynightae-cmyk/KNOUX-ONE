@@ -1,5 +1,5 @@
 use std::{
-    collections::{BTreeSet, HashSet},
+    collections::BTreeSet,
     fs,
     path::{Path, PathBuf},
     process::Command,
@@ -38,16 +38,16 @@ fn is_hidden_generated(entry: &DirEntry) -> bool {
         return false;
     }
     let name = entry.file_name().to_string_lossy();
-    SKIP_DIRS.iter().any(|ignored| name.eq_ignore_ascii_case(ignored))
+    SKIP_DIRS
+        .iter()
+        .any(|ignored| name.eq_ignore_ascii_case(ignored))
 }
 
 fn classify_manifest(file_name: &str) -> Option<(&'static str, Option<&'static str>)> {
     match file_name {
         "package.json" => Some(("node", None)),
         "Cargo.toml" => Some(("rust", None)),
-        "pyproject.toml" | "requirements.txt" | "Pipfile" | "poetry.lock" => {
-            Some(("python", None))
-        }
+        "pyproject.toml" | "requirements.txt" | "Pipfile" | "poetry.lock" => Some(("python", None)),
         "go.mod" => Some(("go", None)),
         "pom.xml" => Some(("java", Some("maven"))),
         "build.gradle" | "build.gradle.kts" => Some(("java", Some("gradle"))),
@@ -56,9 +56,7 @@ fn classify_manifest(file_name: &str) -> Option<(&'static str, Option<&'static s
         "pubspec.yaml" => Some(("dart", Some("flutter"))),
         "CMakeLists.txt" => Some(("cpp", Some("cmake"))),
         "Makefile" => Some(("native", Some("make"))),
-        "Dockerfile" | "docker-compose.yml" | "compose.yaml" => {
-            Some(("container", Some("docker")))
-        }
+        "Dockerfile" | "docker-compose.yml" | "compose.yaml" => Some(("container", Some("docker"))),
         name if name.ends_with(".csproj") || name.ends_with(".sln") => {
             Some(("dotnet", Some("dotnet")))
         }
@@ -135,17 +133,44 @@ fn git_branch(project: &Path) -> Option<String> {
 
 fn is_source_file(path: &Path) -> bool {
     matches!(
-        path.extension().and_then(|value| value.to_str()).unwrap_or_default().to_ascii_lowercase().as_str(),
-        "ts" | "tsx" | "js" | "jsx" | "mjs" | "cjs" | "rs" | "py" | "go" | "java" |
-        "kt" | "kts" | "cs" | "cpp" | "cc" | "c" | "h" | "hpp" | "php" | "rb" | "dart" |
-        "swift" | "vue" | "svelte"
+        path.extension()
+            .and_then(|value| value.to_str())
+            .unwrap_or_default()
+            .to_ascii_lowercase()
+            .as_str(),
+        "ts" | "tsx"
+            | "js"
+            | "jsx"
+            | "mjs"
+            | "cjs"
+            | "rs"
+            | "py"
+            | "go"
+            | "java"
+            | "kt"
+            | "kts"
+            | "cs"
+            | "cpp"
+            | "cc"
+            | "c"
+            | "h"
+            | "hpp"
+            | "php"
+            | "rb"
+            | "dart"
+            | "swift"
+            | "vue"
+            | "svelte"
     )
 }
 
 fn is_build_artifact(path: &Path) -> bool {
     path.components().any(|component| {
         let name = component.as_os_str().to_string_lossy();
-        matches!(name.as_ref(), "node_modules" | "target" | "dist" | "build" | "out" | ".next" | "bin" | "obj")
+        matches!(
+            name.as_ref(),
+            "node_modules" | "target" | "dist" | "build" | "out" | ".next" | "bin" | "obj"
+        )
     })
 }
 
@@ -157,7 +182,11 @@ fn compute_stats(project: &Path) -> (u64, u64, u64, u64, String, Vec<String>) {
     let mut latest = 0u64;
     let mut warnings = Vec::new();
 
-    for entry in WalkDir::new(project).max_depth(12).follow_links(false).into_iter() {
+    for entry in WalkDir::new(project)
+        .max_depth(12)
+        .follow_links(false)
+        .into_iter()
+    {
         let entry = match entry {
             Ok(entry) => entry,
             Err(error) => {
@@ -171,7 +200,10 @@ fn compute_stats(project: &Path) -> (u64, u64, u64, u64, String, Vec<String>) {
         let metadata = match entry.metadata() {
             Ok(metadata) => metadata,
             Err(error) => {
-                warnings.push(format!("metadata_failed: {}: {error}", redacted_path(entry.path())));
+                warnings.push(format!(
+                    "metadata_failed: {}: {error}",
+                    redacted_path(entry.path())
+                ));
                 continue;
             }
         };
@@ -183,7 +215,11 @@ fn compute_stats(project: &Path) -> (u64, u64, u64, u64, String, Vec<String>) {
         if is_build_artifact(entry.path()) {
             artifact_bytes = artifact_bytes.saturating_add(metadata.len());
         }
-        if let Ok(modified) = metadata.modified().and_then(|value| value.duration_since(UNIX_EPOCH).map_err(std::io::Error::other)) {
+        if let Ok(modified) = metadata.modified().and_then(|value| {
+            value
+                .duration_since(UNIX_EPOCH)
+                .map_err(std::io::Error::other)
+        }) {
             latest = latest.max(modified.as_secs());
         }
     }
@@ -191,7 +227,14 @@ fn compute_stats(project: &Path) -> (u64, u64, u64, u64, String, Vec<String>) {
     let modified = DateTime::<Utc>::from_timestamp(latest as i64, 0)
         .unwrap_or_else(Utc::now)
         .to_rfc3339();
-    (file_count, source_count, total_bytes, artifact_bytes, modified, warnings)
+    (
+        file_count,
+        source_count,
+        total_bytes,
+        artifact_bytes,
+        modified,
+        warnings,
+    )
 }
 
 pub fn discover_projects(request: ProjectDiscoverRequest) -> ProjectDiscoverResult {
@@ -242,7 +285,9 @@ pub fn discover_projects(request: ProjectDiscoverRequest) -> ProjectDiscoverResu
             let Some((ecosystem, _)) = classify_manifest(&file_name) else {
                 continue;
             };
-            let Some(parent) = entry.path().parent() else { continue };
+            let Some(parent) = entry.path().parent() else {
+                continue;
+            };
             let project_root = match dunce::canonicalize(parent) {
                 Ok(path) => path,
                 Err(_) => parent.to_path_buf(),
@@ -267,14 +312,27 @@ pub fn discover_projects(request: ProjectDiscoverRequest) -> ProjectDiscoverResu
         }
         manifests.sort();
         manifests.dedup();
-        let (file_count, source_file_count, size_bytes, build_artifact_bytes, last_modified, mut project_warnings) =
-            compute_stats(&project_root);
+        let (
+            file_count,
+            source_file_count,
+            size_bytes,
+            build_artifact_bytes,
+            last_modified,
+            mut project_warnings,
+        ) = compute_stats(&project_root);
         let name = project_root
             .file_name()
             .and_then(|value| value.to_str())
             .unwrap_or("project")
             .to_string();
-        let confidence = (0.55 + (manifests.len().min(4) as f32 * 0.1) + if project_root.join(".git").exists() { 0.1 } else { 0.0 }).min(1.0);
+        let confidence = (0.55
+            + (manifests.len().min(4) as f32 * 0.1)
+            + if project_root.join(".git").exists() {
+                0.1
+            } else {
+                0.0
+            })
+        .min(1.0);
         projects.push(ProjectRecord {
             id: Uuid::new_v4().to_string(),
             canonical_path: project_root.to_string_lossy().to_string(),
@@ -297,7 +355,12 @@ pub fn discover_projects(request: ProjectDiscoverRequest) -> ProjectDiscoverResu
     }
 
     projects.sort_by(|left, right| right.last_modified.cmp(&left.last_modified));
-    ProjectDiscoverResult { projects, scanned_roots, skipped_protected_roots, warnings }
+    ProjectDiscoverResult {
+        projects,
+        scanned_roots,
+        skipped_protected_roots,
+        warnings,
+    }
 }
 
 #[cfg(test)]
@@ -311,9 +374,16 @@ mod tests {
         let directory = tempfile::tempdir().unwrap();
         let project = directory.path().join("alpha");
         fs::create_dir_all(project.join("src")).unwrap();
-        fs::write(project.join("package.json"), r#"{"name":"alpha","dependencies":{"react":"19.0.0"}}"#).unwrap();
+        fs::write(
+            project.join("package.json"),
+            r#"{"name":"alpha","dependencies":{"react":"19.0.0"}}"#,
+        )
+        .unwrap();
         fs::write(project.join("src/index.ts"), "export const alpha = true;").unwrap();
-        let result = discover_projects(ProjectDiscoverRequest { roots: vec![directory.path().to_string_lossy().to_string()], max_depth: 5 });
+        let result = discover_projects(ProjectDiscoverRequest {
+            roots: vec![directory.path().to_string_lossy().to_string()],
+            max_depth: 5,
+        });
         assert_eq!(result.projects.len(), 1);
         assert!(result.projects[0].ecosystems.contains(&"node".to_string()));
         assert!(result.projects[0].source_file_count >= 1);

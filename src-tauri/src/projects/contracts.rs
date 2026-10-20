@@ -31,7 +31,9 @@ pub struct ProjectDiscoverRequest {
     pub max_depth: usize,
 }
 
-fn default_depth() -> usize { 6 }
+fn default_depth() -> usize {
+    6
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -44,7 +46,9 @@ pub struct ProjectDiscoverResult {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct ProjectHealthRequest { pub project_path: String }
+pub struct ProjectHealthRequest {
+    pub project_path: String,
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -80,7 +84,9 @@ pub struct DependencyItem {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct DependencyAuditRequest { pub project_path: String }
+pub struct DependencyAuditRequest {
+    pub project_path: String,
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -114,7 +120,11 @@ pub enum CommandManageRequest {
     #[serde(rename = "list")]
     List { project_path: String },
     #[serde(rename = "execute")]
-    Execute { project_path: String, task_id: String, confirmation: Option<String> },
+    Execute {
+        project_path: String,
+        task_id: String,
+        confirmation: Option<String>,
+    },
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -139,7 +149,9 @@ pub struct CommandManageResult {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct EnvironmentAuditRequest { pub project_path: String }
+pub struct EnvironmentAuditRequest {
+    pub project_path: String,
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -166,15 +178,24 @@ pub struct EnvironmentAuditResult {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct SourceAnalyzeRequest { pub project_path: String }
+pub struct SourceAnalyzeRequest {
+    pub project_path: String,
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct SourceMetric { pub language: String, pub files: u64, pub bytes: u64 }
+pub struct SourceMetric {
+    pub language: String,
+    pub files: u64,
+    pub bytes: u64,
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct SourceFileMetric { pub path: String, pub size_bytes: u64 }
+pub struct SourceFileMetric {
+    pub path: String,
+    pub size_bytes: u64,
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -207,7 +228,11 @@ pub enum CacheManageRequest {
     #[serde(rename = "inspect")]
     Inspect { project_path: String },
     #[serde(rename = "clean")]
-    Clean { project_path: String, paths: Vec<String>, confirmation: String },
+    Clean {
+        project_path: String,
+        paths: Vec<String>,
+        confirmation: String,
+    },
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -221,7 +246,9 @@ pub struct CacheManageResult {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct GitWorkspaceRequest { pub project_path: String }
+pub struct GitWorkspaceRequest {
+    pub project_path: String,
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -258,7 +285,11 @@ pub enum RuntimeManageRequest {
     #[serde(rename = "inspect")]
     Inspect { project_path: String },
     #[serde(rename = "terminate")]
-    Terminate { project_path: String, pid: u32, confirmation: String },
+    Terminate {
+        project_path: String,
+        pid: u32,
+        confirmation: String,
+    },
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -279,7 +310,9 @@ pub struct ReportsExportRequest {
     pub redact_absolute_paths: bool,
 }
 
-fn default_report_format() -> String { "json".into() }
+fn default_report_format() -> String {
+    "json".into()
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]

@@ -5,7 +5,13 @@ use serde_json::Value;
 use tauri::AppHandle;
 use uuid::Uuid;
 
-pub fn record_session(app: &AppHandle, service_id: &str, status: &str, evidence: &Value, warnings: &[String]) -> Result<String, String> {
+pub fn record_session(
+    app: &AppHandle,
+    service_id: &str,
+    status: &str,
+    evidence: &Value,
+    warnings: &[String],
+) -> Result<String, String> {
     let connection = database::open(app)?;
     let id = Uuid::new_v4().to_string();
     connection.execute(
@@ -15,7 +21,15 @@ pub fn record_session(app: &AppHandle, service_id: &str, status: &str, evidence:
     Ok(id)
 }
 
-pub fn record_export(app: &AppHandle, export_id: &str, export_type: &str, path: &str, sha256: &str, size_bytes: u64, redaction_count: usize) -> Result<(), String> {
+pub fn record_export(
+    app: &AppHandle,
+    export_id: &str,
+    export_type: &str,
+    path: &str,
+    sha256: &str,
+    size_bytes: u64,
+    redaction_count: usize,
+) -> Result<(), String> {
     let connection = database::open(app)?;
     connection.execute(
         "INSERT INTO diagnostic_exports(id, export_type, path, sha256, size_bytes, redaction_count, created_at) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",

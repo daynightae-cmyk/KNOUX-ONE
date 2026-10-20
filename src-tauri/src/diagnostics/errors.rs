@@ -2,6 +2,7 @@ use thiserror::Error;
 
 #[derive(Debug, Error)]
 pub enum DiagnosticError {
+    #[allow(dead_code)]
     #[error("unsupported_os: Windows desktop is required")]
     UnsupportedOs,
     #[error("invalid_request: {0}")]
@@ -14,8 +15,6 @@ pub enum DiagnosticError {
     PowerShellJson(String),
     #[error("filesystem_failed: {0}")]
     Filesystem(String),
-    #[error("database_failed: {0}")]
-    Database(String),
     #[error("export_failed: {0}")]
     Export(String),
 }
@@ -29,7 +28,6 @@ impl DiagnosticError {
             Self::PowerShellFailed(_) => "powershell_command_failed",
             Self::PowerShellJson(_) => "powershell_json_failed",
             Self::Filesystem(_) => "filesystem_failed",
-            Self::Database(_) => "database_failed",
             Self::Export(_) => "export_failed",
         }
     }

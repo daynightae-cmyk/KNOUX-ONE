@@ -1,9 +1,15 @@
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
-fn default_hours() -> u32 { 72 }
-fn default_limit() -> usize { 250 }
-fn default_true() -> bool { true }
+fn default_hours() -> u32 {
+    72
+}
+fn default_limit() -> usize {
+    250
+}
+fn default_true() -> bool {
+    true
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -146,7 +152,10 @@ pub struct ReliabilityResult {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct DayCount { pub day: String, pub incidents: u32 }
+pub struct DayCount {
+    pub day: String,
+    pub incidents: u32,
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -198,7 +207,11 @@ pub struct UpdateEvidence {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct InstalledUpdate { pub hotfix_id: String, pub description: String, pub installed_on: Option<String> }
+pub struct InstalledUpdate {
+    pub hotfix_id: String,
+    pub description: String,
+    pub installed_on: Option<String>,
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -239,7 +252,10 @@ pub struct HardwareWarningsResult {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct CategoryCount { pub category: String, pub count: u32 }
+pub struct CategoryCount {
+    pub category: String,
+    pub count: u32,
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
