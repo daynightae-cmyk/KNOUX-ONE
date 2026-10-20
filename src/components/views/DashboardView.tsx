@@ -91,6 +91,15 @@ export const DashboardView: React.FC = () => {
   ].some(value => typeof value === 'boolean');
   const protectionDetected = systemSpecs.defenderStatus === true && systemSpecs.firewallStatus === true;
 
+  const deviceHealth = useMemo(() => {
+    let score = 0;
+    if (hasTelemetry) score += 35;
+    if (securityEvidenceAvailable) score += 30;
+    if (protectionDetected) score += 20;
+    if (runtime.available) score += 15;
+    return score;
+  }, [hasTelemetry, securityEvidenceAvailable, protectionDetected, runtime.available]);
+
   const capabilityCounts = useMemo(() => {
 
     const services = MODULES_CATALOG.flatMap(module => module.services);
@@ -184,8 +193,21 @@ export const DashboardView: React.FC = () => {
             value: securityEvidenceAvailable ? (protectionDetected ? t('Protection detected', 'تم رصد الحماية') : t('Needs review', 'تحتاج مراجعة')) : t('Not evaluated', 'لم تُقيّم'),
       detail: securityEvidenceAvailable ? t('Defender and firewall evidence comes from the latest local scan.', 'تأتي أدلة Defender وجدار الحماية من آخر فحص محلي.') : t('Security status appears only after a real device scan.', 'تظهر حالة الأمان بعد فحص حقيقي للجهاز.'),
       accent: 'emerald',
-      state: protectionDetected ? 'ready' : securityEvidenceAvailable ? 'warning' : 'muted',
-
+        state: protectionDetected ? 'ready' : securityEvidenceAvailable ? 'warning' : 'muted',
+      progress: protectionDetected ? 100 : securityEvidenceAvailable ? 60 : 0,
+    },
+    {
+      icon: Activity,
+      label: t('Device health', 'صحة الجهاز'),
+      value: `${deviceHealth} / 100`,
+      detail: deviceHealth >= 80
+        ? t('Good telemetry and protection coverage.', 'تغطية جيدة للقراءات والحماية.')
+        : deviceHealth >= 40
+        ? t('Partial coverage; scan the device.', 'تغطية جزئية؛ افحص الجهاز.')
+        : t('No local readings yet.', 'لا توجد قراءات محلية بعد.'),
+      accent: deviceHealth >= 80 ? 'emerald' : deviceHealth >= 40 ? 'amber' : 'violet',
+      progress: deviceHealth,
+      state: deviceHealth >= 80 ? 'ready' : deviceHealth >= 40 ? 'warning' : 'muted',
     },
     {
       icon: PackageCheck,
