@@ -5,6 +5,7 @@ mod errors;
 mod events;
 mod exports;
 mod hardware;
+mod json;
 mod network;
 mod persistence;
 mod powershell;
