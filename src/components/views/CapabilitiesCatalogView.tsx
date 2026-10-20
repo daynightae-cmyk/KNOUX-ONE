@@ -19,6 +19,7 @@ import { useKnoux } from '../../context/KnouxContext';
 import { ALL_CAPABILITIES, MODULES_CATALOG } from '../../data/capabilitiesCatalog';
 import type { KnouxCapability } from '../../types';
 import { getServiceEvidenceState } from '../../services/servicePresentation';
+import { RUNTIME_VERIFIED_SERVICE_IDS } from '../../data/serviceVerification';
 import { CapabilityCard } from '../common/CapabilityCard';
 import {
   MODULE_ACCENTS,
@@ -42,6 +43,12 @@ export const CapabilitiesCatalogView: React.FC = () => {
   const normalizedQuery = searchQuery.trim().toLowerCase();
   const selectedModule = MODULES_CATALOG.find(module => module.id === selectedModuleId) ?? null;
   const selectedEvidenceState = selectedService ? getServiceEvidenceState(selectedService) : null;
+
+  const catalogSummary = useMemo(() => {
+    const implemented = ALL_CAPABILITIES.filter(service => getServiceEvidenceState(service) === 'implemented').length;
+    const runtime = ALL_CAPABILITIES.filter(service => RUNTIME_VERIFIED_SERVICE_IDS.has(service.id)).length;
+    return { implemented, runtime };
+  }, []);
 
   const matchesFilter = (service: KnouxCapability) => {
     const state = getServiceEvidenceState(service);
@@ -150,6 +157,10 @@ export const CapabilitiesCatalogView: React.FC = () => {
           </button>
         ))}
       </section>
+
+      <div className="mx-4 mt-2 text-[11px] font-medium text-[var(--knoux-text-muted)]">
+        {t('Implemented', 'منفذة')}: {catalogSummary.implemented} · {t('Runtime verified on Windows', 'موثّقة فعليًا على ويندوز')}: {catalogSummary.runtime} · {t('Implemented does not mean runtime verified.', 'الخدمة المنفَّذة لا تعني أنها جرى قياسها على ويندوز.')}
+      </div>
 
       {!selectedModule && !normalizedQuery && filter === 'all' && (
         <section className="space-y-4">
