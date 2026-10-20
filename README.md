@@ -16,9 +16,9 @@ The generated service-reality baseline is the detailed evidence authority. Run `
 |---|---:|
 | Modules | 19 |
 | Services | 190 |
-| Statically verified native paths | 86 |
+| Statically verified native paths | 89 |
 | Partial native paths with documented limits | 0 |
-| Planned, non-executable | 75 |
+| Planned, non-executable | 72 |
 | Runtime verified on Windows in repository evidence | 29 |
 <!-- service-reality:end -->
 

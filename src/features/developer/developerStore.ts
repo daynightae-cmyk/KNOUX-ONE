@@ -92,7 +92,7 @@ export function useDeveloperStore() {
   const inspectRuntimes = useCallback(async () => {
     setLoadingAction('runtimes');
     try {
-      const data = await execute<RuntimeInspection>('m15_s03', 'm15.runtime.inspect');
+      const data = await execute<RuntimeInspection>('m15_s04', 'm15.runtime.inspect');
       setRuntimeInspection(data);
       return data;
     } finally {
@@ -103,7 +103,7 @@ export function useDeveloperStore() {
   const auditGit = useCallback(async () => {
     setLoadingAction('git');
     try {
-      const data = await execute<GitAudit>('m15_s04', 'm15.git.audit');
+      const data = await execute<GitAudit>('m15_s03', 'm15.git.audit');
       setGitAudit(data);
       return data;
     } finally {
@@ -130,7 +130,7 @@ export function useDeveloperStore() {
   const inspectPorts = useCallback(async () => {
     setLoadingAction('ports');
     try {
-      const data = await execute<PortManageResult>('m15_s06', 'm15.ports.manage', {
+      const data = await execute<PortManageResult>('m15_s09', 'm15.ports.manage', {
         request: { action: 'inspect' },
       });
       setActivePorts(data.processes);
@@ -143,7 +143,7 @@ export function useDeveloperStore() {
   const terminateProcess = useCallback(async (pid: number, confirmation: string) => {
     setLoadingAction(`terminate:${pid}`);
     try {
-      const data = await execute<PortManageResult>('m15_s06', 'm15.ports.manage', {
+      const data = await execute<PortManageResult>('m15_s09', 'm15.ports.manage', {
         request: { action: 'terminate', pid, confirmation },
       });
       setActivePorts(data.processes);
@@ -159,7 +159,7 @@ export function useDeveloperStore() {
     }
     setLoadingAction('projects');
     try {
-      const data = await execute<ProjectAuditResult>('m15_s07', 'm15.projects.audit', {
+      const data = await execute<ProjectAuditResult>('m15_s06', 'm15.projects.audit', {
         request: { roots: projectRoots, maxDepth: 7 },
       });
       setProjects(data.projects);
@@ -172,7 +172,7 @@ export function useDeveloperStore() {
     setLoadingAction('caches');
     try {
       const roots = Array.from(new Set([...projectRoots, ...repositoryRoots]));
-      const data = await execute<CacheManageResult>('m15_s08', 'm15.caches.manage', {
+      const data = await execute<CacheManageResult>('m15_s07', 'm15.caches.manage', {
         request: { action: 'inspect', projectRoots: roots },
       });
       setCaches(data.entries);
@@ -185,7 +185,7 @@ export function useDeveloperStore() {
   const cleanCaches = useCallback(async (paths: string[], confirmation: string) => {
     setLoadingAction('clean-caches');
     try {
-      await execute<CacheManageResult>('m15_s08', 'm15.caches.manage', {
+      await execute<CacheManageResult>('m15_s07', 'm15.caches.manage', {
         request: { action: 'clean', paths, confirmation },
       });
       await inspectCaches();
@@ -198,7 +198,7 @@ export function useDeveloperStore() {
     setLoadingAction('http');
     setHttpResponse(null);
     try {
-      const data = await execute<HttpLabResponse>('m15_s09', 'm15.http.execute', {
+      const data = await execute<HttpLabResponse>('m15_s08', 'm15.http.execute', {
         request: httpRequest,
       });
       setHttpResponse(data);
@@ -240,9 +240,9 @@ export function useDeveloperStore() {
       const [environmentData, pathData, runtimeData, gitData, portsData] = await Promise.all([
         execute<EnvironmentDiscovery>('m15_s01', 'm15.environment.discover'),
         execute<PathAudit>('m15_s02', 'm15.path.audit'),
-        execute<RuntimeInspection>('m15_s03', 'm15.runtime.inspect'),
-        execute<GitAudit>('m15_s04', 'm15.git.audit'),
-        execute<PortManageResult>('m15_s06', 'm15.ports.manage', { request: { action: 'inspect' } }),
+        execute<RuntimeInspection>('m15_s04', 'm15.runtime.inspect'),
+        execute<GitAudit>('m15_s03', 'm15.git.audit'),
+        execute<PortManageResult>('m15_s09', 'm15.ports.manage', { request: { action: 'inspect' } }),
       ]);
       setEnvironment(environmentData);
       setPathAudit(pathData);

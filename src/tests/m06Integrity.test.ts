@@ -29,9 +29,9 @@ describe('Module 06 performance center completion gate', () => {
     expect(module!.services).toHaveLength(10);
     expect(module!.services.every(service => service.implementationState === 'implemented')).toBe(true);
     expect(module!.services.every(service => service.status === 'available')).toBe(true);
-    expect(ALL_CAPABILITIES.filter(item => item.implementationState === 'implemented')).toHaveLength(115);
+    expect(ALL_CAPABILITIES.filter(item => item.implementationState === 'implemented')).toHaveLength(118);
     expect(ALL_CAPABILITIES.filter(item => item.implementationState === 'partial')).toHaveLength(0);
-    expect(ALL_CAPABILITIES.filter(item => item.implementationState === 'planned')).toHaveLength(75);
+    expect(ALL_CAPABILITIES.filter(item => item.implementationState === 'planned')).toHaveLength(72);
   });
 
   it('maps each service to an explicit registered Rust command', () => {

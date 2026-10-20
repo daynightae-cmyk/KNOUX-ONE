@@ -34,6 +34,12 @@ jobs:
       - name: Verify service reality baseline
         run: bun run services:check
 
+      - name: Verify every catalog service owns one exclusive native command
+        # A service is the unit the user acts on. If two services share a native
+        # command, or an implemented command belongs to no service, the catalog
+        # stops being exclusive and the evidence it reports cannot be attributed.
+        run: bun run verify:service-exclusivity
+
       - name: Verify release version parity
         run: bun run release:verify-version
 

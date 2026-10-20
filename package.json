@@ -15,6 +15,7 @@
     "test": "vitest run",
     "services:generate": "bun scripts/generate-service-reality.ts",
     "services:check": "bun scripts/generate-service-reality.ts --check",
+    "verify:service-exclusivity": "bun scripts/verify-service-exclusivity.ts",
     "release:verify-version": "bun scripts/verify-release-version.ts",
     "release:verify-signatures": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/verify-windows-signatures.ps1",
     "release:create-update-manifest": "bun scripts/create-update-manifest.ts",
