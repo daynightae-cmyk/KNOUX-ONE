@@ -1,0 +1,16 @@
+# Remove these obsolete files if they still exist in the target project.
+# Do not delete the replacement directories with similar names.
+#
+# STATUS: fully applied. Every path listed below was verified as absent from
+# `main` on 2026-10-20. Kept only as the record of what the Module 03 / 15 / 16
+# integration replaced.
+
+src-tauri/src/developer.rs
+src-tauri/src/duplicates.rs
+src-tauri/src/projects.rs
+src-tauri/src/windows_repair.rs
+.github/workflows/m03-format-snapshot.yml
+.github/workflows/m15-ts-hotfix.yml
+.github/workflows/m15-rustfmt.yml
+.github/workflows/m03-quarantine-hotfix.yml
+.github/workflows/temporary-feature-fixer.yml
