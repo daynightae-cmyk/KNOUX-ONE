@@ -12,7 +12,7 @@ export function Sidebar() {
 
   useEffect(() => {
     const saved = window.localStorage.getItem('knoux.sidebar.collapsed');
-    setCollapsed(saved === null ? window.innerWidth < 1600 : saved === 'true');
+    setCollapsed(saved === null ? window.innerWidth < 1100 : saved === 'true');
   }, []);
 
   useEffect(() => {
