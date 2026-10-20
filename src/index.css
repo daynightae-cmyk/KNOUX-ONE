@@ -36,6 +36,14 @@
     --knoux-info: #60a5fa;
 
     color-scheme: dark;
+
+    /* Design tokens — Section 6 */
+    --knoux-font-sans: 'Inter', 'Cairo', system-ui, -apple-system, sans-serif;
+    --knoux-font-arabic: 'Cairo', 'Tajawal', sans-serif;
+    --knoux-font-mono: 'JetBrains Mono', ui-monospace, monospace;
+    --knoux-radius: 14px;
+    --knoux-radius-lg: 24px;
+    --knoux-shadow: 0 10px 30px -10px rgba(0,0,0,0.55);
   }
 
   :root.light,
@@ -72,12 +80,20 @@
     --knoux-info: #2563eb;
 
     color-scheme: light;
+
+    /* Design tokens — Section 6 */
+    --knoux-font-sans: 'Inter', 'Cairo', system-ui, -apple-system, sans-serif;
+    --knoux-font-arabic: 'Cairo', 'Tajawal', sans-serif;
+    --knoux-font-mono: 'JetBrains Mono', ui-monospace, monospace;
+    --knoux-radius: 14px;
+    --knoux-radius-lg: 24px;
+    --knoux-shadow: 0 10px 30px -10px rgba(0,0,0,0.45);
   }
 
   body {
     background-color: var(--knoux-canvas);
     color: var(--knoux-text);
-    font-family: 'Inter', 'Cairo', system-ui, -apple-system, sans-serif;
+    font-family: var(--knoux-font-sans);
     overflow-x: hidden;
     transition: background-color 0.25s cubic-bezier(0.16, 1, 0.3, 1), color 0.25s cubic-bezier(0.16, 1, 0.3, 1);
     background-image: 
