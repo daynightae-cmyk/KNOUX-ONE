@@ -14,6 +14,7 @@ import {
 import { useKnoux } from '../../context/KnouxContext';
 import { NativeClient } from '../../services/nativeClient';
 import { WORKSPACE_BY_ROUTE } from '../../shell/workspaceRegistry';
+import { appLabel } from '../../data/appVersion';
 
 const ROUTE_TITLES: Record<string, { en: string; ar: string }> = {
   dashboard: { en: 'Dashboard', ar: 'لوحة التحكم' },
@@ -75,7 +76,7 @@ export const Header: React.FC = () => {
         <p className="text-[11px] font-bold uppercase tracking-[.12em] text-[var(--knoux-text-muted)]">KNOUX ONE</p>
         <div className="mt-0.5 flex items-center gap-2 rtl:flex-row-reverse">
           <h1 className="truncate text-[16px] font-black tracking-[-.02em] text-[var(--knoux-text)]">{t(routeTitle.en, routeTitle.ar)}</h1>
-          <span className="hidden rounded-full border border-[var(--knoux-border)] bg-[var(--knoux-surface-muted)] px-2 py-0.5 text-[10px] font-bold text-[var(--knoux-text-muted)] lg:inline-flex">v3.0</span>
+          <span className="hidden rounded-full border border-[var(--knoux-border)] bg-[var(--knoux-surface-muted)] px-2 py-0.5 text-[10px] font-bold text-[var(--knoux-text-muted)] lg:inline-flex">{appLabel()}</span>
         </div>
       </div>
 
