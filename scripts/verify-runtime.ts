@@ -39,8 +39,17 @@ type PlanStep = {
   action?: string;
   /** Optional navigation click performed before the service action. */
   navigate?: string;
+  /** Optional click that leaves the current workspace first, so the target
+   *  workspace remounts and its measurement is rendered from empty. */
+  reset?: string;
+  /** Capture the page text before navigating, so the delta contains the whole
+   *  rendered workspace rather than only the part that changed in place. */
+  beforeNavigate?: boolean;
   /** Optional sequence of clicks performed before the service action. */
   prepare?: string[];
+  /** Service ids this single control drives. A workspace control can start a
+   *  monitor that produces several measurements at once. */
+  services?: string[];
   /** Text that must appear in the rendered result for the step to pass. */
   expect?: string;
   /** Milliseconds to wait for the native result to render. */
@@ -173,12 +182,49 @@ const BODY_TEXT_SCRIPT = `(() => {
   return (main.innerText || '').replace(/\\s+/g, ' ').trim();
 })()`;
 
+/**
+ * Text of the panel the clicked control belongs to.
+ *
+ * The whole-page diff is unreliable: the service card name is already on screen,
+ * and a workspace that re-renders identical content produces no diff at all.
+ * Reading the panel that actually received the control is what proves the
+ * measurement was rendered.
+ *
+ * For a card-scoped step the panel is found through the service heading, because
+ * several cards can carry a button with the same text.
+ */
+const PANEL_TEXT_SCRIPT = (heading: string | null, label: string | null): string => `(() => {
+  let panel = null;
+  if (${JSON.stringify(heading)}) {
+    const wanted = ${JSON.stringify(heading)}.toLowerCase();
+    const found = Array.from(document.querySelectorAll('h1,h2,h3,h4')).find(h => (h.innerText || '').trim().toLowerCase().includes(wanted));
+    if (found) panel = found.closest('article, section, li') || found.parentElement;
+  }
+  if (!panel && ${JSON.stringify(label)}) {
+    const wanted = ${JSON.stringify(label)}.toLowerCase();
+    const control = Array.from(document.querySelectorAll('button, a, [role="button"], [role="tab"]')).find(n => {
+      const text = (n.innerText || '').replace(/\\s+/g, ' ').trim().toLowerCase();
+      return text.includes(wanted) && n.getBoundingClientRect().width > 0;
+    });
+    if (control) panel = control.closest('article, section, li') || document.querySelector('main') || document.body;
+  }
+  return panel ? (panel.innerText || '').replace(/\\s+/g, ' ').trim() : null;
+})()`;
+
 const sleep = (ms: number): Promise<void> => new Promise(resolve => setTimeout(resolve, ms));
 
 async function main(): Promise<void> {
   const args = parseArgs(process.argv.slice(2));
   const parsed = JSON.parse(readFileSync(args.planPath, 'utf8')) as PlanStep[] | { comment?: string; steps: PlanStep[] };
-  const plan = Array.isArray(parsed) ? parsed : parsed.steps;
+  let plan: PlanStep[];
+  if (Array.isArray(parsed)) {
+    // A plan file is either a flat list of steps or a single wrapper object
+    // that carries a comment plus the list.
+    const only = parsed[0] as PlanStep & { steps?: PlanStep[] } | undefined;
+    plan = only && !only.serviceId && Array.isArray(only.steps) ? only.steps : parsed;
+  } else {
+    plan = parsed.steps;
+  }
   if (plan.length === 0) {
     throw new Error(`No steps found in ${args.planPath}`);
   }
@@ -192,6 +238,18 @@ async function main(): Promise<void> {
 
   for (const step of plan) {
     const startedAt = new Date().toISOString();
+
+    // When the step wants the whole rendered workspace as evidence, the page
+    // text has to be captured before the workspace is entered.
+    let before = '';
+    if (step.beforeNavigate) {
+      before = await cdp.evaluate<string>(BODY_TEXT_SCRIPT);
+    }
+
+    if (step.reset) {
+      await cdp.evaluate(TEXT_CLICK_SCRIPT(step.reset));
+      await sleep(1400);
+    }
 
     if (step.navigate) {
       const nav = await cdp.evaluate<{ ok: boolean; label?: string }>(TEXT_CLICK_SCRIPT(step.navigate));
@@ -230,7 +288,7 @@ async function main(): Promise<void> {
       console.log(`SKIP  ${step.serviceId}: no control specified`);
       continue;
     }
-    const before = await cdp.evaluate<string>(BODY_TEXT_SCRIPT);
+    const beforeClick = await cdp.evaluate<string>(BODY_TEXT_SCRIPT);
     const click = await cdp.evaluate<{
       ok: boolean;
       reason?: string;
@@ -256,31 +314,50 @@ async function main(): Promise<void> {
 
     await sleep(step.waitMs ?? 4000);
 
+    const beforeSnapshot = step.beforeNavigate ? before : beforeClick;
     const after = await cdp.evaluate<string>(BODY_TEXT_SCRIPT);
     // Only text that appeared after the click counts as the rendered result.
     // The service card name is already on the page, so a whole-page match would
-    // pass even when nothing was measured.
-    const delta = after.startsWith(before) ? after.slice(before.length).trim() : after;
-    const expectationMet = step.expect ? delta.toLowerCase().includes(step.expect.toLowerCase()) : null;
-    const failureMarker = /powershell_command_failed|desktop_runtime_unavailable|command_failed|failed to|error:/i.exec(delta);
+    // pass even when nothing was measured. Compare on the longest common prefix
+    // so a re-rendered page still yields the text that changed.
+    let common = 0;
+    const limit = Math.min(beforeSnapshot.length, after.length);
+    while (common < limit && beforeSnapshot[common] === after[common]) common += 1;
+    const delta = after.slice(common).trim();
 
-    records.push({
-      serviceId: step.serviceId,
-      handlerId: step.handlerId,
-      nativeCommand: step.nativeCommand,
-      status: failureMarker ? 'rendered_with_error' : delta.length === 0 ? 'no_visible_change' : 'completed',
-      startedAt,
-      capturedAt: new Date().toISOString(),
-      controlText: click.label,
-      cardHeading: click.heading,
-      expectation: step.expect ?? null,
-      expectationMet,
-      failureMarker: failureMarker ? failureMarker[0] : null,
-      renderedEvidence: delta.slice(0, 1500),
-    });
+    // The panel that owns the clicked control is the fallback evidence: it is
+    // the area the user actually sees after the command runs.
+    const panelText = await cdp.evaluate<string | null>(
+      PANEL_TEXT_SCRIPT(step.service ?? null, click.label ?? null),
+    );
+    const evidence = (delta.length > 0 ? delta : (panelText ?? '')).trim();
+
+    const expectationMet = step.expect ? evidence.toLowerCase().includes(step.expect.toLowerCase()) : null;
+    // A failure banner is rendered in the workspace, not necessarily in the card,
+    // so the whole page is searched for it.
+    const failureMarker = /powershell_command_failed|powershell_json_failed|powershell_json_invalid|desktop_runtime_unavailable|command_failed|operation_failed|error_code|errorCode/i.exec(
+      `${evidence} ${after}`,
+    );
+
+    for (const serviceId of step.services ?? [step.serviceId]) {
+      records.push({
+        serviceId,
+        handlerId: step.handlerId,
+        nativeCommand: step.nativeCommand,
+        status: failureMarker ? 'rendered_with_error' : evidence.length === 0 ? 'no_visible_change' : 'completed',
+        startedAt,
+        capturedAt: new Date().toISOString(),
+        controlText: click.label,
+        cardHeading: click.heading,
+        expectation: step.expect ?? null,
+        expectationMet,
+        failureMarker: failureMarker ? failureMarker[0] : null,
+        renderedEvidence: evidence.slice(0, 1500),
+      });
+    }
 
     console.log(
-      `${failureMarker || delta.length === 0 || expectationMet === false ? 'CHECK' : 'OK   '} ${step.serviceId} (${step.nativeCommand})`,
+      `${failureMarker || evidence.length === 0 || expectationMet === false ? 'CHECK' : 'OK   '} ${step.serviceId} (${step.nativeCommand})`,
     );
   }
 

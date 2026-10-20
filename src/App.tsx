@@ -59,9 +59,10 @@ const AppContent: React.FC = () => {
   }, [currentRoute, selectedServiceId, setSelectedServiceId]);
 
   useEffect(() => {
-    if (!('__TAURI_INTERNALS__' in window)) return;
+    const tauri = (window as unknown as { __TAURI__?: { invoke: (command: string) => Promise<unknown> } }).__TAURI__;
+    if (!tauri) return;
     const timer = window.setTimeout(() => {
-      invoke('close_splashscreen').catch(() => {});
+      tauri.invoke('close_splashscreen').catch(() => {});
     }, 400);
     return () => window.clearTimeout(timer);
   }, []);
