@@ -46,7 +46,7 @@ pub fn diagnose(
         r#"
 $start=(Get-Date).AddHours(-{hours});$failures=@();$automatic=@();$warnings=@()
 try {{
-  Get-WinEvent -FilterHashtable @{{LogName='System';ProviderName='Service Control Manager';StartTime=$start;Id=7000,7001,7009,7011,7022,7023,7024,7031,7034}} -ErrorAction Stop | ForEach-Object {{
+  Get-WinEvent -FilterHashtable @{{LogName='System';ProviderName='Service Control Manager';StartTime=$start;Id=7000,7001,7009,7011,7022,7023,7024,7031,7034}} -ErrorAction SilentlyContinue | ForEach-Object {{
     $message=if($_.Message){{[string]$_.Message}}else{{''}};$service=$null
     if($message -match '(?im)service\s+([^\r\n]+?)\s+(failed|terminated|hung|did not)'){{$service=$matches[1].Trim()}}
     $failures += [pscustomobject]@{{serviceName=$service;displayName=$null;startMode=$null;state=$null;processId=$null;eventId=[uint32]$_.Id;timeCreated=$_.TimeCreated.ToUniversalTime().ToString('o');message=$message}}

@@ -93,7 +93,7 @@ $channels = @({channels})
 $levels = @({levels})
 foreach ($channel in $channels) {{
   try {{
-    $items = Get-WinEvent -FilterHashtable @{{LogName=$channel; StartTime=$start; Level=$levels}} -ErrorAction Stop |
+    $items = Get-WinEvent -FilterHashtable @{{LogName=$channel; StartTime=$start; Level=$levels}} -ErrorAction SilentlyContinue |
       Select-Object -First {limit}
     foreach ($event in $items) {{
       $events += [pscustomobject]@{{

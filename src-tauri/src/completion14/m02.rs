@@ -685,7 +685,7 @@ struct ElevatedResult {
 fn is_elevated() -> bool {
     #[cfg(target_os = "windows")]
     {
-        Command::new("powershell.exe").args(["-NoProfile","-NonInteractive","-Command","([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)"]).output().map(|o|String::from_utf8_lossy(&o.stdout).trim().eq_ignore_ascii_case("true")).unwrap_or(false)
+        crate::powershell_env::with_module_path(Command::new("powershell.exe")).args(["-NoProfile","-NonInteractive","-Command","([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)"]).output().map(|o|String::from_utf8_lossy(&o.stdout).trim().eq_ignore_ascii_case("true")).unwrap_or(false)
     }
     #[cfg(not(target_os = "windows"))]
     {
@@ -740,7 +740,7 @@ foreach($item in $data.items){try{$full=[IO.Path]::GetFullPath([string]$item.pat
     #[cfg(target_os = "windows")]
     {
         let command=format!("$a=@('-NoProfile','-ExecutionPolicy','Bypass','-File','{}','-Manifest','{}','-ExpectedHash','{}','-Result','{}');$p=Start-Process -FilePath 'powershell.exe' -Verb RunAs -ArgumentList $a -Wait -PassThru;exit $p.ExitCode",ps_quote(&script_path.to_string_lossy()),ps_quote(&manifest_path.to_string_lossy()),expected,ps_quote(&result_path.to_string_lossy()));
-        let output = Command::new("powershell.exe")
+        let output = crate::powershell_env::with_module_path(Command::new("powershell.exe"))
             .args(["-NoProfile", "-NonInteractive", "-Command", &command])
             .output()
             .map_err(|e| format!("elevation_launch_failed:{e}"))?;

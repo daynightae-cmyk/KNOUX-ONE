@@ -43,7 +43,7 @@ pub fn triage(request: &BsodTriageRequest) -> Result<BsodTriageResult, Diagnosti
         r#"
 $start=(Get-Date).AddHours(-{hours}); $warnings=@(); $bugchecks=@(); $dumps=@()
 try {{
-  $events=Get-WinEvent -FilterHashtable @{{LogName='System';StartTime=$start;Id=1001}} -ErrorAction Stop | Where-Object {{$_.ProviderName -match 'BugCheck|WER-SystemErrorReporting'}}
+  $events=Get-WinEvent -FilterHashtable @{{LogName='System';StartTime=$start;Id=1001}} -ErrorAction SilentlyContinue | Where-Object {{$_.ProviderName -match 'BugCheck|WER-SystemErrorReporting'}}
   foreach($event in $events){{
     $message=if($event.Message){{[string]$event.Message}}else{{''}}; $code=$null; $dump=$null; $parameters=@()
     if($message -match '(?i)bugcheck was:\s*(0x[0-9a-f]+)'){{$code=$matches[1]}}

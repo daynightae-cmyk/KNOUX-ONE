@@ -12,6 +12,7 @@ mod diagnostics;
 mod duplicates;
 mod network_optimizer;
 mod performance_center;
+mod powershell_env;
 mod projects;
 mod startup_services;
 mod storage;

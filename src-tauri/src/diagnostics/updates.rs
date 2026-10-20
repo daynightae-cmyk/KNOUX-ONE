@@ -40,7 +40,7 @@ pub fn analyze(
         r#"
 $start=(Get-Date).AddHours(-{hours});$events=@();$updates=@();$warnings=@()
 try {{
-  Get-WinEvent -FilterHashtable @{{LogName='System';ProviderName='Microsoft-Windows-WindowsUpdateClient';StartTime=$start;Id=19,20,25,31,34,35}} -ErrorAction Stop | Select-Object -First {limit} | ForEach-Object {{
+  Get-WinEvent -FilterHashtable @{{LogName='System';ProviderName='Microsoft-Windows-WindowsUpdateClient';StartTime=$start;Id=19,20,25,31,34,35}} -ErrorAction SilentlyContinue | Select-Object -First {limit} | ForEach-Object {{
     $message=if($_.Message){{[string]$_.Message}}else{{''}};$kb=$null;$code=$null
     if($message -match '(?i)KB\d+'){{$kb=$matches[0]}}
     if($message -match '(?i)0x[0-9a-f]{{8}}'){{$code=$matches[0]}}

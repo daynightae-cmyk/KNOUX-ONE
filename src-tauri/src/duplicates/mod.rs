@@ -420,7 +420,7 @@ if ($dialog.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) {
   [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
   Write-Output $dialog.SelectedPath
 }"#;
-        let output = Command::new("powershell.exe")
+        let output = crate::powershell_env::with_module_path(Command::new("powershell.exe"))
             .args(["-NoProfile", "-STA", "-Command", script])
             .output()
             .map_err(|error| format!("folder_picker_failed: {error}"))?;

@@ -48,7 +48,7 @@ try { $tpmPresent = (Get-Tpm).TpmPresent } catch {}
   tpmAvailable = $tpmPresent
 } | ConvertTo-Json -Compress
 "#;
-        let output = Command::new("powershell.exe")
+        let output = crate::powershell_env::with_module_path(Command::new("powershell.exe"))
             .args(["-NoProfile", "-NonInteractive", "-Command", script])
             .output()
             .map_err(|error| format!("system_discovery_launch_failed: {error}"))?;

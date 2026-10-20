@@ -33,7 +33,7 @@ pub fn correlate(
 $start=(Get-Date).AddHours(-{hours})
 $warnings=@(); $crashes=@()
 try {{
-  $items = Get-WinEvent -FilterHashtable @{{LogName='Application'; StartTime=$start; Id=1000,1001,1002,1026}} -ErrorAction Stop | Select-Object -First {limit}
+  $items = Get-WinEvent -FilterHashtable @{{LogName='Application'; StartTime=$start; Id=1000,1001,1002,1026}} -ErrorAction SilentlyContinue | Select-Object -First {limit}
   foreach($event in $items) {{
     $message = if($event.Message){{[string]$event.Message}}else{{''}}
     $app = $null; $module = $null; $exception = $null

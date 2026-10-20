@@ -31,7 +31,7 @@ pub fn warnings(
         r#"
 $start=(Get-Date).AddHours(-{hours});$events=@();$warnings=@();$providers=@('Microsoft-Windows-WHEA-Logger','Disk','Ntfs','Microsoft-Windows-Kernel-Power','Display','Microsoft-Windows-Kernel-PnP','stornvme','storahci')
 foreach($provider in $providers){{
-  try {{ Get-WinEvent -FilterHashtable @{{LogName='System';ProviderName=$provider;StartTime=$start;Level=1,2,3}} -ErrorAction Stop | Select-Object -First {limit} | ForEach-Object {{
+  try {{ Get-WinEvent -FilterHashtable @{{LogName='System';ProviderName=$provider;StartTime=$start;Level=1,2,3}} -ErrorAction SilentlyContinue | Select-Object -First {limit} | ForEach-Object {{
     $category = if($_.ProviderName -match 'WHEA'){{'hardware'}}elseif($_.ProviderName -match 'Disk|Ntfs|stor'){{'storage'}}elseif($_.ProviderName -match 'Display'){{'graphics'}}elseif($_.ProviderName -match 'PnP'){{'driver'}}else{{'kernel'}}
     $events += [pscustomobject]@{{timeCreated=$_.TimeCreated.ToUniversalTime().ToString('o');provider=[string]$_.ProviderName;eventId=[uint32]$_.Id;level=[string]$_.LevelDisplayName;category=$category;message=if($_.Message){{[string]$_.Message}}else{{''}}}}
   }} }} catch {{$warnings += "${{provider}}: $($_.Exception.Message)"}}
