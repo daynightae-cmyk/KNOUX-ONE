@@ -4,8 +4,8 @@
   "runtimeVerificationPolicy": "RUNTIME_VERIFIED requires a record in docs/evidence/windows-runtime-evidence.json whose four stages are all true: a React control was clicked, the call crossed the Tauri IPC boundary, the native Rust command executed against real Windows, and the result was rendered. The generator rejects a record whose handler or native command disagrees with the active catalog.",
   "globalRuntimeGate": {
     "state": "BLOCKED",
-    "reason": "29 of 101 implemented services carry recorded Windows runtime evidence. The gate stays BLOCKED while any implemented service is unproven at runtime, and the missing coverage is listed rather than summarised.",
-    "eligible": 101,
+    "reason": "29 of 115 implemented services carry recorded Windows runtime evidence. The gate stays BLOCKED while any implemented service is unproven at runtime, and the missing coverage is listed rather than summarised.",
+    "eligible": 115,
     "verified": 29,
     "missing": [
       "M01-S05",
@@ -79,20 +79,34 @@
       "M15-S04",
       "M15-S08",
       "M15-S09",
-      "M15-S10"
+      "M15-S10",
+      "M16-S05",
+      "M16-S06",
+      "M16-S07",
+      "M16-S08",
+      "M17-S01",
+      "M17-S02",
+      "M17-S03",
+      "M17-S04",
+      "M17-S05",
+      "M17-S06",
+      "M17-S07",
+      "M17-S08",
+      "M17-S09",
+      "M17-S10"
     ]
   },
   "totals": {
     "services": 190,
     "states": {
-      "PLANNED": 89,
+      "PLANNED": 75,
       "GUARDED": 0,
-      "STATIC_VERIFIED": 72,
+      "STATIC_VERIFIED": 86,
       "PARTIAL": 0,
       "RUNTIME_VERIFIED": 29,
       "BLOCKED": 0
     },
-    "runtimeVerifiedPercentageOfEligible": 28.71
+    "runtimeVerifiedPercentageOfEligible": 25.22
   },
   "modules": [
     {
@@ -295,9 +309,9 @@
       "name": "Code & Project Tools",
       "total": 10,
       "counts": {
-        "PLANNED": 10,
+        "PLANNED": 6,
         "GUARDED": 0,
-        "STATIC_VERIFIED": 0,
+        "STATIC_VERIFIED": 4,
         "PARTIAL": 0,
         "RUNTIME_VERIFIED": 0,
         "BLOCKED": 0
@@ -308,9 +322,9 @@
       "name": "Logs & Diagnostics",
       "total": 10,
       "counts": {
-        "PLANNED": 10,
+        "PLANNED": 0,
         "GUARDED": 0,
-        "STATIC_VERIFIED": 0,
+        "STATIC_VERIFIED": 10,
         "PARTIAL": 0,
         "RUNTIME_VERIFIED": 0,
         "BLOCKED": 0
@@ -2862,14 +2876,16 @@
       "serviceNumber": 5,
       "name": "Dependency audit",
       "nameAr": "فحص ثغرات المكتبات (npm audit / pnpm audit)",
-      "state": "PLANNED",
-      "verificationLevel": "none",
+      "state": "STATIC_VERIFIED",
+      "verificationLevel": "static",
       "runtime": "windows",
+      "handlerId": "m16.dependencies.audit",
+      "nativeCommand": "m16_dependencies_audit",
       "requiresElevation": false,
       "reversible": false,
       "dangerous": false,
-      "testPosture": "No active native-handler test applicable.",
-      "evidence": "Active catalog deliberately exposes no native handler; this service must not be presented as runnable."
+      "testPosture": "Static contract evidence only; Windows runtime and E2E proof are not recorded.",
+      "evidence": "Static trace: catalog handler m16.dependencies.audit maps to m16_dependencies_audit; Windows runtime proof is still required."
     },
     {
       "moduleId": "M16",
@@ -2877,14 +2893,16 @@
       "serviceNumber": 6,
       "name": "Environment-variable validator",
       "nameAr": "فحص ملفات المفاتيح المتغيرة (.env)",
-      "state": "PLANNED",
-      "verificationLevel": "none",
+      "state": "STATIC_VERIFIED",
+      "verificationLevel": "static",
       "runtime": "windows",
+      "handlerId": "m16.environment.audit",
+      "nativeCommand": "m16_environment_audit",
       "requiresElevation": false,
       "reversible": false,
       "dangerous": false,
-      "testPosture": "No active native-handler test applicable.",
-      "evidence": "Active catalog deliberately exposes no native handler; this service must not be presented as runnable."
+      "testPosture": "Static contract evidence only; Windows runtime and E2E proof are not recorded.",
+      "evidence": "Static trace: catalog handler m16.environment.audit maps to m16_environment_audit; Windows runtime proof is still required."
     },
     {
       "moduleId": "M16",
@@ -2892,14 +2910,16 @@
       "serviceNumber": 7,
       "name": "Build-artifact cleanup",
       "nameAr": "تنظيف مجلدات البناء node_modules & dist",
-      "state": "PLANNED",
-      "verificationLevel": "none",
+      "state": "STATIC_VERIFIED",
+      "verificationLevel": "static",
       "runtime": "windows",
+      "handlerId": "m16.cache.manage",
+      "nativeCommand": "m16_cache_manage",
       "requiresElevation": false,
       "reversible": false,
       "dangerous": false,
-      "testPosture": "No active native-handler test applicable.",
-      "evidence": "Active catalog deliberately exposes no native handler; this service must not be presented as runnable."
+      "testPosture": "Static contract evidence only; Windows runtime and E2E proof are not recorded.",
+      "evidence": "Static trace: catalog handler m16.cache.manage maps to m16_cache_manage; Windows runtime proof is still required."
     },
     {
       "moduleId": "M16",
@@ -2907,14 +2927,16 @@
       "serviceNumber": 8,
       "name": "Project-size analyzer",
       "nameAr": "تحليل وتوزيع حجم أجزاء الكود والمشاريع",
-      "state": "PLANNED",
-      "verificationLevel": "none",
+      "state": "STATIC_VERIFIED",
+      "verificationLevel": "static",
       "runtime": "windows",
+      "handlerId": "m16.source.analyze",
+      "nativeCommand": "m16_source_analyze",
       "requiresElevation": false,
       "reversible": false,
       "dangerous": false,
-      "testPosture": "No active native-handler test applicable.",
-      "evidence": "Active catalog deliberately exposes no native handler; this service must not be presented as runnable."
+      "testPosture": "Static contract evidence only; Windows runtime and E2E proof are not recorded.",
+      "evidence": "Static trace: catalog handler m16.source.analyze maps to m16_source_analyze; Windows runtime proof is still required."
     },
     {
       "moduleId": "M16",
@@ -2952,14 +2974,16 @@
       "serviceNumber": 1,
       "name": "Event Log summary",
       "nameAr": "ملخص سجل أحداث ويندوز (Event Viewer)",
-      "state": "PLANNED",
-      "verificationLevel": "none",
+      "state": "STATIC_VERIFIED",
+      "verificationLevel": "static",
       "runtime": "windows",
+      "handlerId": "m17.events.query",
+      "nativeCommand": "m17_events_query",
       "requiresElevation": false,
       "reversible": false,
       "dangerous": false,
-      "testPosture": "No active native-handler test applicable.",
-      "evidence": "Active catalog deliberately exposes no native handler; this service must not be presented as runnable."
+      "testPosture": "Static contract evidence only; Windows runtime and E2E proof are not recorded.",
+      "evidence": "Static trace: catalog handler m17.events.query maps to m17_events_query; Windows runtime proof is still required."
     },
     {
       "moduleId": "M17",
@@ -2967,14 +2991,16 @@
       "serviceNumber": 2,
       "name": "Application crash history",
       "nameAr": "سجل توقف وانهيار البرامج",
-      "state": "PLANNED",
-      "verificationLevel": "none",
+      "state": "STATIC_VERIFIED",
+      "verificationLevel": "static",
       "runtime": "windows",
+      "handlerId": "m17.crashes.correlate",
+      "nativeCommand": "m17_crashes_correlate",
       "requiresElevation": false,
       "reversible": false,
       "dangerous": false,
-      "testPosture": "No active native-handler test applicable.",
-      "evidence": "Active catalog deliberately exposes no native handler; this service must not be presented as runnable."
+      "testPosture": "Static contract evidence only; Windows runtime and E2E proof are not recorded.",
+      "evidence": "Static trace: catalog handler m17.crashes.correlate maps to m17_crashes_correlate; Windows runtime proof is still required."
     },
     {
       "moduleId": "M17",
@@ -2982,14 +3008,16 @@
       "serviceNumber": 3,
       "name": "BSOD minidumps",
       "nameAr": "تحليل أسباب الشاشة الزرقاء (BSOD)",
-      "state": "PLANNED",
-      "verificationLevel": "none",
+      "state": "STATIC_VERIFIED",
+      "verificationLevel": "static",
       "runtime": "windows",
+      "handlerId": "m17.bsod.triage",
+      "nativeCommand": "m17_bsod_triage",
       "requiresElevation": false,
       "reversible": false,
       "dangerous": false,
-      "testPosture": "No active native-handler test applicable.",
-      "evidence": "Active catalog deliberately exposes no native handler; this service must not be presented as runnable."
+      "testPosture": "Static contract evidence only; Windows runtime and E2E proof are not recorded.",
+      "evidence": "Static trace: catalog handler m17.bsod.triage maps to m17_bsod_triage; Windows runtime proof is still required."
     },
     {
       "moduleId": "M17",
@@ -2997,14 +3025,16 @@
       "serviceNumber": 4,
       "name": "Reliability history",
       "nameAr": "مؤشر استقرار النظام والتطبيقات",
-      "state": "PLANNED",
-      "verificationLevel": "none",
+      "state": "STATIC_VERIFIED",
+      "verificationLevel": "static",
       "runtime": "windows",
+      "handlerId": "m17.reliability.timeline",
+      "nativeCommand": "m17_reliability_timeline",
       "requiresElevation": false,
       "reversible": false,
       "dangerous": false,
-      "testPosture": "No active native-handler test applicable.",
-      "evidence": "Active catalog deliberately exposes no native handler; this service must not be presented as runnable."
+      "testPosture": "Static contract evidence only; Windows runtime and E2E proof are not recorded.",
+      "evidence": "Static trace: catalog handler m17.reliability.timeline maps to m17_reliability_timeline; Windows runtime proof is still required."
     },
     {
       "moduleId": "M17",
@@ -3012,14 +3042,16 @@
       "serviceNumber": 5,
       "name": "Failed service diagnostics",
       "nameAr": "تشخيص الخدمات المتوقفة عن العمل",
-      "state": "PLANNED",
-      "verificationLevel": "none",
+      "state": "STATIC_VERIFIED",
+      "verificationLevel": "static",
       "runtime": "windows",
+      "handlerId": "m17.services.diagnose",
+      "nativeCommand": "m17_services_diagnose",
       "requiresElevation": false,
       "reversible": false,
       "dangerous": false,
-      "testPosture": "No active native-handler test applicable.",
-      "evidence": "Active catalog deliberately exposes no native handler; this service must not be presented as runnable."
+      "testPosture": "Static contract evidence only; Windows runtime and E2E proof are not recorded.",
+      "evidence": "Static trace: catalog handler m17.services.diagnose maps to m17_services_diagnose; Windows runtime proof is still required."
     },
     {
       "moduleId": "M17",
@@ -3027,14 +3059,16 @@
       "serviceNumber": 6,
       "name": "Windows Update diagnostics",
       "nameAr": "تشخيص سجل تحديثات ويندوز",
-      "state": "PLANNED",
-      "verificationLevel": "none",
+      "state": "STATIC_VERIFIED",
+      "verificationLevel": "static",
       "runtime": "windows",
+      "handlerId": "m17.updates.analyze",
+      "nativeCommand": "m17_updates_analyze",
       "requiresElevation": false,
       "reversible": false,
       "dangerous": false,
-      "testPosture": "No active native-handler test applicable.",
-      "evidence": "Active catalog deliberately exposes no native handler; this service must not be presented as runnable."
+      "testPosture": "Static contract evidence only; Windows runtime and E2E proof are not recorded.",
+      "evidence": "Static trace: catalog handler m17.updates.analyze maps to m17_updates_analyze; Windows runtime proof is still required."
     },
     {
       "moduleId": "M17",
@@ -3042,14 +3076,16 @@
       "serviceNumber": 7,
       "name": "Hardware warnings",
       "nameAr": "تحذيرات العتاد الموصلة",
-      "state": "PLANNED",
-      "verificationLevel": "none",
+      "state": "STATIC_VERIFIED",
+      "verificationLevel": "static",
       "runtime": "windows",
+      "handlerId": "m17.hardware.warnings",
+      "nativeCommand": "m17_hardware_warnings",
       "requiresElevation": false,
       "reversible": false,
       "dangerous": false,
-      "testPosture": "No active native-handler test applicable.",
-      "evidence": "Active catalog deliberately exposes no native handler; this service must not be presented as runnable."
+      "testPosture": "Static contract evidence only; Windows runtime and E2E proof are not recorded.",
+      "evidence": "Static trace: catalog handler m17.hardware.warnings maps to m17_hardware_warnings; Windows runtime proof is still required."
     },
     {
       "moduleId": "M17",
@@ -3057,14 +3093,16 @@
       "serviceNumber": 8,
       "name": "Network diagnostics",
       "nameAr": "تشخيص أسباب انقطاع الإنترنت",
-      "state": "PLANNED",
-      "verificationLevel": "none",
+      "state": "STATIC_VERIFIED",
+      "verificationLevel": "static",
       "runtime": "windows",
+      "handlerId": "m17.network.diagnose",
+      "nativeCommand": "m17_network_diagnose",
       "requiresElevation": false,
       "reversible": false,
       "dangerous": false,
-      "testPosture": "No active native-handler test applicable.",
-      "evidence": "Active catalog deliberately exposes no native handler; this service must not be presented as runnable."
+      "testPosture": "Static contract evidence only; Windows runtime and E2E proof are not recorded.",
+      "evidence": "Static trace: catalog handler m17.network.diagnose maps to m17_network_diagnose; Windows runtime proof is still required."
     },
     {
       "moduleId": "M17",
@@ -3072,14 +3110,16 @@
       "serviceNumber": 9,
       "name": "Support bundle",
       "nameAr": "إنشاء حزمة التشخيص للدعم الفني",
-      "state": "PLANNED",
-      "verificationLevel": "none",
+      "state": "STATIC_VERIFIED",
+      "verificationLevel": "static",
       "runtime": "windows",
+      "handlerId": "m17.bundle.export",
+      "nativeCommand": "m17_bundle_export",
       "requiresElevation": false,
       "reversible": false,
       "dangerous": false,
-      "testPosture": "No active native-handler test applicable.",
-      "evidence": "Active catalog deliberately exposes no native handler; this service must not be presented as runnable."
+      "testPosture": "Static contract evidence only; Windows runtime and E2E proof are not recorded.",
+      "evidence": "Static trace: catalog handler m17.bundle.export maps to m17_bundle_export; Windows runtime proof is still required."
     },
     {
       "moduleId": "M17",
@@ -3087,14 +3127,16 @@
       "serviceNumber": 10,
       "name": "Redacted report",
       "nameAr": "تقرير منقح خالي من البيانات الشخصية",
-      "state": "PLANNED",
-      "verificationLevel": "none",
+      "state": "STATIC_VERIFIED",
+      "verificationLevel": "static",
       "runtime": "windows",
+      "handlerId": "m17.report.export",
+      "nativeCommand": "m17_report_export",
       "requiresElevation": false,
       "reversible": false,
       "dangerous": false,
-      "testPosture": "No active native-handler test applicable.",
-      "evidence": "Active catalog deliberately exposes no native handler; this service must not be presented as runnable."
+      "testPosture": "Static contract evidence only; Windows runtime and E2E proof are not recorded.",
+      "evidence": "Static trace: catalog handler m17.report.export maps to m17_report_export; Windows runtime proof is still required."
     },
     {
       "moduleId": "M18",

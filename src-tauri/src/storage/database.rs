@@ -42,8 +42,13 @@ pub fn migrate(connection: &Connection) -> Result<(), String> {
         .execute_batch(include_str!("../../migrations/004_storage_reports.sql"))
         .map_err(|error| format!("migration_004_failed: {error}"))?;
     connection
+        .execute_batch(include_str!(
+            "../../migrations/005_projects_and_diagnostics.sql"
+        ))
+        .map_err(|error| format!("migration_005_failed: {error}"))?;
+    connection
         .execute(
-            "INSERT INTO app_meta(key, value, updated_at) VALUES ('schema_version', '4', datetime('now'))
+            "INSERT INTO app_meta(key, value, updated_at) VALUES ('schema_version', '5', datetime('now'))
              ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at",
             [],
         )
@@ -98,6 +103,25 @@ mod tests {
     }
 
     #[test]
+    fn migrations_create_project_and_diagnostic_tables() {
+        let connection = Connection::open_in_memory().expect("in-memory database");
+        migrate(&connection).expect("migrations");
+        let count: i64 = connection
+            .query_row(
+                "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name IN (
+                  'project_index',
+                  'project_reports',
+                  'diagnostic_sessions',
+                  'diagnostic_exports'
+                )",
+                [],
+                |row| row.get(0),
+            )
+            .expect("table count");
+        assert_eq!(count, 4);
+    }
+
+    #[test]
     fn migration_is_idempotent_across_repeated_open() {
         for _ in 0..3 {
             let connection = Connection::open_in_memory().expect("in-memory database");
@@ -106,7 +130,7 @@ mod tests {
     }
 
     #[test]
-    fn schema_version_is_recorded_as_four() {
+    fn schema_version_is_recorded_as_five() {
         let connection = Connection::open_in_memory().expect("in-memory database");
         migrate(&connection).expect("migrations");
         let version: String = connection
@@ -116,6 +140,6 @@ mod tests {
                 |row| row.get(0),
             )
             .expect("schema version");
-        assert_eq!(version, "4");
+        assert_eq!(version, "5");
     }
 }

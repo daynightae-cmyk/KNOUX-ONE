@@ -101,7 +101,7 @@ describe('Module 04 honest storage analyzer', () => {
     expect(migration).toContain('blake3 TEXT NOT NULL');
     const database = fs.readFileSync(path.resolve('src-tauri/src/storage/database.rs'), 'utf8');
     expect(database).toContain('004_storage_reports.sql');
-    expect(database).toContain("'schema_version', '4'");
+    expect(database).toContain("'schema_version', '5'");
   });
 
   it('shows the measured age policy and per-row basis in the interface', () => {

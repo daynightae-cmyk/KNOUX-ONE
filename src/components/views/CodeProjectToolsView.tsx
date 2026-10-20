@@ -1,18 +1,8 @@
-import React from 'react';
-import { UniversalServiceWorkspace } from '../common/UniversalServiceWorkspace';
-import { MODULES_CATALOG } from '../../data/capabilitiesCatalog';
+/**
+ * KNOUX ONE — Module 16: Code & Project Tools View
+ */
 
-export const CodeProjectToolsView: React.FC = () => {
-  const module = MODULES_CATALOG.find(item => item.id === 'm16');
-  if (!module) return null;
-  return (
-    <UniversalServiceWorkspace
-      moduleNumber={module.number}
-      moduleNameEn={module.nameEn}
-      moduleNameAr={module.nameAr}
-      descriptionEn={module.descriptionEn}
-      descriptionAr={module.descriptionAr}
-      capabilities={module.services}
-    />
-  );
-};
+import React from 'react';
+import { ProjectWorkspace } from '../../features/projects/ProjectWorkspace';
+
+export const CodeProjectToolsView: React.FC = () => <ProjectWorkspace />;

@@ -8,9 +8,11 @@ mod cleanup;
 mod completion14;
 mod contracts;
 mod developer;
+mod diagnostics;
 mod duplicates;
 mod network_optimizer;
 mod performance_center;
+mod projects;
 mod startup_services;
 mod storage;
 mod storage_analyzer;
@@ -171,7 +173,27 @@ fn main() {
             developer::m15_projects_audit,
             developer::m15_caches_manage,
             developer::m15_http_execute,
-            developer::m15_report_export
+            developer::m15_report_export,
+            projects::m16_projects_discover,
+            projects::m16_projects_health,
+            projects::m16_dependencies_audit,
+            projects::m16_commands_execute,
+            projects::m16_environment_audit,
+            projects::m16_source_analyze,
+            projects::m16_cache_manage,
+            projects::m16_git_workspace,
+            projects::m16_runtime_orchestrate,
+            projects::m16_reports_export,
+            diagnostics::m17_events_query,
+            diagnostics::m17_crashes_correlate,
+            diagnostics::m17_bsod_triage,
+            diagnostics::m17_reliability_timeline,
+            diagnostics::m17_services_diagnose,
+            diagnostics::m17_updates_analyze,
+            diagnostics::m17_hardware_warnings,
+            diagnostics::m17_network_diagnose,
+            diagnostics::m17_bundle_export,
+            diagnostics::m17_report_export
         ])
         .run(tauri::generate_context!())
         .expect("error while running KNOUX ONE");

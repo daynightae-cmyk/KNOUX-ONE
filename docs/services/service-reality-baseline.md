@@ -6,21 +6,21 @@
 
 A service is **not** runtime verified merely because its UI, handler, or static test exists. `RUNTIME_VERIFIED` requires a record in `docs/evidence/windows-runtime-evidence.json` whose four stages are all true: a React control was clicked, the call crossed the Tauri IPC boundary, the native Rust command executed against real Windows, and the result was rendered back into the UI.
 
-**Global native runtime gate: BLOCKED.** 29 of 101 implemented services carry recorded Windows runtime evidence. The gate stays BLOCKED while any implemented service is unproven at runtime, and the missing coverage is listed rather than summarised.
+**Global native runtime gate: BLOCKED.** 29 of 115 implemented services carry recorded Windows runtime evidence. The gate stays BLOCKED while any implemented service is unproven at runtime, and the missing coverage is listed rather than summarised.
 
-Runtime-verified coverage of implemented services: **29 / 101** (28.71%).
+Runtime-verified coverage of implemented services: **29 / 115** (25.22%).
 
-Services still missing runtime evidence (72):
+Services still missing runtime evidence (86):
 
-M01-S05, M01-S08, M02-S02, M02-S05, M02-S07, M02-S09, M03-S01, M03-S02, M03-S03, M03-S04, M03-S05, M03-S06, M03-S07, M03-S08, M03-S09, M03-S10, M04-S01, M04-S07, M05-S01, M05-S02, M05-S03, M05-S04, M05-S05, M05-S06, M05-S07, M05-S08, M05-S09, M05-S10, M06-S01, M06-S02, M06-S03, M06-S04, M06-S05, M06-S06, M06-S07, M06-S08, M06-S09, M06-S10, M07-S01, M07-S02, M07-S03, M07-S04, M07-S05, M07-S06, M07-S07, M07-S08, M07-S09, M07-S10, M08-S01, M08-S02, M08-S03, M08-S04, M08-S05, M08-S06, M08-S07, M08-S08, M08-S09, M08-S10, M09-S02, M09-S03, M09-S04, M09-S06, M10-S01, M10-S05, M10-S06, M11-S07, M11-S09, M15-S02, M15-S04, M15-S08, M15-S09, M15-S10
+M01-S05, M01-S08, M02-S02, M02-S05, M02-S07, M02-S09, M03-S01, M03-S02, M03-S03, M03-S04, M03-S05, M03-S06, M03-S07, M03-S08, M03-S09, M03-S10, M04-S01, M04-S07, M05-S01, M05-S02, M05-S03, M05-S04, M05-S05, M05-S06, M05-S07, M05-S08, M05-S09, M05-S10, M06-S01, M06-S02, M06-S03, M06-S04, M06-S05, M06-S06, M06-S07, M06-S08, M06-S09, M06-S10, M07-S01, M07-S02, M07-S03, M07-S04, M07-S05, M07-S06, M07-S07, M07-S08, M07-S09, M07-S10, M08-S01, M08-S02, M08-S03, M08-S04, M08-S05, M08-S06, M08-S07, M08-S08, M08-S09, M08-S10, M09-S02, M09-S03, M09-S04, M09-S06, M10-S01, M10-S05, M10-S06, M11-S07, M11-S09, M15-S02, M15-S04, M15-S08, M15-S09, M15-S10, M16-S05, M16-S06, M16-S07, M16-S08, M17-S01, M17-S02, M17-S03, M17-S04, M17-S05, M17-S06, M17-S07, M17-S08, M17-S09, M17-S10
 
 ## Totals
 
 | State | Count |
 | --- | ---: |
-| PLANNED | 89 |
+| PLANNED | 75 |
 | GUARDED | 0 |
-| STATIC_VERIFIED | 72 |
+| STATIC_VERIFIED | 86 |
 | PARTIAL | 0 |
 | RUNTIME_VERIFIED | 29 |
 | BLOCKED | 0 |
@@ -45,8 +45,8 @@ M01-S05, M01-S08, M02-S02, M02-S05, M02-S07, M02-S09, M03-S01, M03-S02, M03-S03,
 | M13 | 10 | 10 | 0 | 0 | 0 | 0 | 0 |
 | M14 | 10 | 10 | 0 | 0 | 0 | 0 | 0 |
 | M15 | 10 | 3 | 0 | 5 | 0 | 2 | 0 |
-| M16 | 10 | 10 | 0 | 0 | 0 | 0 | 0 |
-| M17 | 10 | 10 | 0 | 0 | 0 | 0 | 0 |
+| M16 | 10 | 6 | 0 | 4 | 0 | 0 | 0 |
+| M17 | 10 | 0 | 0 | 10 | 0 | 0 | 0 |
 | M18 | 10 | 10 | 0 | 0 | 0 | 0 | 0 |
 | M19 | 10 | 10 | 0 | 0 | 0 | 0 | 0 |
 
@@ -208,22 +208,22 @@ M01-S05, M01-S08, M02-S02, M02-S05, M02-S07, M02-S09, M03-S01, M03-S02, M03-S03,
 | M16-S02 | Approved project templates | PLANNED | none | — | — | Active catalog deliberately exposes no native handler; this service must not be presented as runnable. |
 | M16-S03 | Initialize Git | PLANNED | none | — | — | Active catalog deliberately exposes no native handler; this service must not be presented as runnable. |
 | M16-S04 | GitHub publishing wizard | PLANNED | none | — | — | Active catalog deliberately exposes no native handler; this service must not be presented as runnable. |
-| M16-S05 | Dependency audit | PLANNED | none | — | — | Active catalog deliberately exposes no native handler; this service must not be presented as runnable. |
-| M16-S06 | Environment-variable validator | PLANNED | none | — | — | Active catalog deliberately exposes no native handler; this service must not be presented as runnable. |
-| M16-S07 | Build-artifact cleanup | PLANNED | none | — | — | Active catalog deliberately exposes no native handler; this service must not be presented as runnable. |
-| M16-S08 | Project-size analyzer | PLANNED | none | — | — | Active catalog deliberately exposes no native handler; this service must not be presented as runnable. |
+| M16-S05 | Dependency audit | STATIC_VERIFIED | static | m16.dependencies.audit | m16_dependencies_audit | Static trace: catalog handler m16.dependencies.audit maps to m16_dependencies_audit; Windows runtime proof is still required. |
+| M16-S06 | Environment-variable validator | STATIC_VERIFIED | static | m16.environment.audit | m16_environment_audit | Static trace: catalog handler m16.environment.audit maps to m16_environment_audit; Windows runtime proof is still required. |
+| M16-S07 | Build-artifact cleanup | STATIC_VERIFIED | static | m16.cache.manage | m16_cache_manage | Static trace: catalog handler m16.cache.manage maps to m16_cache_manage; Windows runtime proof is still required. |
+| M16-S08 | Project-size analyzer | STATIC_VERIFIED | static | m16.source.analyze | m16_source_analyze | Static trace: catalog handler m16.source.analyze maps to m16_source_analyze; Windows runtime proof is still required. |
 | M16-S09 | JSON & YAML tools | PLANNED | none | — | — | Active catalog deliberately exposes no native handler; this service must not be presented as runnable. |
 | M16-S10 | API testing workspace | PLANNED | none | — | — | Active catalog deliberately exposes no native handler; this service must not be presented as runnable. |
-| M17-S01 | Event Log summary | PLANNED | none | — | — | Active catalog deliberately exposes no native handler; this service must not be presented as runnable. |
-| M17-S02 | Application crash history | PLANNED | none | — | — | Active catalog deliberately exposes no native handler; this service must not be presented as runnable. |
-| M17-S03 | BSOD minidumps | PLANNED | none | — | — | Active catalog deliberately exposes no native handler; this service must not be presented as runnable. |
-| M17-S04 | Reliability history | PLANNED | none | — | — | Active catalog deliberately exposes no native handler; this service must not be presented as runnable. |
-| M17-S05 | Failed service diagnostics | PLANNED | none | — | — | Active catalog deliberately exposes no native handler; this service must not be presented as runnable. |
-| M17-S06 | Windows Update diagnostics | PLANNED | none | — | — | Active catalog deliberately exposes no native handler; this service must not be presented as runnable. |
-| M17-S07 | Hardware warnings | PLANNED | none | — | — | Active catalog deliberately exposes no native handler; this service must not be presented as runnable. |
-| M17-S08 | Network diagnostics | PLANNED | none | — | — | Active catalog deliberately exposes no native handler; this service must not be presented as runnable. |
-| M17-S09 | Support bundle | PLANNED | none | — | — | Active catalog deliberately exposes no native handler; this service must not be presented as runnable. |
-| M17-S10 | Redacted report | PLANNED | none | — | — | Active catalog deliberately exposes no native handler; this service must not be presented as runnable. |
+| M17-S01 | Event Log summary | STATIC_VERIFIED | static | m17.events.query | m17_events_query | Static trace: catalog handler m17.events.query maps to m17_events_query; Windows runtime proof is still required. |
+| M17-S02 | Application crash history | STATIC_VERIFIED | static | m17.crashes.correlate | m17_crashes_correlate | Static trace: catalog handler m17.crashes.correlate maps to m17_crashes_correlate; Windows runtime proof is still required. |
+| M17-S03 | BSOD minidumps | STATIC_VERIFIED | static | m17.bsod.triage | m17_bsod_triage | Static trace: catalog handler m17.bsod.triage maps to m17_bsod_triage; Windows runtime proof is still required. |
+| M17-S04 | Reliability history | STATIC_VERIFIED | static | m17.reliability.timeline | m17_reliability_timeline | Static trace: catalog handler m17.reliability.timeline maps to m17_reliability_timeline; Windows runtime proof is still required. |
+| M17-S05 | Failed service diagnostics | STATIC_VERIFIED | static | m17.services.diagnose | m17_services_diagnose | Static trace: catalog handler m17.services.diagnose maps to m17_services_diagnose; Windows runtime proof is still required. |
+| M17-S06 | Windows Update diagnostics | STATIC_VERIFIED | static | m17.updates.analyze | m17_updates_analyze | Static trace: catalog handler m17.updates.analyze maps to m17_updates_analyze; Windows runtime proof is still required. |
+| M17-S07 | Hardware warnings | STATIC_VERIFIED | static | m17.hardware.warnings | m17_hardware_warnings | Static trace: catalog handler m17.hardware.warnings maps to m17_hardware_warnings; Windows runtime proof is still required. |
+| M17-S08 | Network diagnostics | STATIC_VERIFIED | static | m17.network.diagnose | m17_network_diagnose | Static trace: catalog handler m17.network.diagnose maps to m17_network_diagnose; Windows runtime proof is still required. |
+| M17-S09 | Support bundle | STATIC_VERIFIED | static | m17.bundle.export | m17_bundle_export | Static trace: catalog handler m17.bundle.export maps to m17_bundle_export; Windows runtime proof is still required. |
+| M17-S10 | Redacted report | STATIC_VERIFIED | static | m17.report.export | m17_report_export | Static trace: catalog handler m17.report.export maps to m17_report_export; Windows runtime proof is still required. |
 | M18-S01 | System summary | PLANNED | none | — | — | Active catalog deliberately exposes no native handler; this service must not be presented as runnable. |
 | M18-S02 | CPU information | PLANNED | none | — | — | Active catalog deliberately exposes no native handler; this service must not be presented as runnable. |
 | M18-S03 | GPU information | PLANNED | none | — | — | Active catalog deliberately exposes no native handler; this service must not be presented as runnable. |
