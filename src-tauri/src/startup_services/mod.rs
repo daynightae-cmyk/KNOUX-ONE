@@ -326,7 +326,7 @@ fn ps_quote(value: &str) -> String {
 }
 
 fn run_powershell(script: &str) -> Result<String, String> {
-    let output = Command::new("powershell.exe")
+    let output = crate::powershell_env::with_module_path(Command::new("powershell.exe"))
         .args([
             "-NoLogo",
             "-NoProfile",
@@ -486,9 +486,7 @@ foreach($location in $locations){
   $publisher=''
   $signature='NotChecked'
   if($candidate -and (Test-Path -LiteralPath $candidate)){
-   $sig=Get-AuthenticodeSignature -LiteralPath $candidate
-   $signature=[string]$sig.Status
-   if($sig.SignerCertificate){$publisher=[string]$sig.SignerCertificate.Subject}
+   try{ $sig=Get-AuthenticodeSignature -LiteralPath $candidate -ErrorAction Stop; $signature=[string]$sig.Status; if($sig.SignerCertificate){$publisher=[string]$sig.SignerCertificate.Subject} }catch{ $signature='NotChecked' }
   }
   $result += [pscustomobject]@{
    name=[string]$property.Name; command=$command; executablePath=$candidate;
@@ -520,9 +518,7 @@ foreach($folder in $folders){
   }
   $publisher='';$signature='NotChecked'
   if($candidate -and (Test-Path -LiteralPath $candidate)){
-   $sig=Get-AuthenticodeSignature -LiteralPath $candidate
-   $signature=[string]$sig.Status
-   if($sig.SignerCertificate){$publisher=[string]$sig.SignerCertificate.Subject}
+   try{ $sig=Get-AuthenticodeSignature -LiteralPath $candidate -ErrorAction Stop; $signature=[string]$sig.Status; if($sig.SignerCertificate){$publisher=[string]$sig.SignerCertificate.Subject} }catch{ $signature='NotChecked' }
   }
   $result += [pscustomobject]@{
    name=$_.Name; command=$command; executablePath=$candidate; sourceKind='startup_folder';
@@ -564,9 +560,7 @@ Get-CimInstance Win32_Service | ForEach-Object {
  elseif($path -match '^\s*([^\s]+\.exe)'){ $candidate=$matches[1] }
  $publisher='';$signature='NotChecked'
  if($candidate -and (Test-Path -LiteralPath $candidate)){
-  $sig=Get-AuthenticodeSignature -LiteralPath $candidate
-  $signature=[string]$sig.Status
-  if($sig.SignerCertificate){$publisher=[string]$sig.SignerCertificate.Subject}
+  try{ $sig=Get-AuthenticodeSignature -LiteralPath $candidate -ErrorAction Stop; $signature=[string]$sig.Status; if($sig.SignerCertificate){$publisher=[string]$sig.SignerCertificate.Subject} }catch{ $signature='NotChecked' }
  }
  $result += [pscustomobject]@{
   name=[string]$_.Name; displayName=[string]$_.DisplayName; state=[string]$_.State;
@@ -582,7 +576,7 @@ fn boot_history_script(limit: usize) -> String {
         r#"
 $ErrorActionPreference='Stop'
 $result=@()
-Get-WinEvent -FilterHashtable @{{LogName='Microsoft-Windows-Diagnostics-Performance/Operational';Id=100}} -MaxEvents {} | ForEach-Object {{
+Get-WinEvent -FilterHashtable @{{LogName='Microsoft-Windows-Diagnostics-Performance/Operational';Id=100}} -MaxEvents {} -ErrorAction SilentlyContinue | ForEach-Object {{
  $xml=[xml]$_.ToXml();$map=@{{}}
  foreach($node in $xml.Event.EventData.Data){{$map[[string]$node.Name]=[string]$node.'#text'}}
  $result += [pscustomobject]@{{

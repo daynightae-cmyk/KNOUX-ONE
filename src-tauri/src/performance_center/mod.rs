@@ -352,7 +352,7 @@ fn failure<T>(
 }
 
 fn run_powershell(script: &str) -> Result<String, String> {
-    let output = Command::new("powershell.exe")
+    let output = crate::powershell_env::with_module_path(Command::new("powershell.exe"))
         .args([
             "-NoLogo",
             "-NoProfile",

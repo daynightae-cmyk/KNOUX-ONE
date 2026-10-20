@@ -445,7 +445,7 @@ fn detect_age_policy() -> StorageAgePolicy {
         }
 
         let script = r#"$ErrorActionPreference='Stop';$v=(Get-ItemProperty -Path 'HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem' -Name NtfsDisableLastAccessUpdate -ErrorAction Stop).NtfsDisableLastAccessUpdate;[string]$v"#;
-        if let Ok(output) = Command::new("powershell.exe")
+        if let Ok(output) = crate::powershell_env::with_module_path(Command::new("powershell.exe"))
             .args(["-NoProfile", "-NonInteractive", "-Command", script])
             .output()
         {
@@ -925,7 +925,7 @@ fn drive_inventory() -> StorageDriveInventory {
     #[cfg(target_os = "windows")]
     {
         let script = r#"$ErrorActionPreference='Stop';[Console]::OutputEncoding=[Text.Encoding]::UTF8;$logical=@(Get-CimInstance Win32_LogicalDisk|ForEach-Object{[pscustomobject]@{rootPath=([string]$_.DeviceID+'\\');driveType=switch([int]$_.DriveType){2{'removable'}3{'fixed'}4{'remote'}5{'optical'}6{'ram_disk'}default{'unknown'}};totalBytes=if($_.Size){[uint64]$_.Size}else{0};freeBytes=if($_.FreeSpace){[uint64]$_.FreeSpace}else{0};availableBytes=if($_.FreeSpace){[uint64]$_.FreeSpace}else{0};usedBytes=if($_.Size){[uint64]$_.Size-[uint64]$_.FreeSpace}else{0};freePercent=if($_.Size){[math]::Round(([double]$_.FreeSpace*100/[double]$_.Size),4)}else{0};isExternal=([int]$_.DriveType-eq 2);isRemote=([int]$_.DriveType-eq 4);volumeLabel=[string]$_.VolumeName;fileSystem=[string]$_.FileSystem}});$physical=@(Get-PhysicalDisk -ErrorAction SilentlyContinue|ForEach-Object{[pscustomobject]@{friendlyName=[string]$_.FriendlyName;serialNumber=[string]$_.SerialNumber;mediaType=[string]$_.MediaType;busType=[string]$_.BusType;healthStatus=[string]$_.HealthStatus;sizeBytes=if($_.Size){[uint64]$_.Size}else{$null}}});[pscustomobject]@{drives=$logical;devices=$physical;measuredAt=[datetime]::UtcNow.ToString('o');warnings=@()}|ConvertTo-Json -Depth 6 -Compress"#;
-        match Command::new("powershell.exe")
+        match crate::powershell_env::with_module_path(Command::new("powershell.exe"))
             .args(["-NoProfile", "-NonInteractive", "-Command", script])
             .output()
         {
@@ -1017,7 +1017,7 @@ fn toast(title: &str, message: &str) {
             r#"$xml=New-Object Windows.Data.Xml.Dom.XmlDocument;$xml.LoadXml('<toast><visual><binding template="ToastGeneric"><text>{}</text><text>{}</text></binding></visual></toast>');[Windows.UI.Notifications.ToastNotificationManager]::CreateToastNotifier('KNOUX ONE').Show([Windows.UI.Notifications.ToastNotification]::new($xml))"#,
             title, message
         );
-        let _ = Command::new("powershell.exe")
+        let _ = crate::powershell_env::with_module_path(Command::new("powershell.exe"))
             .args(["-NoProfile", "-NonInteractive", "-Command", &script])
             .output();
     }

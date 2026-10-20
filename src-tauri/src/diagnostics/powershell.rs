@@ -12,7 +12,7 @@ pub fn run(script: &str) -> Result<PowerShellOutput, DiagnosticError> {
     let wrapped = format!(
         "$ErrorActionPreference='Stop'; [Console]::OutputEncoding=[System.Text.UTF8Encoding]::new($false); {script}"
     );
-    let output = Command::new("powershell.exe")
+    let output = crate::powershell_env::with_module_path(Command::new("powershell.exe"))
         .args([
             "-NoLogo",
             "-NoProfile",

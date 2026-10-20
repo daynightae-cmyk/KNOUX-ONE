@@ -589,7 +589,7 @@ fn read_path_scope(scope: &str) -> Result<Vec<String>, String> {
     let script = format!(
         "[Console]::OutputEncoding=[Text.Encoding]::UTF8; [Environment]::GetEnvironmentVariable('Path','{target}')"
     );
-    let output = Command::new("powershell.exe")
+    let output = crate::powershell_env::with_module_path(Command::new("powershell.exe"))
         .args(["-NoProfile", "-NonInteractive", "-Command", &script])
         .output()
         .map_err(|error| format!("path_read_failed:{error}"))?;
@@ -915,7 +915,7 @@ $udp=Get-NetUDPEndpoint | ForEach-Object {
 }
 @($tcp)+@($udp) | Sort-Object port,protocol | ConvertTo-Json -Compress -Depth 4
 "#;
-    let output = Command::new("powershell.exe")
+    let output = crate::powershell_env::with_module_path(Command::new("powershell.exe"))
         .args(["-NoProfile", "-NonInteractive", "-Command", script])
         .output()
         .map_err(|error| format!("port_inspection_launch_failed:{error}"))?;
@@ -1389,7 +1389,7 @@ if ($body.Length -gt 524288) { $body=$body.Substring(0,524288); $truncated=$true
 $headerMap=@{}; $r.Headers.Keys | ForEach-Object { $headerMap[$_]=[string]$r.Headers[$_] }
 [pscustomobject]@{statusCode=[uint16]$r.StatusCode;reason=[string]$r.StatusDescription;durationMs=[uint64]$sw.ElapsedMilliseconds;contentType=[string]$r.Headers['Content-Type'];headers=$headerMap;body=$body;truncated=$truncated} | ConvertTo-Json -Compress -Depth 6
 "#;
-    let mut command = Command::new("powershell.exe");
+    let mut command = crate::powershell_env::with_module_path(Command::new("powershell.exe"));
     command
         .args(["-NoProfile", "-NonInteractive", "-Command", script])
         .env("KNOUX_HTTP_URL", &request.url)

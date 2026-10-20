@@ -59,7 +59,7 @@ $items = Get-CimInstance Win32_Process | ForEach-Object {{
 @($items) | ConvertTo-Json -Compress -Depth 5
 "#
     );
-    let output = match Command::new("powershell.exe")
+    let output = match crate::powershell_env::with_module_path(Command::new("powershell.exe"))
         .args(["-NoProfile", "-NonInteractive", "-Command", &script])
         .output()
     {

@@ -61,7 +61,7 @@ fn clip_tail(raw: &[u8], limit: usize) -> (String, bool) {
 #[cfg(target_os = "windows")]
 pub fn run(script: &str) -> Result<PsRun, String> {
     use std::process::Command;
-    let output = Command::new("powershell.exe")
+    let output = crate::powershell_env::with_module_path(Command::new("powershell.exe"))
         .args([
             "-NoProfile",
             "-NonInteractive",
