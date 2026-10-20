@@ -80,6 +80,12 @@ jobs:
         working-directory: src-tauri
         run: cargo fmt --check
 
+      - name: Verify the Windows dependency graph excludes unreachable advisory crates
+        # Cargo.lock lists crates for every target. This resolves the graph for
+        # the Windows target and fails if a crate documented as unreachable ever
+        # becomes reachable, so an advisory can never be quietly outgrown.
+        run: bun run verify:windows-deps
+
       - name: Check native code with locked dependencies
         working-directory: src-tauri
         run: cargo check --locked --all-targets --all-features
