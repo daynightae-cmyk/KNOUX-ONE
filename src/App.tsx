@@ -30,6 +30,7 @@ const StartupServicesView = lazyView('./components/views/StartupServicesView', '
 const PerformanceCenterView = lazyView('./components/views/PerformanceCenterView', 'PerformanceCenterView');
 const WindowsRepairView = lazyView('./components/views/WindowsRepairView', 'WindowsRepairView');
 const NetworkOptimizerView = lazyView('./components/views/NetworkOptimizerView', 'NetworkOptimizerView');
+const CloudSupportView = lazyView('./components/views/CloudSupportView', 'CloudSupportView');
 const PrivacyTelemetryView = lazyView('./components/views/PrivacyTelemetryView', 'PrivacyTelemetryView');
 const SecurityCenterView = lazyView('./components/views/SecurityCenterView', 'SecurityCenterView');
 const BackupRecoveryView = lazyView('./components/views/BackupRecoveryView', 'BackupRecoveryView');
@@ -40,7 +41,7 @@ const DeveloperSuiteView = lazyView('./components/views/DeveloperSuiteView', 'De
 const CodeProjectToolsView = lazyView('./components/views/CodeProjectToolsView', 'CodeProjectToolsView');
 const LogsDiagnosticsView = lazyView('./components/views/LogsDiagnosticsView', 'LogsDiagnosticsView');
 const HardwareHealthView = lazyView('./components/views/HardwareHealthView', 'HardwareHealthView');
-const CloudSupportView = lazyView('./components/views/CloudSupportView', 'CloudSupportView');
+const OperationsHistoryView = lazyView('./components/views/OperationsHistoryView', 'OperationsHistoryView');
 const CapabilitiesCatalogView = lazyView('./components/views/CapabilitiesCatalogView', 'CapabilitiesCatalogView');
 const WebLandingView = lazyView('./components/views/WebLandingView', 'WebLandingView');
 const SupportPortalView = lazyView('./components/views/SupportPortalView', 'SupportPortalView');
@@ -81,7 +82,7 @@ const AppContent: React.FC = () => {
       case 'cloud': return <CloudSupportView />;
       case 'catalog': return <CapabilitiesCatalogView />;
       case 'web-landing': return <WebLandingView />;
-      case 'support': return <SupportPortalView />;
+      case 'support': return <OperationsHistoryView />;
       case 'brand-gallery': return <BrandGalleryView />;
       case 'settings': return <SettingsView />;
       case 'about': return <AboutView />;

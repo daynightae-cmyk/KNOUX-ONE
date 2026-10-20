@@ -19,6 +19,7 @@ import {
 import { ESSENTIAL_APPS_CATALOG } from '../data/essentialAppsCatalog';
 import { NativeClient } from '../services/nativeClient';
 import { mapSystemDiscoveryToSpecs } from '../services/systemDiscoveryMapper';
+import { loadTheme, saveTheme, loadLanguage, saveLanguage, loadFirstRunWizardCompleted, saveFirstRunWizardCompleted } from '../shell/prefs';
 
 interface ElevationRequest {
   isOpen: boolean;
@@ -53,6 +54,7 @@ interface KnouxContextType {
   permanentDeleteQuarantineItem: (id: string) => void;
   actionLogs: ActionLog[];
   addLog: (capabilityId: string, capabilityName: string, status: 'completed' | 'failed' | 'in_progress' | 'cancelled', details: string, reclaimedSpace?: string) => void;
+  clearActionLogs: () => void;
   isScanning: boolean;
   scanProgress: number;
   activeScanTitle: string;
@@ -117,8 +119,10 @@ const INITIAL_UNSCANNED_SPECS: SystemSpecs = {
 };
 
 export const KnouxProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [theme, setTheme] = useState<KnouxTheme>('dark');
-  const [language, setLanguage] = useState<KnouxLanguage>('en');
+  const [theme, setThemeState] = useState<KnouxTheme>(loadTheme);
+  const [language, setLanguageState] = useState<KnouxLanguage>(loadLanguage);
+  const setTheme = (t: KnouxTheme) => { setThemeState(t); saveTheme(t); };
+  const setLanguage = (l: KnouxLanguage) => { setLanguageState(l); saveLanguage(l); };
   const [currentRoute, setCurrentRoute] = useState<string>('dashboard');
   const [runtimeMode, setRuntimeMode] = useState<KnouxRuntime>(() => NativeClient.isTauriAvailable() ? 'desktop' : 'web');
 
@@ -138,7 +142,7 @@ export const KnouxProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [selectedServiceId, setSelectedServiceId] = useState<string | null>(null);
   const [inspectorOpen, setInspectorOpen] = useState<boolean>(true);
   const [operationDrawerOpen, setOperationDrawerOpen] = useState<boolean>(false);
-  const [isFirstRunWizardCompleted, setIsFirstRunWizardCompleted] = useState<boolean>(true);
+  const [isFirstRunWizardCompleted, setIsFirstRunWizardCompletedState] = useState<boolean>(loadFirstRunWizardCompleted());
   const [notificationCount, setNotificationCount] = useState<number>(0);
 
   const [elevationRequest, setElevationRequest] = useState<ElevationRequest>({
@@ -197,6 +201,8 @@ export const KnouxProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     };
     setActionLogs(prev => [newLog, ...prev]);
   };
+
+  const clearActionLogs = () => setActionLogs([]);
 
   const toggleAppInstall = async (id: string) => {
     const appToInstall = essentialApps.find(app => app.id === id);
@@ -278,11 +284,11 @@ export const KnouxProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     addLog('m19_s06', 'Local Support Draft', 'completed', `Saved local support draft ${newTicket.id}. No cloud request was sent.`);
   };
 
-  const completeFirstRunWizard = () => { setIsFirstRunWizardCompleted(true); setCurrentRoute('dashboard'); };
+  const completeFirstRunWizard = () => { setIsFirstRunWizardCompletedState(true); saveFirstRunWizardCompleted(true); setCurrentRoute('dashboard'); };
   const clearNotifications = () => setNotificationCount(0);
 
   return (
-    <KnouxContext.Provider value={{ theme, setTheme, language, setLanguage, currentRoute, setCurrentRoute, runtimeMode, setRuntimeMode, systemSpecs, essentialApps, toggleAppInstall, cleanupCategories, toggleCategorySelect, executeCleanup, duplicateGroups, toggleKeepDuplicateItem, quarantineDuplicates, quarantineItems, restoreQuarantineItem, permanentDeleteQuarantineItem, actionLogs, addLog, isScanning, scanProgress, activeScanTitle, runSmartScan, commandPaletteOpen, setCommandPaletteOpen, selectedServiceId, setSelectedServiceId, inspectorOpen, setInspectorOpen, operationDrawerOpen, setOperationDrawerOpen, elevationRequest, requestElevation, triggerElevation, closeElevationModal, supportTickets, addSupportTicket, isFirstRunWizardCompleted, completeFirstRunWizard, notificationCount, clearNotifications, t }}>
+    <KnouxContext.Provider value={{ theme, setTheme, language, setLanguage, currentRoute, setCurrentRoute, runtimeMode, setRuntimeMode, systemSpecs, essentialApps, toggleAppInstall, cleanupCategories, toggleCategorySelect, executeCleanup, duplicateGroups, toggleKeepDuplicateItem, quarantineDuplicates, quarantineItems, restoreQuarantineItem, permanentDeleteQuarantineItem, actionLogs, addLog, clearActionLogs, isScanning, scanProgress, activeScanTitle, runSmartScan, commandPaletteOpen, setCommandPaletteOpen, selectedServiceId, setSelectedServiceId, inspectorOpen, setInspectorOpen, operationDrawerOpen, setOperationDrawerOpen, elevationRequest, requestElevation, triggerElevation, closeElevationModal, supportTickets, addSupportTicket, isFirstRunWizardCompleted, completeFirstRunWizard, notificationCount, clearNotifications, t }}>
       {children}
     </KnouxContext.Provider>
   );
