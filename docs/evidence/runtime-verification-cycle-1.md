@@ -156,8 +156,61 @@ inspecting the rendered banner, and the fix is covered by a repository-wide
 sweep: `$name:` no longer appears in any PowerShell string in the native
 sources.
 
-### Observation recorded, not a defect
+**`invalid type: map, expected a string` — the BSOD triage read a debugger path
+out of a JSON object.**
 
+The triage query failed on a host that has no Windows debugger installed. The
+Rust envelope expects `debuggerPath` to be a path, but Windows PowerShell 5.1
+serialises the result of
+
+```powershell
+Get-Command windbg.exe,kd.exe,cdb.exe -ErrorAction SilentlyContinue |
+  Select-Object -First 1 -ExpandProperty Source
+```
+
+as `{}` when the pipeline is empty, not as `null`. An empty `PSObject` is
+written as an empty JSON object, and a map cannot be read as a string, so the
+whole triage failed and the BugCheck events it had already collected were lost.
+
+The script now collects the sources into an array first and reads the first
+entry, which keeps the value a string or `$null` in every interpreter:
+
+```powershell
+$debugger=$null
+$debuggerSources=@(Get-Command windbg.exe,kd.exe,cdb.exe -ErrorAction SilentlyContinue | ForEach-Object { [string]$_.Source } | Where-Object { $_ -ne '' })
+if($debuggerSources.Count -gt 0){$debugger=[string]$debuggerSources[0]}
+```
+
+Both shapes were produced on this host with `powershell.exe` 5.1 before the
+change and after it: `{"debuggerPath":{}}` became `{"debuggerPath":null}` with no
+debugger installed, and the path string was unchanged with one installed. The
+Rust side also reads the field leniently, so a future shape change degrades the
+result instead of failing the triage.
+
+**`missing field 'installed_updates'` — the update query read a key the script
+never wrote.**
+
+The Windows Update analysis failed even though the query had worked. The script
+writes the envelope key `installedUpdates`, but the Rust envelope had no
+camelCase binding, so serde looked for `installed_updates`, found nothing, and
+rejected the whole payload. The events and hotfixes that had been collected
+were discarded with it.
+
+Running the script on this host showed the data was there all along — 5 update
+events and 11 installed hotfixes — so the service was reporting a contract
+error while the measurement it was asked for was available.
+
+The envelope now binds the camelCase key the script writes, the same way every
+other diagnostics envelope already did.
+
+Both defects are the same class: the native script and the Rust envelope that
+reads it disagreed, and the disagreement destroyed a complete result. The fix
+is covered by `src/tests/nativeJsonContract.test.ts`, which reads the native
+sources and checks that every key a script writes has a matching field in the
+envelope that reads it, and that no script expands a property that can be
+empty.
+
+### Observation recorded, not a defect
 `M05-S09` is named "Change restoration" and owns `m05.restore.manage`. The
 startup workspace also uses `m05.startup.change` to disable an entry, and that
 primitive reports `m05_s09`. Disabling and restoring are the two directions of

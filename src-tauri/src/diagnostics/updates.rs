@@ -25,6 +25,7 @@ struct RawUpdate {
     installed_on: Option<String>,
 }
 #[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
 struct RawEnvelope {
     events: Vec<RawEvent>,
     installed_updates: Vec<RawUpdate>,
@@ -82,4 +83,38 @@ try {{ Get-HotFix -ErrorAction Stop | Sort-Object InstalledOn -Descending | Sele
         failure_count,
         warnings: raw.warnings,
     })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::RawEnvelope;
+
+    /// The script writes `installedUpdates`. Without the camelCase binding on
+    /// the envelope the field never binds and the whole query fails with
+    /// `missing field 'installed_updates'`, discarding the events and hotfixes
+    /// that were collected successfully.
+    #[test]
+    fn reads_the_camel_case_installed_updates_key() {
+        let raw: RawEnvelope = serde_json::from_str(
+            r#"{"events":[],"installedUpdates":[{"hotfixId":"KB5000001","description":"Security Update","installedOn":"2026-10-01"}],"warnings":[]}"#,
+        )
+        .expect("the script emits installedUpdates, not installed_updates");
+
+        assert_eq!(raw.installed_updates.len(), 1);
+        assert_eq!(
+            raw.installed_updates[0].hotfix_id.as_deref(),
+            Some("KB5000001")
+        );
+    }
+
+    #[test]
+    fn reads_an_empty_envelope() {
+        let raw: RawEnvelope =
+            serde_json::from_str(r#"{"events":[],"installedUpdates":[],"warnings":[]}"#)
+                .expect("an empty envelope must parse");
+
+        assert!(raw.events.is_empty());
+        assert!(raw.installed_updates.is_empty());
+        assert!(raw.warnings.is_empty());
+    }
 }
