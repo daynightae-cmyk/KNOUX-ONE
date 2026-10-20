@@ -99,3 +99,70 @@ from the cycle commit. It is an unsigned debug build, uploaded as a
 short-lived artifact, and it is not a release. Local MSVC and Windows SDK
 components are absent on the cycle host, so the build runs on a Windows runner
 instead of pretending a local link succeeded.
+
+## Cycle 1 progress
+
+### Merged before the runtime pass
+
+- `main` @ `a5960d1` — fixed the blank production window: `lazyView` used a
+  dynamic `import(variable)`, so Rollup emitted no view chunks; the helper now
+  takes a statically analysable loader and the forced `views` manual chunk is gone.
+- `main` @ `a5960d1` — localized the document shell (`/favicon.png`,
+  `/fonts/fonts.css`); no remote font or icon reference remains.
+- `main` @ `a5960d1` — the brand-gallery copied state resets after 1.8s.
+- `main` @ `65960c8` — added the Tauri IPC origin `http://ipc.localhost` to the
+  CSP `connect-src`. Without it every service invocation was blocked and the
+  desktop window hung as "Not Responding". Also added a branded splashscreen
+  window that closes once the main window mounts.
+
+### Verified on the cycle host (commit `d1db4a6`)
+
+- The splashscreen window opens on `splashscreen.html` and closes automatically;
+  the main window is the only page target afterwards.
+- No CSP errors are logged; the desktop runtime reports `Desktop runtime`.
+- `M17-S01 Event log summary` was run through the UI: the click, the IPC round
+  trip and the rendered result are all observed. It returned 3 event records.
+  This is a pilot run, not a recorded evidence entry yet.
+
+### Defect found and fixed in this cycle
+
+**`powershell_command_failed` — ambiguous variable reference in two diagnostics scripts.**
+
+Running a diagnostic section surfaced a PowerShell parser error:
+
+```
+Variable reference is not valid. ':' was not followed by a valid variable name
+character. Consider using ${} to delimit the name.
+```
+
+The cause is that PowerShell reads `"$channel: ..."` as a scoped variable
+reference, because `:` is the scope operator. The colon has to be outside the
+variable name.
+
+- `src-tauri/src/diagnostics/events.rs` — the Windows Event Intelligence query
+  built its warning as `"$channel: $($_.Exception.Message)"`.
+- `src-tauri/src/diagnostics/hardware.rs` — the hardware, driver and kernel
+  warning query built its warning as `"$provider: $($_.Exception.Message)"`.
+
+Both are now `"${channel}: ..."` and `"${provider}: ..."`. The braces are
+doubled in the Rust source because the script is a `format!` literal.
+
+This was reproduced locally against `powershell.exe` before the change (the
+parser error above) and the corrected script was then executed on this host to
+confirm it parses and returns real warnings instead of a parse failure.
+
+The defect was found by reading the code of the failing command, not by
+inspecting the rendered banner, and the fix is covered by a repository-wide
+sweep: `$name:` no longer appears in any PowerShell string in the native
+sources.
+
+### Observation recorded, not a defect
+
+`M05-S09` is named "Change restoration" and owns `m05.restore.manage`. The
+startup workspace also uses `m05.startup.change` to disable an entry, and that
+primitive reports `m05_s09`. Disabling and restoring are the two directions of
+one change, so the attribution is not false, but the service name reads as
+restoration only. Renaming it to "Startup change & restoration" would describe
+both directions. This is a wording refinement, not a false claim, so it is not
+treated as a defect in this cycle.
+

@@ -34,7 +34,7 @@ foreach($provider in $providers){{
   try {{ Get-WinEvent -FilterHashtable @{{LogName='System';ProviderName=$provider;StartTime=$start;Level=1,2,3}} -ErrorAction Stop | Select-Object -First {limit} | ForEach-Object {{
     $category = if($_.ProviderName -match 'WHEA'){{'hardware'}}elseif($_.ProviderName -match 'Disk|Ntfs|stor'){{'storage'}}elseif($_.ProviderName -match 'Display'){{'graphics'}}elseif($_.ProviderName -match 'PnP'){{'driver'}}else{{'kernel'}}
     $events += [pscustomobject]@{{timeCreated=$_.TimeCreated.ToUniversalTime().ToString('o');provider=[string]$_.ProviderName;eventId=[uint32]$_.Id;level=[string]$_.LevelDisplayName;category=$category;message=if($_.Message){{[string]$_.Message}}else{{''}}}}
-  }} }} catch {{$warnings += "$provider: $($_.Exception.Message)"}}
+  }} }} catch {{$warnings += "${{provider}}: $($_.Exception.Message)"}}
 }}
 [pscustomobject]@{{events=@($events | Sort-Object timeCreated -Descending | Select-Object -First {limit});warnings=@($warnings)}} | ConvertTo-Json -Depth 6 -Compress
 "#

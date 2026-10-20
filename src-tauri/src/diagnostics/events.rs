@@ -107,7 +107,7 @@ foreach ($channel in $channels) {{
         message = if ($event.Message) {{ [string]$event.Message }} else {{ '' }}
       }}
     }}
-  }} catch {{ $warnings += "$channel: $($_.Exception.Message)" }}
+  }} catch {{ $warnings += "${{channel}}: $($_.Exception.Message)" }}
 }}
 [pscustomobject]@{{events=@($events | Sort-Object timeCreated -Descending | Select-Object -First {limit}); warnings=@($warnings)}} | ConvertTo-Json -Depth 6 -Compress
 "#,
