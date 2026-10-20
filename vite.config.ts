@@ -15,10 +15,7 @@ export default defineConfig(() => {
       chunkSizeWarningLimit: 400,
       rollupOptions: {
         output: {
-          manualChunks: (id) => {
-            if (id.includes('node_modules')) return 'vendor';
-            if (id.includes('/src/components/views/')) return 'views';
-          },
+          manualChunks: (id) => (id.includes('node_modules') ? 'vendor' : undefined),
         },
       },
     },

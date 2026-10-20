@@ -1,0 +1,74 @@
+name: Verification build
+
+# Builds an unsigned Windows debug binary on a real Windows runner so a runtime
+# verification cycle can exercise the exact commit without a local MSVC
+# toolchain. This is not a release pipeline: nothing is signed, nothing is
+# published, and the artifact expires after a few days.
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: knoux-verification-build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  windows-debug-binary:
+    name: Unsigned Windows debug binary
+    runs-on: windows-latest
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.14
+
+      - name: Install locked frontend dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Install stable Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache Rust dependencies
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+
+      - name: Build the desktop binary without an installer
+        run: bun run desktop:build -- --debug --no-bundle --config '{"bundle":{"createUpdaterArtifacts":false}}'
+
+      - name: Verify the binary exists and hash it
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $binary = 'src-tauri/target/debug/knoux-one.exe'
+          if (-not (Test-Path -LiteralPath $binary -PathType Leaf)) {
+            throw "[verification] Expected $binary after the build."
+          }
+          $hash = (Get-FileHash -LiteralPath $binary -Algorithm SHA256).Hash.ToLowerInvariant()
+          $size = (Get-Item -LiteralPath $binary).Length
+          $lines = @(
+            "commit=$env:GITHUB_SHA",
+            "binary=$binary",
+            "sha256=$hash",
+            "size_bytes=$size"
+          )
+          Set-Content -LiteralPath 'verification-build.txt' -Value $lines -Encoding utf8
+          Get-Content -LiteralPath 'verification-build.txt'
+
+      - name: Upload the unsigned verification binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: knoux-one-verification-${{ github.sha }}
+          path: |
+            src-tauri/target/debug/knoux-one.exe
+            verification-build.txt
+          if-no-files-found: error
+          retention-days: 3

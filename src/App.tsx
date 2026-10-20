@@ -17,37 +17,37 @@ import { ElevationModal } from './components/common/ElevationModal';
 
 import { SERVICE_PRESENTATIONS } from './services/servicePresentation';
 
-const lazyView = (modulePath: string, exportName: string) =>
-  React.lazy(() => import(modulePath).then((mod) => ({ default: mod[exportName] })));
+const lazyView = (loader: () => Promise<Record<string, unknown>>, exportName: string) =>
+  React.lazy(() => loader().then((mod) => ({ default: mod[exportName] as React.ComponentType })));
 
-const DashboardView = lazyView('./components/views/DashboardView', 'DashboardView');
-const FirstRunView = lazyView('./components/views/FirstRunView', 'FirstRunView');
-const PostFormatView = lazyView('./components/views/PostFormatView', 'PostFormatView');
-const SmartCleanupView = lazyView('./components/views/SmartCleanupView', 'SmartCleanupView');
-const DuplicateFinderView = lazyView('./components/views/DuplicateFinderView', 'DuplicateFinderView');
-const StorageAnalyzerView = lazyView('./components/views/StorageAnalyzerView', 'StorageAnalyzerView');
-const StartupServicesView = lazyView('./components/views/StartupServicesView', 'StartupServicesView');
-const PerformanceCenterView = lazyView('./components/views/PerformanceCenterView', 'PerformanceCenterView');
-const WindowsRepairView = lazyView('./components/views/WindowsRepairView', 'WindowsRepairView');
-const NetworkOptimizerView = lazyView('./components/views/NetworkOptimizerView', 'NetworkOptimizerView');
-const CloudSupportView = lazyView('./components/views/CloudSupportView', 'CloudSupportView');
-const PrivacyTelemetryView = lazyView('./components/views/PrivacyTelemetryView', 'PrivacyTelemetryView');
-const SecurityCenterView = lazyView('./components/views/SecurityCenterView', 'SecurityCenterView');
-const BackupRecoveryView = lazyView('./components/views/BackupRecoveryView', 'BackupRecoveryView');
-const ApplicationsStoreView = lazyView('./components/views/ApplicationsStoreView', 'ApplicationsStoreView');
-const FileUtilitiesView = lazyView('./components/views/FileUtilitiesView', 'FileUtilitiesView');
-const AutomationProductivityView = lazyView('./components/views/AutomationProductivityView', 'AutomationProductivityView');
-const DeveloperSuiteView = lazyView('./components/views/DeveloperSuiteView', 'DeveloperSuiteView');
-const CodeProjectToolsView = lazyView('./components/views/CodeProjectToolsView', 'CodeProjectToolsView');
-const LogsDiagnosticsView = lazyView('./components/views/LogsDiagnosticsView', 'LogsDiagnosticsView');
-const HardwareHealthView = lazyView('./components/views/HardwareHealthView', 'HardwareHealthView');
-const OperationsHistoryView = lazyView('./components/views/OperationsHistoryView', 'OperationsHistoryView');
-const CapabilitiesCatalogView = lazyView('./components/views/CapabilitiesCatalogView', 'CapabilitiesCatalogView');
-const WebLandingView = lazyView('./components/views/WebLandingView', 'WebLandingView');
-const SupportPortalView = lazyView('./components/views/SupportPortalView', 'SupportPortalView');
-const SettingsView = lazyView('./components/views/SettingsView', 'SettingsView');
-const AboutView = lazyView('./components/views/AboutView', 'AboutView');
-const BrandGalleryView = lazyView('./components/views/BrandGalleryView', 'BrandGalleryView');
+const DashboardView = lazyView(() => import('./components/views/DashboardView'), 'DashboardView');
+const FirstRunView = lazyView(() => import('./components/views/FirstRunView'), 'FirstRunView');
+const PostFormatView = lazyView(() => import('./components/views/PostFormatView'), 'PostFormatView');
+const SmartCleanupView = lazyView(() => import('./components/views/SmartCleanupView'), 'SmartCleanupView');
+const DuplicateFinderView = lazyView(() => import('./components/views/DuplicateFinderView'), 'DuplicateFinderView');
+const StorageAnalyzerView = lazyView(() => import('./components/views/StorageAnalyzerView'), 'StorageAnalyzerView');
+const StartupServicesView = lazyView(() => import('./components/views/StartupServicesView'), 'StartupServicesView');
+const PerformanceCenterView = lazyView(() => import('./components/views/PerformanceCenterView'), 'PerformanceCenterView');
+const WindowsRepairView = lazyView(() => import('./components/views/WindowsRepairView'), 'WindowsRepairView');
+const NetworkOptimizerView = lazyView(() => import('./components/views/NetworkOptimizerView'), 'NetworkOptimizerView');
+const CloudSupportView = lazyView(() => import('./components/views/CloudSupportView'), 'CloudSupportView');
+const PrivacyTelemetryView = lazyView(() => import('./components/views/PrivacyTelemetryView'), 'PrivacyTelemetryView');
+const SecurityCenterView = lazyView(() => import('./components/views/SecurityCenterView'), 'SecurityCenterView');
+const BackupRecoveryView = lazyView(() => import('./components/views/BackupRecoveryView'), 'BackupRecoveryView');
+const ApplicationsStoreView = lazyView(() => import('./components/views/ApplicationsStoreView'), 'ApplicationsStoreView');
+const FileUtilitiesView = lazyView(() => import('./components/views/FileUtilitiesView'), 'FileUtilitiesView');
+const AutomationProductivityView = lazyView(() => import('./components/views/AutomationProductivityView'), 'AutomationProductivityView');
+const DeveloperSuiteView = lazyView(() => import('./components/views/DeveloperSuiteView'), 'DeveloperSuiteView');
+const CodeProjectToolsView = lazyView(() => import('./components/views/CodeProjectToolsView'), 'CodeProjectToolsView');
+const LogsDiagnosticsView = lazyView(() => import('./components/views/LogsDiagnosticsView'), 'LogsDiagnosticsView');
+const HardwareHealthView = lazyView(() => import('./components/views/HardwareHealthView'), 'HardwareHealthView');
+const OperationsHistoryView = lazyView(() => import('./components/views/OperationsHistoryView'), 'OperationsHistoryView');
+const CapabilitiesCatalogView = lazyView(() => import('./components/views/CapabilitiesCatalogView'), 'CapabilitiesCatalogView');
+const WebLandingView = lazyView(() => import('./components/views/WebLandingView'), 'WebLandingView');
+const SupportPortalView = lazyView(() => import('./components/views/SupportPortalView'), 'SupportPortalView');
+const SettingsView = lazyView(() => import('./components/views/SettingsView'), 'SettingsView');
+const AboutView = lazyView(() => import('./components/views/AboutView'), 'AboutView');
+const BrandGalleryView = lazyView(() => import('./components/views/BrandGalleryView'), 'BrandGalleryView');
 
 const AppContent: React.FC = () => {
   const { currentRoute, selectedServiceId, setSelectedServiceId, t } = useKnoux();
