@@ -57,6 +57,15 @@ const AppContent: React.FC = () => {
     if (selected && selected.route !== currentRoute) setSelectedServiceId(null);
   }, [currentRoute, selectedServiceId, setSelectedServiceId]);
 
+  useEffect(() => {
+    const tauri = (window as unknown as { __TAURI__?: { invoke: (command: string) => Promise<unknown> } }).__TAURI__;
+    if (!tauri) return;
+    const timer = window.setTimeout(() => {
+      tauri.invoke('close_splashscreen').catch(() => {});
+    }, 400);
+    return () => window.clearTimeout(timer);
+  }, []);
+
   const renderRoute = () => {
     switch (currentRoute) {
       case 'dashboard': return <DashboardView />;

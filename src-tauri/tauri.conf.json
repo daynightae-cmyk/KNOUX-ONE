@@ -12,13 +12,25 @@
   "app": {
     "windows": [
       {
+        "label": "main",
         "title": "KNOUX ONE — Windows Intelligence & Developer Suite",
         "width": 1280,
         "height": 830,
         "resizable": true,
         "fullscreen": false,
         "decorations": true,
-        "center": true
+        "center": true,
+        "visible": false
+      },
+      {
+        "label": "splashscreen",
+        "title": "KNOUX ONE",
+        "width": 480,
+        "height": 480,
+        "decorations": false,
+        "resizable": false,
+        "center": true,
+        "url": "splashscreen.html"
       }
     ],
     "security": {
@@ -28,7 +40,7 @@
         "script-src": "'self' 'unsafe-inline' 'unsafe-eval' http://localhost:3000 ws://localhost:3000",
         "style-src": "'self' 'unsafe-inline'",
         "font-src": "'self'",
-        "connect-src": "'self' http://localhost:3000 ws://localhost:* https://api.github.com",
+        "connect-src": "'self' http://ipc.localhost http://localhost:3000 ws://localhost:* https://api.github.com",
         "frame-src": "'none'",
         "object-src": "'none'",
         "base-uri": "'self'",
