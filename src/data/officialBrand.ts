@@ -1,10 +1,10 @@
 import type { KnouxTheme } from '../types';
 
-export const KNOUX_LOGO_REVISION = '2026-07-24.3';
+export const KNOUX_LOGO_REVISION = '2026-10-20.1';
 
 export const OFFICIAL_KNOUX_ASSETS = {
-  nightLogo: 'https://i.postimg.cc/V6LqNG8m/Knoux-Chat-GPT-01.jpg',
-  dayLogo: 'https://i.postimg.cc/fLTcb2NT/Knoux-Chat-GPT-20.jpg',
+  nightLogo: '/brand/logos/knoux-one-night.jpg',
+  dayLogo: '/brand/logos/knoux-one-day.jpg',
   website: 'https://knoux.store',
   productName: 'KNOUX ONE',
   productDescription: 'Windows Intelligence & Developer Suite',
