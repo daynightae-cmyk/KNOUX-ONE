@@ -210,6 +210,52 @@ sources and checks that every key a script writes has a matching field in the
 envelope that reads it, and that no script expands a property that can be
 empty.
 
+**`powershell_json_invalid` — an empty result wrote no JSON at all.**
+
+The Windows boot-history query failed on this host with
+
+```
+powershell_json_invalid:EOF while parsing a value at line 1 column 0:
+```
+
+The measurement itself was correct: this host has no Event 100 boot records.
+The failure was in how the result was written.
+
+Windows PowerShell 5.1 does not serialize a piped array the way it looks on
+paper. Piping an **empty** array into `ConvertTo-Json` writes **nothing at
+all**, and piping an array with **exactly one** element writes a bare object
+instead of an array. Both were reproduced against `powershell.exe` 5.1:
+
+| Piped expression | Output |
+| --- | --- |
+| `@() \| ConvertTo-Json` | *(no output at all)* |
+| `@($one) \| ConvertTo-Json` | `{"a":1}` — an object, not an array |
+| `@($two) \| ConvertTo-Json` | `[{"a":1},{"a":2}]` |
+
+So a query that returned nothing produced unparseable output, and a query that
+returned a single row produced the wrong shape. `ConvertTo-Json -InputObject`
+keeps the array shape in every case, and that is the form used now:
+
+```
+ConvertTo-Json -InputObject @($result) -Depth 5 -Compress
+```
+
+This affected eight scripts: the five startup queries, the project runtime
+query, the package check, and the developer port inventory. Only the boot
+history query was visible, because it is the one whose result is legitimately
+empty on a normal host. The others failed the same way on any host where the
+measurement returned nothing or a single row.
+
+One script collects into a `List[object]` rather than an array, and a `List`
+has to be emitted with `ToArray()`, which the repository already required
+elsewhere; that script now uses `ConvertTo-Json -InputObject $out.ToArray()`.
+
+The boot history script is executed by the real interpreter in a native test
+on the Windows runner, so the check holds against the PowerShell the
+application actually uses, and
+`src/tests/nativeJsonContract.test.ts` now refuses any script that pipes an
+array into `ConvertTo-Json`.
+
 ### Observation recorded, not a defect
 `M05-S09` is named "Change restoration" and owns `m05.restore.manage`. The
 startup workspace also uses `m05.startup.change` to disable an entry, and that

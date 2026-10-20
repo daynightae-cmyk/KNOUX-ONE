@@ -913,7 +913,7 @@ $udp=Get-NetUDPEndpoint | ForEach-Object {
   $p=Get-CimInstance Win32_Process -Filter "ProcessId=$($_.OwningProcess)"
   [pscustomobject]@{pid=[uint32]$_.OwningProcess;processName=[string]$p.Name;port=[uint16]$_.LocalPort;protocol='UDP';state='BOUND';localAddress=[string]$_.LocalAddress;commandLine=[string]$p.CommandLine;protected=($protected -contains [IO.Path]::GetFileNameWithoutExtension([string]$p.Name))}
 }
-@($tcp)+@($udp) | Sort-Object port,protocol | ConvertTo-Json -Compress -Depth 4
+ConvertTo-Json -InputObject @(@($tcp)+@($udp) | Sort-Object port,protocol) -Compress -Depth 4
 "#;
     let output = crate::powershell_env::with_module_path(Command::new("powershell.exe"))
         .args(["-NoProfile", "-NonInteractive", "-Command", script])

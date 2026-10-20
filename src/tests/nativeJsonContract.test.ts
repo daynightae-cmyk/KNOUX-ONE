@@ -163,6 +163,46 @@ describe('native JSON contracts', () => {
     expect(json).toContain('serde_json::Value::String(text)');
   });
 
+  it('never pipes an array into ConvertTo-Json', () => {
+    // Windows PowerShell 5.1 writes nothing at all when an empty array is
+    // piped into ConvertTo-Json, and writes a bare object when exactly one
+    // element is piped. A result that is empty, or that holds a single row,
+    // therefore cannot be read back. `-InputObject` keeps the array shape in
+    // every case.
+    const offenders: string[] = [];
+
+    for (const file of walk('src-tauri/src')) {
+      const source = productionSource(readFileSync(file, 'utf8'));
+      for (const line of source.split('\n')) {
+        const trimmed = line.trim();
+        if (!trimmed.includes('ConvertTo-Json')) continue;
+        if (!trimmed.includes('|')) continue;
+
+        const piped = trimmed.split('|')[0].trim();
+        const pipesAnArray =
+          piped.startsWith('@(') || /^\$[\w.]+$/.test(piped);
+        if (!pipesAnArray) continue;
+
+        offenders.push(`${file}: ${trimmed}`);
+      }
+    }
+
+    expect(
+      offenders,
+      'Use ConvertTo-Json -InputObject @($items) instead of @($items) | ConvertTo-Json.',
+    ).toEqual([]);
+  });
+
+  it('emits every array result through -InputObject', () => {
+    const startup = readFileSync(
+      join('src-tauri/src/startup_services/mod.rs'),
+      'utf8',
+    );
+
+    expect(startup).not.toContain('@($result) | ConvertTo-Json');
+    expect(startup).toContain('ConvertTo-Json -InputObject @($result)');
+  });
+
   it('keeps every envelope key and its Rust field aligned', () => {
     const envelopes = walk(DIAGNOSTICS_DIR)
       .map((file) => readEnvelopes(file))

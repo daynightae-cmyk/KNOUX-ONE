@@ -495,7 +495,7 @@ foreach($location in $locations){
   }
  }
 }
-@($result) | ConvertTo-Json -Depth 5 -Compress
+ConvertTo-Json -InputObject @($result) -Depth 5 -Compress
 "#
 }
 
@@ -526,7 +526,7 @@ foreach($folder in $folders){
   }
  }
 }
-@($result) | ConvertTo-Json -Depth 5 -Compress
+ConvertTo-Json -InputObject @($result) -Depth 5 -Compress
 "#
 }
 
@@ -545,7 +545,7 @@ Get-ScheduledTask | ForEach-Object {
   enabled=[bool]$task.Settings.Enabled; author=[string]$task.Author; action=$actions; trigger=$triggers
  }
 }
-@($result) | ConvertTo-Json -Depth 5 -Compress
+ConvertTo-Json -InputObject @($result) -Depth 5 -Compress
 "#
 }
 
@@ -567,7 +567,7 @@ Get-CimInstance Win32_Service | ForEach-Object {
   startMode=[string]$_.StartMode; pathName=$path; publisher=$publisher; signatureStatus=$signature
  }
 }
-@($result) | ConvertTo-Json -Depth 5 -Compress
+ConvertTo-Json -InputObject @($result) -Depth 5 -Compress
 "#
 }
 
@@ -587,7 +587,7 @@ Get-WinEvent -FilterHashtable @{{LogName='Microsoft-Windows-Diagnostics-Performa
   source='Microsoft-Windows-Diagnostics-Performance/Operational Event 100'
  }}
 }}
-@($result) | ConvertTo-Json -Depth 5 -Compress
+ConvertTo-Json -InputObject @($result) -Depth 5 -Compress
 "#,
         limit.clamp(1, 100)
     )
@@ -1620,5 +1620,26 @@ mod tests {
     #[test]
     fn powershell_literal_quoting_escapes_single_quotes() {
         assert_eq!(ps_quote("O'Brien"), "'O''Brien'");
+    }
+
+    /// Windows PowerShell 5.1 writes nothing at all when an empty array is
+    /// piped into `ConvertTo-Json`, and writes a bare object when exactly one
+    /// element is piped. A host without Event 100 boot records therefore
+    /// produced no output at all, and the result could not be parsed.
+    ///
+    /// The script is executed by the real interpreter here, so the check holds
+    /// against the Windows PowerShell the application actually uses.
+    #[cfg(target_os = "windows")]
+    #[test]
+    fn the_boot_history_script_always_writes_a_json_array() {
+        let stdout =
+            run_powershell(&boot_history_script(30)).expect("the boot history script must run");
+        let value: serde_json::Value =
+            serde_json::from_str(&stdout).expect("the boot history script must write JSON");
+
+        assert!(
+            value.is_array(),
+            "the boot history script must write an array, got {value}"
+        );
     }
 }
