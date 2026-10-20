@@ -56,7 +56,7 @@ $items = Get-CimInstance Win32_Process | ForEach-Object {{
   }}
 }}
 [Console]::OutputEncoding = [Text.Encoding]::UTF8
-@($items) | ConvertTo-Json -Compress -Depth 5
+ConvertTo-Json -InputObject @($items) -Compress -Depth 5
 "#
     );
     let output = match crate::powershell_env::with_module_path(Command::new("powershell.exe"))

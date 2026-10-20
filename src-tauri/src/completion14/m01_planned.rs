@@ -1001,7 +1001,7 @@ foreach ($id in $ids) {
   }
   $out.Add([pscustomobject]@{ id = [string]$id; verified = $ok; detail = [string]$first })
 }
-@($out) | ConvertTo-Json -Depth 3 -Compress
+ConvertTo-Json -InputObject $out.ToArray() -Depth 3 -Compress
 "#;
 
 /// Package identifiers are only marked verified when the operator explicitly asked for
