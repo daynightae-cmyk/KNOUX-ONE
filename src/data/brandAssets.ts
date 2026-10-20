@@ -30,7 +30,7 @@ export const OFFICIAL_LOGOS: Record<'night' | 'day', BrandLogo> = {
     id: 'logo-night',
     nameEn: 'KNOUX ONE — Official Night Logo',
     nameAr: 'شعار KNOUX ONE الرسمي - النمط الداكن',
-    localPath: '/brand/logos/knoux-one-night.png',
+    localPath: '/brand/logos/knoux-one-night.jpg',
     remoteUrl: 'https://i.postimg.cc/nrrsDrT7/Knoux-Chat-GPT-01.png',
     recommendedFilename: 'public/brand/logos/knoux-one-night.jpg',
     usage: [
@@ -47,7 +47,7 @@ export const OFFICIAL_LOGOS: Record<'night' | 'day', BrandLogo> = {
     id: 'logo-day',
     nameEn: 'KNOUX ONE — Official Day Logo',
     nameAr: 'شعار KNOUX ONE الرسمي - النمط الفاتح',
-    localPath: '/brand/logos/knoux-one-day.png',
+    localPath: '/brand/logos/knoux-one-day.jpg',
     remoteUrl: 'https://i.postimg.cc/15xntmwW/Knoux-Chat-GPT-20.png',
     recommendedFilename: 'public/brand/logos/knoux-one-day.jpg',
     usage: [

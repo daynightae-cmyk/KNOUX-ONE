@@ -1,16 +1,149 @@
 [
   {
-    "id": "logo-night",
-    "path": "/brand/logos/knoux-one-night.jpg",
-    "mimeType": "image/jpeg",
-    "sizeBytes": 134,
-    "sha256": "9650f149d622055c4b495e65e9148ebfc5e61b1bb00e83538e76afe48c496eaf"
-  },
-  {
-    "id": "logo-day",
+    "id": "knoux-one-day",
     "path": "/brand/logos/knoux-one-day.jpg",
     "mimeType": "image/jpeg",
-    "sizeBytes": 134,
-    "sha256": "9650f149d622055c4b495e65e9148ebfc5e61b1bb00e83538e76afe48c496eaf"
+    "sizeBytes": 74710,
+    "sha256": "3e5f1e19c018b6df19c449494f03e74c3b589862e5e77280d4159b0e7022a86e"
+  },
+  {
+    "id": "knoux-one-night",
+    "path": "/brand/logos/knoux-one-night.jpg",
+    "mimeType": "image/jpeg",
+    "sizeBytes": 70638,
+    "sha256": "14098ca6694f76a84d3b9225d5c75d653915dedc291677bdb0f564c89cf1dc68"
+  },
+  {
+    "id": "ref-02",
+    "path": "/brand/gallery/ref-02.jpg",
+    "mimeType": "image/jpeg",
+    "sizeBytes": 143455,
+    "sha256": "8eb8e7a21a94d26fb7bd3cd72595295a95c0e1bc2d718a7ebabd973943f4c35a"
+  },
+  {
+    "id": "ref-03",
+    "path": "/brand/gallery/ref-03.jpg",
+    "mimeType": "image/jpeg",
+    "sizeBytes": 117751,
+    "sha256": "099f823b5ca258f1fe3229da87dc3419f38371dda3064018f0ea8c55b62360d2"
+  },
+  {
+    "id": "ref-04",
+    "path": "/brand/gallery/ref-04.jpg",
+    "mimeType": "image/jpeg",
+    "sizeBytes": 141589,
+    "sha256": "fa689c3768f6b7edf8ec296178b63d6a820ff2875ac47868547e9ceb3968cf5e"
+  },
+  {
+    "id": "ref-05",
+    "path": "/brand/gallery/ref-05.jpg",
+    "mimeType": "image/jpeg",
+    "sizeBytes": 172546,
+    "sha256": "5fc562e29b12a4a2b628ada8e957c7792b53b6821018da7d96eca7abeb6d520b"
+  },
+  {
+    "id": "ref-06",
+    "path": "/brand/gallery/ref-06.jpg",
+    "mimeType": "image/jpeg",
+    "sizeBytes": 171615,
+    "sha256": "a0459606033cdfb9daf088b5638c849bebbb97dc8b7ca1d595ddb9d01e6b9e2d"
+  },
+  {
+    "id": "ref-07",
+    "path": "/brand/gallery/ref-07.jpg",
+    "mimeType": "image/jpeg",
+    "sizeBytes": 131049,
+    "sha256": "6eaf054765e5e9ddb1d8a5ef5dcdf8d060ef4d20042aa35f52327466c4f5c8a9"
+  },
+  {
+    "id": "ref-08",
+    "path": "/brand/gallery/ref-08.jpg",
+    "mimeType": "image/jpeg",
+    "sizeBytes": 157801,
+    "sha256": "5f5de24eb97b16272572f353350f90dfa530abca61e76a6de0923da522cd65dd"
+  },
+  {
+    "id": "ref-09",
+    "path": "/brand/gallery/ref-09.jpg",
+    "mimeType": "image/jpeg",
+    "sizeBytes": 128423,
+    "sha256": "ed0778f0d50822a945b1d9eb76f65bd3727beb42f355dcc87fc196992193e736"
+  },
+  {
+    "id": "ref-10",
+    "path": "/brand/gallery/ref-10.jpg",
+    "mimeType": "image/jpeg",
+    "sizeBytes": 142010,
+    "sha256": "73dc3501a8b56e104b52e895e7e61b2edeed88eab49364d8e87a9e14a2c010ca"
+  },
+  {
+    "id": "ref-11",
+    "path": "/brand/gallery/ref-11.jpg",
+    "mimeType": "image/jpeg",
+    "sizeBytes": 145072,
+    "sha256": "c3f8c7c839481236182d6bbc9d3971de7331219761110427e7a9693af9411556"
+  },
+  {
+    "id": "ref-12",
+    "path": "/brand/gallery/ref-12.jpg",
+    "mimeType": "image/jpeg",
+    "sizeBytes": 118132,
+    "sha256": "d1b53003d824b0d9ac8ce37990a5783cad50979de29472eee5c2f0c8e92cffe3"
+  },
+  {
+    "id": "ref-13",
+    "path": "/brand/gallery/ref-13.jpg",
+    "mimeType": "image/jpeg",
+    "sizeBytes": 145129,
+    "sha256": "e0b3d801818d858b4d2c18fd7dc80968c9b7cd971f2fa4425d051761e068e5dd"
+  },
+  {
+    "id": "ref-14",
+    "path": "/brand/gallery/ref-14.jpg",
+    "mimeType": "image/jpeg",
+    "sizeBytes": 163811,
+    "sha256": "8f10dc0111848149a8171c2bd8f09ac390bc72576e1e1e0f3c3e2bd6fb963deb"
+  },
+  {
+    "id": "ref-15",
+    "path": "/brand/gallery/ref-15.jpg",
+    "mimeType": "image/jpeg",
+    "sizeBytes": 158266,
+    "sha256": "a60412f4e73692ebf033d945b2eb8246107678e2f84d6006c262bd70d1804b0e"
+  },
+  {
+    "id": "ref-16",
+    "path": "/brand/gallery/ref-16.jpg",
+    "mimeType": "image/jpeg",
+    "sizeBytes": 133475,
+    "sha256": "019b294764e360a32753b10eb466527982d78b082a288ad3e7a8f71345549103"
+  },
+  {
+    "id": "ref-17",
+    "path": "/brand/gallery/ref-17.jpg",
+    "mimeType": "image/jpeg",
+    "sizeBytes": 150978,
+    "sha256": "073dd8686dff054dd8475af1a63a377111b4d6e4195a712504a786a274264f31"
+  },
+  {
+    "id": "ref-18",
+    "path": "/brand/gallery/ref-18.jpg",
+    "mimeType": "image/jpeg",
+    "sizeBytes": 103592,
+    "sha256": "a704d95d32d9d7a4b4e94b370d23b07c1606fe3c3efbf77e53381c6d9c809371"
+  },
+  {
+    "id": "ref-19",
+    "path": "/brand/gallery/ref-19.jpg",
+    "mimeType": "image/jpeg",
+    "sizeBytes": 149254,
+    "sha256": "dbc31d15b2b528b3e36865aa5527894d79fb28d5eb36ee44d8c6c96292400128"
+  },
+  {
+    "id": "favicon",
+    "path": "/favicon.png",
+    "mimeType": "image/png",
+    "sizeBytes": 7804,
+    "sha256": "200749fd84cd9aba8f945beb993e221b1d0ea427fa5a6dc0fe45d86eb3b8120c"
   }
 ]

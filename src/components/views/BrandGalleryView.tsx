@@ -48,10 +48,10 @@ const LogoCard: React.FC<LogoCardProps> = ({ mode, copiedUrl, onCopy }) => {
           <h2 className="mt-2 text-[20px] font-black tracking-[-.025em] text-[var(--knoux-text)]">
             {t('Official circular KNOUX ONE logo', 'شعار KNOUX ONE الدائري الرسمي')}
           </h2>
-          <p className="mt-2 max-w-md text-[12px] font-medium leading-6 text-[var(--knoux-text-muted)]">
+              <p className="mt-2 max-w-md text-[12px] font-medium leading-6 text-[var(--knoux-text-muted)]">
             {t(
-              'Used as a true circular product emblem with no square image card or legacy local fallback.',
-              'يُستخدم كشعار منتج دائري حقيقي دون بطاقة صورة مربعة أو رجوع إلى ملف محلي قديم.',
+              'Served from local brand assets with a cache-busting revision.',
+              'يُقدم من أصول الهوية المحلية مع مراجعة لتفريغ кеش.',
             )}
           </p>
         </div>
@@ -64,7 +64,7 @@ const LogoCard: React.FC<LogoCardProps> = ({ mode, copiedUrl, onCopy }) => {
 
       <div className={`relative mt-7 rounded-[24px] border border-[var(--knoux-border)] p-7 ${isNight ? 'bg-[#070914]' : 'bg-[#f4f1ff]'}`}>
         <div className="knoux-official-logo-preview">
-          <img src={`${url}?knoux_logo=2026-07-24.3`} alt={isNight ? 'KNOUX official night emblem' : 'KNOUX official day emblem'} />
+          <img src={getOfficialKnouxLogo(isNight ? 'dark' : 'light')} alt={isNight ? 'KNOUX official night emblem' : 'KNOUX official day emblem'} loading="lazy" />
         </div>
       </div>
 
@@ -115,7 +115,7 @@ export const BrandGalleryView: React.FC = () => {
           </div>
 
           <div className="knoux-official-logo-preview shrink-0">
-            <img src={getOfficialKnouxLogo(theme)} alt="KNOUX ONE" />
+            <img src={getOfficialKnouxLogo(theme)} alt="KNOUX ONE" loading="lazy" />
           </div>
         </div>
       </section>
@@ -155,9 +155,9 @@ export const BrandGalleryView: React.FC = () => {
               <div className="relative aspect-video overflow-hidden rounded-[14px] border border-[var(--knoux-border)] bg-[var(--knoux-surface-muted)]">
                 <img
                   src={asset.localPath}
-                  onError={event => { event.currentTarget.src = asset.remoteUrl; }}
                   alt={asset.titleEn}
                   className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.03]"
+                  loading="lazy"
                 />
                 <span className="absolute end-3 top-3 grid h-9 w-9 place-items-center rounded-xl border border-white/15 bg-black/45 text-white backdrop-blur-md"><ZoomIn className="h-4 w-4" /></span>
               </div>
@@ -183,12 +183,12 @@ export const BrandGalleryView: React.FC = () => {
             </div>
 
             <div className="mt-5 flex max-h-[65vh] items-center justify-center overflow-hidden rounded-2xl border border-[var(--knoux-border)] bg-black/45">
-              <img src={selectedAsset.localPath} onError={event => { event.currentTarget.src = selectedAsset.remoteUrl; }} alt={selectedAsset.titleEn} className="max-h-[65vh] w-auto object-contain" />
+              <img src={selectedAsset.localPath} alt={selectedAsset.titleEn} className="max-h-[65vh] w-auto object-contain" loading="lazy" />
             </div>
 
             <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
               <p className="max-w-3xl text-[12px] font-medium leading-6 text-[var(--knoux-text-muted)]">{t(selectedAsset.descriptionEn, selectedAsset.descriptionAr)}</p>
-              <a href={selectedAsset.remoteUrl} target="_blank" rel="noreferrer" className="knoux-card-action knoux-card-action--primary"><ExternalLink className="h-4 w-4" />{t('Open original', 'فتح الأصل')}</a>
+              <a href={selectedAsset.localPath} target="_blank" rel="noreferrer" className="knoux-card-action knoux-card-action--primary"><ExternalLink className="h-4 w-4" />{t('Open local asset', 'فتح الأصل المحلي')}</a>
             </div>
           </div>
         </div>
