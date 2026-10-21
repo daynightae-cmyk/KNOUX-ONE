@@ -4,9 +4,9 @@
   "runtimeVerificationPolicy": "RUNTIME_VERIFIED requires a record in docs/evidence/windows-runtime-evidence.json whose four stages are all true: a React control was clicked, the call crossed the Tauri IPC boundary, the native Rust command executed against real Windows, and the result was rendered. The generator rejects a record whose handler or native command disagrees with the active catalog.",
   "globalRuntimeGate": {
     "state": "BLOCKED",
-    "reason": "29 of 118 implemented services carry recorded Windows runtime evidence. The gate stays BLOCKED while any implemented service is unproven at runtime, and the missing coverage is listed rather than summarised.",
+    "reason": "44 of 118 implemented services carry recorded Windows runtime evidence. The gate stays BLOCKED while any implemented service is unproven at runtime, and the missing coverage is listed rather than summarised.",
     "eligible": 118,
-    "verified": 29,
+    "verified": 44,
     "missing": [
       "M01-S05",
       "M01-S08",
@@ -26,16 +26,10 @@
       "M03-S10",
       "M04-S01",
       "M04-S07",
-      "M05-S01",
-      "M05-S02",
-      "M05-S03",
-      "M05-S04",
       "M05-S05",
-      "M05-S06",
       "M05-S07",
       "M05-S08",
       "M05-S09",
-      "M05-S10",
       "M06-S01",
       "M06-S02",
       "M06-S03",
@@ -70,9 +64,6 @@
       "M09-S03",
       "M09-S04",
       "M09-S06",
-      "M10-S01",
-      "M10-S05",
-      "M10-S06",
       "M11-S07",
       "M11-S09",
       "M15-S02",
@@ -87,14 +78,8 @@
       "M16-S06",
       "M16-S07",
       "M16-S08",
-      "M17-S01",
-      "M17-S02",
-      "M17-S03",
-      "M17-S04",
       "M17-S05",
       "M17-S06",
-      "M17-S07",
-      "M17-S08",
       "M17-S09",
       "M17-S10"
     ]
@@ -104,12 +89,12 @@
     "states": {
       "PLANNED": 72,
       "GUARDED": 0,
-      "STATIC_VERIFIED": 89,
+      "STATIC_VERIFIED": 74,
       "PARTIAL": 0,
-      "RUNTIME_VERIFIED": 29,
+      "RUNTIME_VERIFIED": 44,
       "BLOCKED": 0
     },
-    "runtimeVerifiedPercentageOfEligible": 24.58
+    "runtimeVerifiedPercentageOfEligible": 37.29
   },
   "modules": [
     {
@@ -171,9 +156,9 @@
       "counts": {
         "PLANNED": 0,
         "GUARDED": 0,
-        "STATIC_VERIFIED": 10,
+        "STATIC_VERIFIED": 4,
         "PARTIAL": 0,
-        "RUNTIME_VERIFIED": 0,
+        "RUNTIME_VERIFIED": 6,
         "BLOCKED": 0
       }
     },
@@ -236,9 +221,9 @@
       "counts": {
         "PLANNED": 5,
         "GUARDED": 0,
-        "STATIC_VERIFIED": 3,
+        "STATIC_VERIFIED": 0,
         "PARTIAL": 0,
-        "RUNTIME_VERIFIED": 2,
+        "RUNTIME_VERIFIED": 5,
         "BLOCKED": 0
       }
     },
@@ -327,9 +312,9 @@
       "counts": {
         "PLANNED": 0,
         "GUARDED": 0,
-        "STATIC_VERIFIED": 10,
+        "STATIC_VERIFIED": 4,
         "PARTIAL": 0,
-        "RUNTIME_VERIFIED": 0,
+        "RUNTIME_VERIFIED": 6,
         "BLOCKED": 0
       }
     },
@@ -376,7 +361,7 @@
       "reversible": false,
       "dangerous": false,
       "testPosture": "Unit and contract tests plus a recorded Windows run through the React control, the Tauri IPC boundary, the native Rust command and back into the rendered UI.",
-      "evidence": "WINDOWS RUNTIME VERIFIED 2026-09-26T21:27:08Z on DESKTOP-FCJJB5O. React control click -> typed client -> Tauri IPC -> m01_system_discover_complete -> real Windows measurement -> rendered result. Rendered: Windows hardware, firmware, storage, display and security evidence was measured. Computer: LENOVO 10AES01Y00. Windows: Microsoft Windows 10 Pro 10.0.19045. Memory: 11.89 GB. Secure Boot / TPM: N/A / N/A. Graphics: Intel(R) HD Graphics 4600. Storage: TEAM T253256GB. BIOS: FEKT83AUS. CPU: Intel(R) Core(TM) i5-4570 CPU @ 3.20GHz. Physical disks: 1. Measured at 27/09/2026 5:27:08 AM. What this does and does not mean: Secure Boot and TPM render as N/A rather than as off or absent, which agrees with the separate Secure Boot and TPM service that reached only one of two providers and was refused the Confirm-SecureBootUEFI privilege. This command takes roughly 33 seconds on this machine; an earlier capture that waited 20 seconds saw no rendered result and looked like a failure that was really just an unfinished measurement."
+      "evidence": "WINDOWS RUNTIME VERIFIED 2026-09-26T21:27:08Z on DESKTOP-VQKU9P8. React control click -> typed client -> Tauri IPC -> m01_system_discover_complete -> real Windows measurement -> rendered result. Rendered: Windows hardware, firmware, storage, display and security evidence was measured. Computer: LENOVO 10AES01Y00. Windows: Microsoft Windows 10 Pro 10.0.19045. Memory: 11.89 GB. Secure Boot / TPM: N/A / N/A. Graphics: Intel(R) HD Graphics 4600. Storage: TEAM T253256GB. BIOS: FEKT83AUS. CPU: Intel(R) Core(TM) i5-4570 CPU @ 3.20GHz. Physical disks: 1. Measured at 27/09/2026 5:27:08 AM. What this does and does not mean: Secure Boot and TPM render as N/A rather than as off or absent, which agrees with the separate Secure Boot and TPM service that reached only one of two providers and was refused the Confirm-SecureBootUEFI privilege. This command takes roughly 33 seconds on this machine; an earlier capture that waited 20 seconds saw no rendered result and looked like a failure that was really just an unfinished measurement."
     },
     {
       "moduleId": "M01",
@@ -393,7 +378,7 @@
       "reversible": false,
       "dangerous": false,
       "testPosture": "Unit and contract tests plus a recorded Windows run through the React control, the Tauri IPC boundary, the native Rust command and back into the rendered UI.",
-      "evidence": "WINDOWS RUNTIME VERIFIED 2026-09-26T21:26:00Z on DESKTOP-FCJJB5O. React control click -> typed client -> Tauri IPC -> m01_winget_verify -> real Windows measurement -> rendered result. Rendered: Winget v1.29.380 verified at C:\\Users\\k7\\AppData\\Local\\Microsoft\\WindowsApps\\winget.exe. What this does and does not mean: Winget is genuinely present on this machine, at the per-user WindowsApps alias path, and the pre-reinstall record of an absent winget belongs to a different machine. The reported version is the string the executable itself printed."
+      "evidence": "WINDOWS RUNTIME VERIFIED 2026-09-26T21:26:00Z on DESKTOP-VQKU9P8. React control click -> typed client -> Tauri IPC -> m01_winget_verify -> real Windows measurement -> rendered result. Rendered: Winget v1.29.380 verified at C:\\Users\\k7\\AppData\\Local\\Microsoft\\WindowsApps\\winget.exe. What this does and does not mean: Winget is genuinely present on this machine, at the per-user WindowsApps alias path, and the pre-reinstall record of an absent winget belongs to a different machine. The reported version is the string the executable itself printed."
     },
     {
       "moduleId": "M01",
@@ -410,7 +395,7 @@
       "reversible": false,
       "dangerous": false,
       "testPosture": "Unit and contract tests plus a recorded Windows run through the React control, the Tauri IPC boundary, the native Rust command and back into the rendered UI.",
-      "evidence": "WINDOWS RUNTIME VERIFIED 2026-09-26T21:28:00Z on DESKTOP-FCJJB5O. React control click -> typed client -> Tauri IPC -> m01_winget_repair_guide -> real Windows measurement -> rendered result. Rendered: Winget state was measured and conditional repair guidance was produced. Guidance only. This service executed no command and performed 0 mutating actions; it offers 1 mutating step out of 2 for you to run yourself. Steps hidden because they need elevation in this scope: 1. Winget path: C:\\Users\\k7\\AppData\\Local\\Microsoft\\WindowsApps\\winget.exe. Version: v1.29.380. Source list: read. Diagnostic logs: 10. Step 1 is read only, Confirm the reported version, with evidence: Measured winget path C:\\Users\\k7\\AppData\\Local\\Microsoft\\WindowsApps\\winget.exe and reported version v1.29.380. Step 2 changes state, Install or reinstall a single package. What this does and does not mean: Each rendered step carries the measurement that produced it, and the single step that needs elevation is hidden in this user scope rather than shown as something the user cannot run. The service repaired nothing and says so in a field, not only in prose."
+      "evidence": "WINDOWS RUNTIME VERIFIED 2026-09-26T21:28:00Z on DESKTOP-VQKU9P8. React control click -> typed client -> Tauri IPC -> m01_winget_repair_guide -> real Windows measurement -> rendered result. Rendered: Winget state was measured and conditional repair guidance was produced. Guidance only. This service executed no command and performed 0 mutating actions; it offers 1 mutating step out of 2 for you to run yourself. Steps hidden because they need elevation in this scope: 1. Winget path: C:\\Users\\k7\\AppData\\Local\\Microsoft\\WindowsApps\\winget.exe. Version: v1.29.380. Source list: read. Diagnostic logs: 10. Step 1 is read only, Confirm the reported version, with evidence: Measured winget path C:\\Users\\k7\\AppData\\Local\\Microsoft\\WindowsApps\\winget.exe and reported version v1.29.380. Step 2 changes state, Install or reinstall a single package. What this does and does not mean: Each rendered step carries the measurement that produced it, and the single step that needs elevation is hidden in this user scope rather than shown as something the user cannot run. The service repaired nothing and says so in a field, not only in prose."
     },
     {
       "moduleId": "M01",
@@ -427,7 +412,7 @@
       "reversible": false,
       "dangerous": false,
       "testPosture": "Unit and contract tests plus a recorded Windows run through the React control, the Tauri IPC boundary, the native Rust command and back into the rendered UI.",
-      "evidence": "WINDOWS RUNTIME VERIFIED 2026-09-26T21:30:00Z on DESKTOP-FCJJB5O. React control click -> typed client -> Tauri IPC -> m01_essential_catalog -> real Windows measurement -> rendered result. Rendered: Before the fix: status failed, errorCode essential_catalog_unreadable, summary The bundled recommendation catalog could not be read. After the fix: status completed, errorCode null, summary The recommendation catalog was resolved against the measured Windows uninstall registry. Policy revision 2026.09.26. Policy digest c2bbac914bd5058e. Installed here 1 / 1. Package checks passed: not requested. Table row: Google Chrome. What this does and does not mean: This service had never worked on any machine. RawCatalog and RawCatalogItem declared snake_case field names while resources/essential-software.json writes camelCase, so serde_json failed on the first field and load_catalog returned essential_catalog_unreadable. The existing test only parsed the resource into a serde_json::Value, which proved the file was well formed but never proved the typed struct matched it, and include_str! guaranteed the bytes were present. Two tests now perform the real deserialisation. Package checks are reported as not requested because no winget lookup was asked for, so no package identifier is claimed as verified."
+      "evidence": "WINDOWS RUNTIME VERIFIED 2026-09-26T21:30:00Z on DESKTOP-VQKU9P8. React control click -> typed client -> Tauri IPC -> m01_essential_catalog -> real Windows measurement -> rendered result. Rendered: Before the fix: status failed, errorCode essential_catalog_unreadable, summary The bundled recommendation catalog could not be read. After the fix: status completed, errorCode null, summary The recommendation catalog was resolved against the measured Windows uninstall registry. Policy revision 2026.09.26. Policy digest c2bbac914bd5058e. Installed here 1 / 1. Package checks passed: not requested. Table row: Google Chrome. What this does and does not mean: This service had never worked on any machine. RawCatalog and RawCatalogItem declared snake_case field names while resources/essential-software.json writes camelCase, so serde_json failed on the first field and load_catalog returned essential_catalog_unreadable. The existing test only parsed the resource into a serde_json::Value, which proved the file was well formed but never proved the typed struct matched it, and include_str! guaranteed the bytes were present. Two tests now perform the real deserialisation. Package checks are reported as not requested because no winget lookup was asked for, so no package identifier is claimed as verified."
     },
     {
       "moduleId": "M01",
@@ -476,7 +461,7 @@
       "reversible": false,
       "dangerous": false,
       "testPosture": "Unit and contract tests plus a recorded Windows run through the React control, the Tauri IPC boundary, the native Rust command and back into the rendered UI.",
-      "evidence": "WINDOWS RUNTIME VERIFIED 2026-09-26T21:25:00Z on DESKTOP-FCJJB5O. React control click -> typed client -> Tauri IPC -> m01_installed_app_inventory_export -> real Windows measurement -> rendered result. Rendered: The installed application inventory was exported and the written file was verified. Applications: 33. File size: 16.7 KB. Read-back verified: yes. Excluded updates: 1. SHA-256 cc656706686a6e183c9906df1cb8e9ecb439b8ad42607654166bbea760cf3a92. Path C:\\Users\\k7\\Documents\\KNOUX ONE Exports\\knoux-installed-apps-20260927-012500.json. On-disk artifact C:\\Users\\k7\\Documents\\KNOUX ONE Exports\\knoux-installed-apps-20260927-012500.json (17097 bytes, SHA-256 starting cc656706686a6e183c9906df1cb8e9ecb439b8ad42607654166bbea760cf3a92) was independently re-hashed outside the application after the run. What this does and does not mean: The file was re-hashed outside the application after the run and the digest matches the one the UI reported exactly, with 33 application entries present. System components and update entries are excluded by a named rule and the exclusion count is reported rather than dropped silently. Real entries include 7-Zip 26.03.00.0 Igor Pavlov, Bun 1.4.2 Oven-sh, Git 2.55.0.3, Chrome 154.0.8037.58 and IDM 6.43.11 Tonec Inc."
+      "evidence": "WINDOWS RUNTIME VERIFIED 2026-09-26T21:25:00Z on DESKTOP-VQKU9P8. React control click -> typed client -> Tauri IPC -> m01_installed_app_inventory_export -> real Windows measurement -> rendered result. Rendered: The installed application inventory was exported and the written file was verified. Applications: 33. File size: 16.7 KB. Read-back verified: yes. Excluded updates: 1. SHA-256 cc656706686a6e183c9906df1cb8e9ecb439b8ad42607654166bbea760cf3a92. Path C:\\Users\\k7\\Documents\\KNOUX ONE Exports\\knoux-installed-apps-20260927-012500.json. On-disk artifact C:\\Users\\k7\\Documents\\KNOUX ONE Exports\\knoux-installed-apps-20260927-012500.json (17097 bytes, SHA-256 starting cc656706686a6e183c9906df1cb8e9ecb439b8ad42607654166bbea760cf3a92) was independently re-hashed outside the application after the run. What this does and does not mean: The file was re-hashed outside the application after the run and the digest matches the one the UI reported exactly, with 33 application entries present. System components and update entries are excluded by a named rule and the exclusion count is reported rather than dropped silently. Real entries include 7-Zip 26.03.00.0 Igor Pavlov, Bun 1.4.2 Oven-sh, Git 2.55.0.3, Chrome 154.0.8037.58 and IDM 6.43.11 Tonec Inc."
     },
     {
       "moduleId": "M01",
@@ -540,7 +525,7 @@
       "reversible": false,
       "dangerous": false,
       "testPosture": "Unit and contract tests plus a recorded Windows run through the React control, the Tauri IPC boundary, the native Rust command and back into the rendered UI.",
-      "evidence": "WINDOWS RUNTIME VERIFIED 2026-09-26T20:21:28Z on DESKTOP-FCJJB5O. React control click -> typed client -> Tauri IPC -> m02_scan_user_temp -> real Windows measurement -> rendered result. Rendered: Measured preview: 10,030 files found, 908.8 MB, Type CLEAN to confirm deletion. Your temporary files: 5,000 files, 336.1 MB, verified snapshot available. Selected tools 3. Saved operations 1. Cleanup history records Device scan 27/09/2026 8:21:28 PM completed, 10,030 files, 908.8 MB. What this does and does not mean: Reached through the Cleanup areas list with the user_temp category ticked and Scan selected areas pressed. Nothing was deleted: the destructive control requires typing CLEAN and the confirmation input stays disabled. Two further notes. The count 5,000 is suspiciously round and matches the browser cache count exactly, which is the signature of a per-category ceiling; this main scan panel does not report that a ceiling was hit, unlike the scheduled-profile path in M02-S10 which states that the measured size is a floor. M02-S02 windows_temp and M02-S05 crash_dumps are marked Admin and were not reachable without elevation."
+      "evidence": "WINDOWS RUNTIME VERIFIED 2026-09-26T20:21:28Z on DESKTOP-VQKU9P8. React control click -> typed client -> Tauri IPC -> m02_scan_user_temp -> real Windows measurement -> rendered result. Rendered: Measured preview: 10,030 files found, 908.8 MB, Type CLEAN to confirm deletion. Your temporary files: 5,000 files, 336.1 MB, verified snapshot available. Selected tools 3. Saved operations 1. Cleanup history records Device scan 27/09/2026 8:21:28 PM completed, 10,030 files, 908.8 MB. What this does and does not mean: Reached through the Cleanup areas list with the user_temp category ticked and Scan selected areas pressed. Nothing was deleted: the destructive control requires typing CLEAN and the confirmation input stays disabled. Two further notes. The count 5,000 is suspiciously round and matches the browser cache count exactly, which is the signature of a per-category ceiling; this main scan panel does not report that a ceiling was hit, unlike the scheduled-profile path in M02-S10 which states that the measured size is a floor. M02-S02 windows_temp and M02-S05 crash_dumps are marked Admin and were not reachable without elevation."
     },
     {
       "moduleId": "M02",
@@ -574,7 +559,7 @@
       "reversible": false,
       "dangerous": false,
       "testPosture": "Unit and contract tests plus a recorded Windows run through the React control, the Tauri IPC boundary, the native Rust command and back into the rendered UI.",
-      "evidence": "WINDOWS RUNTIME VERIFIED 2026-09-26T20:21:28Z on DESKTOP-FCJJB5O. React control click -> typed client -> Tauri IPC -> m02_scan_browser_cache -> real Windows measurement -> rendered result. Rendered: Browser temporary files: 5,000 files, 502.2 MB, verified snapshot available. Part of the same 10,030 files / 908.8 MB measured preview. What this does and does not mean: Same measurement run as M02-S01. Exactly 5,000 files, the same round number as the user temporary files count, so this category also appears to have reached a per-category ceiling that the panel does not disclose."
+      "evidence": "WINDOWS RUNTIME VERIFIED 2026-09-26T20:21:28Z on DESKTOP-VQKU9P8. React control click -> typed client -> Tauri IPC -> m02_scan_browser_cache -> real Windows measurement -> rendered result. Rendered: Browser temporary files: 5,000 files, 502.2 MB, verified snapshot available. Part of the same 10,030 files / 908.8 MB measured preview. What this does and does not mean: Same measurement run as M02-S01. Exactly 5,000 files, the same round number as the user temporary files count, so this category also appears to have reached a per-category ceiling that the panel does not disclose."
     },
     {
       "moduleId": "M02",
@@ -591,7 +576,7 @@
       "reversible": false,
       "dangerous": false,
       "testPosture": "Unit and contract tests plus a recorded Windows run through the React control, the Tauri IPC boundary, the native Rust command and back into the rendered UI.",
-      "evidence": "WINDOWS RUNTIME VERIFIED 2026-09-26T20:21:28Z on DESKTOP-FCJJB5O. React control click -> typed client -> Tauri IPC -> m02_scan_thumbnail_cache -> real Windows measurement -> rendered result. Rendered: Image thumbnail files: 30 files, 70.4 MB, verified snapshot available. Part of the same 10,030 files / 908.8 MB measured preview. What this does and does not mean: Same measurement run. This count is well below any plausible ceiling, so it is the one category in the run that looks complete."
+      "evidence": "WINDOWS RUNTIME VERIFIED 2026-09-26T20:21:28Z on DESKTOP-VQKU9P8. React control click -> typed client -> Tauri IPC -> m02_scan_thumbnail_cache -> real Windows measurement -> rendered result. Rendered: Image thumbnail files: 30 files, 70.4 MB, verified snapshot available. Part of the same 10,030 files / 908.8 MB measured preview. What this does and does not mean: Same measurement run. This count is well below any plausible ceiling, so it is the one category in the run that looks complete."
     },
     {
       "moduleId": "M02",
@@ -625,7 +610,7 @@
       "reversible": false,
       "dangerous": false,
       "testPosture": "Unit and contract tests plus a recorded Windows run through the React control, the Tauri IPC boundary, the native Rust command and back into the rendered UI.",
-      "evidence": "WINDOWS RUNTIME VERIFIED 2026-09-26T20:24:00Z on DESKTOP-FCJJB5O. React control click -> typed client -> Tauri IPC -> m02_delivery_cache -> real Windows measurement -> rendered result. Rendered: The Delivery Optimization cache was measured read-only; nothing was removed. Cache size 0 B. Files counted 0. Readable roots 0 / 2. Deleted no. program_data_cache: root does not exist, C:\\ProgramData\\Microsoft\\Windows\\DeliveryOptimization\\Cache, root_does_not_exist. service_profile_cache: root does not exist, C:\\WINDOWS\\ServiceProfiles\\NetworkService\\AppData\\Local\\Microsoft\\Windows\\DeliveryOptimization\\Cache, root_does_not_exist. Delivery Optimization status query: completed. Reported cache size: 2.0 GB. Fifteen transfer rows, all Paused, with real transfer hashes. What this does and does not mean: This is the two-providers-disagree case working as designed. The file walk measures 0 B and 0 files because neither root exists on this machine, while the Delivery Optimization cmdlet reports 2.0 GB. Both readings are shown and neither is reconciled into a single number, so a user cannot mistake one provider's answer for the machine's real cache size. A missing root is reported as root_does_not_exist rather than as an empty cache."
+      "evidence": "WINDOWS RUNTIME VERIFIED 2026-09-26T20:24:00Z on DESKTOP-VQKU9P8. React control click -> typed client -> Tauri IPC -> m02_delivery_cache -> real Windows measurement -> rendered result. Rendered: The Delivery Optimization cache was measured read-only; nothing was removed. Cache size 0 B. Files counted 0. Readable roots 0 / 2. Deleted no. program_data_cache: root does not exist, C:\\ProgramData\\Microsoft\\Windows\\DeliveryOptimization\\Cache, root_does_not_exist. service_profile_cache: root does not exist, C:\\WINDOWS\\ServiceProfiles\\NetworkService\\AppData\\Local\\Microsoft\\Windows\\DeliveryOptimization\\Cache, root_does_not_exist. Delivery Optimization status query: completed. Reported cache size: 2.0 GB. Fifteen transfer rows, all Paused, with real transfer hashes. What this does and does not mean: This is the two-providers-disagree case working as designed. The file walk measures 0 B and 0 files because neither root exists on this machine, while the Delivery Optimization cmdlet reports 2.0 GB. Both readings are shown and neither is reconciled into a single number, so a user cannot mistake one provider's answer for the machine's real cache size. A missing root is reported as root_does_not_exist rather than as an empty cache."
     },
     {
       "moduleId": "M02",
@@ -659,7 +644,7 @@
       "reversible": false,
       "dangerous": false,
       "testPosture": "Unit and contract tests plus a recorded Windows run through the React control, the Tauri IPC boundary, the native Rust command and back into the rendered UI.",
-      "evidence": "WINDOWS RUNTIME VERIFIED 2026-09-26T20:26:00Z on DESKTOP-FCJJB5O. React control click -> typed client -> Tauri IPC -> m02_recycle_bin_review -> real Windows measurement -> rendered result. Rendered: The Recycle Bin was reviewed read-only; nothing was emptied. Read-only review. Entries found 0. Sized entries 0 / 0. Total size 0 B. Emptied no. Empty Name / Original location / Deleted / Size table. What this does and does not mean: The Recycle Bin is genuinely empty on this machine and is reported as zero with a real sized-versus-unsized split, rather than padded. Nothing was emptied. This agrees with the pre-reinstall reading of an empty Recycle Bin on the previous machine, so it is a stable property rather than a coincidence."
+      "evidence": "WINDOWS RUNTIME VERIFIED 2026-09-26T20:26:00Z on DESKTOP-VQKU9P8. React control click -> typed client -> Tauri IPC -> m02_recycle_bin_review -> real Windows measurement -> rendered result. Rendered: The Recycle Bin was reviewed read-only; nothing was emptied. Read-only review. Entries found 0. Sized entries 0 / 0. Total size 0 B. Emptied no. Empty Name / Original location / Deleted / Size table. What this does and does not mean: The Recycle Bin is genuinely empty on this machine and is reported as zero with a real sized-versus-unsized split, rather than padded. Nothing was emptied. This agrees with the pre-reinstall reading of an empty Recycle Bin on the previous machine, so it is a stable property rather than a coincidence."
     },
     {
       "moduleId": "M02",
@@ -693,7 +678,7 @@
       "reversible": false,
       "dangerous": false,
       "testPosture": "Unit and contract tests plus a recorded Windows run through the React control, the Tauri IPC boundary, the native Rust command and back into the rendered UI.",
-      "evidence": "WINDOWS RUNTIME VERIFIED 2026-09-26T20:28:00Z on DESKTOP-FCJJB5O. React control click -> typed client -> Tauri IPC -> m02_cleanup_schedule -> real Windows measurement -> rendered result. Rendered: The cleanup profile was measured and saved as a dry run. Nothing was removed. Dry run only. Nothing was removed, not_registered: this service records the profile and measures it; no Windows scheduled task was created. Files measured 10000. Measured size 883.1 MB. Deleted 0, 0 B. Profile file verified: yes. At least one category hit its item ceiling, so the measured size is a floor, not a total. SHA-256 1f6458ed8e7f7305b416eef067d750a33ad39c5f297426f497437f484ebcab70. On-disk artifact C:\\Users\\k7\\AppData\\Roaming\\com.knoux.one\\cleanup-profiles\\weekly-tidy.json (739 bytes, SHA-256 starting 1f6458ed8e7f7305b416eef067d750a33ad39c5f297426f497437f484ebcab70) was independently re-hashed outside the application after the run. What this does and does not mean: This is the one path that states the ceiling honestly: it says the measured size is a floor rather than a total. The profile file was re-hashed outside the application and matches the reported digest exactly, and the persisted document carries profileId, targets, rejectedTargets, dryRunDefault, confirmationToken, osSchedulerRegistration and run bookkeeping. The response states plainly that no Windows scheduled task was created, and the Apply for real control stayed disabled because no confirmation token had been typed."
+      "evidence": "WINDOWS RUNTIME VERIFIED 2026-09-26T20:28:00Z on DESKTOP-VQKU9P8. React control click -> typed client -> Tauri IPC -> m02_cleanup_schedule -> real Windows measurement -> rendered result. Rendered: The cleanup profile was measured and saved as a dry run. Nothing was removed. Dry run only. Nothing was removed, not_registered: this service records the profile and measures it; no Windows scheduled task was created. Files measured 10000. Measured size 883.1 MB. Deleted 0, 0 B. Profile file verified: yes. At least one category hit its item ceiling, so the measured size is a floor, not a total. SHA-256 1f6458ed8e7f7305b416eef067d750a33ad39c5f297426f497437f484ebcab70. On-disk artifact C:\\Users\\k7\\AppData\\Roaming\\com.knoux.one\\cleanup-profiles\\weekly-tidy.json (739 bytes, SHA-256 starting 1f6458ed8e7f7305b416eef067d750a33ad39c5f297426f497437f484ebcab70) was independently re-hashed outside the application after the run. What this does and does not mean: This is the one path that states the ceiling honestly: it says the measured size is a floor rather than a total. The profile file was re-hashed outside the application and matches the reported digest exactly, and the persisted document carries profileId, targets, rejectedTargets, dryRunDefault, confirmationToken, osSchedulerRegistration and run bookkeeping. The response states plainly that no Windows scheduled task was created, and the Apply for real control stayed disabled because no confirmation token had been typed."
     },
     {
       "moduleId": "M03",
@@ -897,7 +882,7 @@
       "reversible": false,
       "dangerous": false,
       "testPosture": "Unit and contract tests plus a recorded Windows run through the React control, the Tauri IPC boundary, the native Rust command and back into the rendered UI.",
-      "evidence": "WINDOWS RUNTIME VERIFIED 2026-09-27T18:16:51Z on DESKTOP-FCJJB5O. React control click -> typed client -> Tauri IPC -> m04_largest_files -> real Windows measurement -> rendered result. Rendered: Measured size 1.27 GB, Files 50, Folders 6, Unavailable items 0, path C:\\Users\\k7\\Downloads. Largest files: an Arabic-named MP4 at 568.7 MB, blender-5.2.2-windows-x64.msi 347.9 MB, traycer-desktop-windows-x64.exe 142.3 MB, K-Lite_Codec_Pack_2000_Full.exe 54.9 MB, Urban_VPN_V4.0.0.0 (1).exe 29.3 MB, idman643build11 (1).exe 12.0 MB, ChromeSetup.exe 11.8 MB, two grok-workspace zips at 3.93 MB each, knouxrec.zip 3.28 MB. What this does and does not mean: Every row carries a real measured size and a real absolute path, and the count that produced the list (50 files) is the same count the report recorded, so the list is not padded. Unavailable items is reported as 0 rather than omitted, so an inaccessible path would be visible if one existed."
+      "evidence": "WINDOWS RUNTIME VERIFIED 2026-09-27T18:16:51Z on DESKTOP-VQKU9P8. React control click -> typed client -> Tauri IPC -> m04_largest_files -> real Windows measurement -> rendered result. Rendered: Measured size 1.27 GB, Files 50, Folders 6, Unavailable items 0, path C:\\Users\\k7\\Downloads. Largest files: an Arabic-named MP4 at 568.7 MB, blender-5.2.2-windows-x64.msi 347.9 MB, traycer-desktop-windows-x64.exe 142.3 MB, K-Lite_Codec_Pack_2000_Full.exe 54.9 MB, Urban_VPN_V4.0.0.0 (1).exe 29.3 MB, idman643build11 (1).exe 12.0 MB, ChromeSetup.exe 11.8 MB, two grok-workspace zips at 3.93 MB each, knouxrec.zip 3.28 MB. What this does and does not mean: Every row carries a real measured size and a real absolute path, and the count that produced the list (50 files) is the same count the report recorded, so the list is not padded. Unavailable items is reported as 0 rather than omitted, so an inaccessible path would be visible if one existed."
     },
     {
       "moduleId": "M04",
@@ -914,7 +899,7 @@
       "reversible": false,
       "dangerous": false,
       "testPosture": "Unit and contract tests plus a recorded Windows run through the React control, the Tauri IPC boundary, the native Rust command and back into the rendered UI.",
-      "evidence": "WINDOWS RUNTIME VERIFIED 2026-09-27T18:16:51Z on DESKTOP-FCJJB5O. React control click -> typed client -> Tauri IPC -> m04_largest_folders -> real Windows measurement -> rendered result. Rendered: Largest folders: Downloads, C:\\Users\\k7\\Downloads, 50 files, 1.27 GB. Video, C:\\Users\\k7\\Downloads\\Video, 1 files, 568.7 MB. What this does and does not mean: Folder rows report the measured file count and size that produced them, so a folder total can be checked against the files listed underneath it. The single 568.7 MB video is the same file the largest-files list shows, which is the consistency this design is for."
+      "evidence": "WINDOWS RUNTIME VERIFIED 2026-09-27T18:16:51Z on DESKTOP-VQKU9P8. React control click -> typed client -> Tauri IPC -> m04_largest_folders -> real Windows measurement -> rendered result. Rendered: Largest folders: Downloads, C:\\Users\\k7\\Downloads, 50 files, 1.27 GB. Video, C:\\Users\\k7\\Downloads\\Video, 1 files, 568.7 MB. What this does and does not mean: Folder rows report the measured file count and size that produced them, so a folder total can be checked against the files listed underneath it. The single 568.7 MB video is the same file the largest-files list shows, which is the consistency this design is for."
     },
     {
       "moduleId": "M04",
@@ -931,7 +916,7 @@
       "reversible": false,
       "dangerous": false,
       "testPosture": "Unit and contract tests plus a recorded Windows run through the React control, the Tauri IPC boundary, the native Rust command and back into the rendered UI.",
-      "evidence": "WINDOWS RUNTIME VERIFIED 2026-09-27T18:16:51Z on DESKTOP-FCJJB5O. React control click -> typed client -> Tauri IPC -> m04_type_distribution -> real Windows measurement -> rendered result. Rendered: File types: applications 11 files 664.0 MB, videos 4 files 572.5 MB, images 20 files 38.1 MB, archives 11 files 23.3 MB, documents 1 files 44.7 KB, other 3 files 7.23 KB. What this does and does not mean: Six buckets that sum to the 50 files the scan measured, so no file is silently dropped between classification and totals. An 'other' bucket is published rather than forcing an unfamiliar extension into a convenient category."
+      "evidence": "WINDOWS RUNTIME VERIFIED 2026-09-27T18:16:51Z on DESKTOP-VQKU9P8. React control click -> typed client -> Tauri IPC -> m04_type_distribution -> real Windows measurement -> rendered result. Rendered: File types: applications 11 files 664.0 MB, videos 4 files 572.5 MB, images 20 files 38.1 MB, archives 11 files 23.3 MB, documents 1 files 44.7 KB, other 3 files 7.23 KB. What this does and does not mean: Six buckets that sum to the 50 files the scan measured, so no file is silently dropped between classification and totals. An 'other' bucket is published rather than forcing an unfamiliar extension into a convenient category."
     },
     {
       "moduleId": "M04",
@@ -948,7 +933,7 @@
       "reversible": false,
       "dangerous": false,
       "testPosture": "Unit and contract tests plus a recorded Windows run through the React control, the Tauri IPC boundary, the native Rust command and back into the rendered UI.",
-      "evidence": "WINDOWS RUNTIME VERIFIED 2026-09-27T18:16:51Z on DESKTOP-FCJJB5O. React control click -> typed client -> Tauri IPC -> m04_old_files_complete -> real Windows measurement -> rendered result. Rendered: These files were not modified since 180 days ago. This machine does not reliably keep last-access timestamps, so \"old\" here does not mean \"unused\". This service is read-only. It never deletes, moves, or quarantines anything. Access time is system-managed, it is not applied to files. Windows reports disablelastaccess = 2, so last-access timestamps are not a reliable last-used signal. Rows fall back to modification time and are described as \"not modified since\". Measured from: fsutil, value as Windows reported it: 2. What this does and does not mean: The last-access policy is measured from fsutil and reported before the result, and the service refuses to call a file 'unused' when the machine does not track access time. The wording is 'not modified since', never 'not used since'. This is the exact distinction the module doc was written for, and it holds at runtime."
+      "evidence": "WINDOWS RUNTIME VERIFIED 2026-09-27T18:16:51Z on DESKTOP-VQKU9P8. React control click -> typed client -> Tauri IPC -> m04_old_files_complete -> real Windows measurement -> rendered result. Rendered: These files were not modified since 180 days ago. This machine does not reliably keep last-access timestamps, so \"old\" here does not mean \"unused\". This service is read-only. It never deletes, moves, or quarantines anything. Access time is system-managed, it is not applied to files. Windows reports disablelastaccess = 2, so last-access timestamps are not a reliable last-used signal. Rows fall back to modification time and are described as \"not modified since\". Measured from: fsutil, value as Windows reported it: 2. What this does and does not mean: The last-access policy is measured from fsutil and reported before the result, and the service refuses to call a file 'unused' when the machine does not track access time. The wording is 'not modified since', never 'not used since'. This is the exact distinction the module doc was written for, and it holds at runtime."
     },
     {
       "moduleId": "M04",
@@ -965,7 +950,7 @@
       "reversible": false,
       "dangerous": false,
       "testPosture": "Unit and contract tests plus a recorded Windows run through the React control, the Tauri IPC boundary, the native Rust command and back into the rendered UI.",
-      "evidence": "WINDOWS RUNTIME VERIFIED 2026-09-27T18:16:51Z on DESKTOP-FCJJB5O. React control click -> typed client -> Tauri IPC -> m04_downloads_complete -> real Windows measurement -> rendered result. Rendered: MEASURED RESULTS, Downloads, C:\\Users\\k7\\Downloads. Measured size 1.27 GB, Files 50, Folders 6, Unavailable items 0. Persisted scan 2026-09-27T18:16:51.414139800+00:00, C:\\Users\\k7\\Downloads, 50 files. What this does and does not mean: This is the measurement that produced the largest-file, largest-folder, file-type and old-file views, and it was persisted, so the report export in M04-S10 could be regenerated from stored evidence rather than by walking the folder again. Unavailable items 0 means nothing was skipped silently."
+      "evidence": "WINDOWS RUNTIME VERIFIED 2026-09-27T18:16:51Z on DESKTOP-VQKU9P8. React control click -> typed client -> Tauri IPC -> m04_downloads_complete -> real Windows measurement -> rendered result. Rendered: MEASURED RESULTS, Downloads, C:\\Users\\k7\\Downloads. Measured size 1.27 GB, Files 50, Folders 6, Unavailable items 0. Persisted scan 2026-09-27T18:16:51.414139800+00:00, C:\\Users\\k7\\Downloads, 50 files. What this does and does not mean: This is the measurement that produced the largest-file, largest-folder, file-type and old-file views, and it was persisted, so the report export in M04-S10 could be regenerated from stored evidence rather than by walking the folder again. Unavailable items 0 means nothing was skipped silently."
     },
     {
       "moduleId": "M04",
@@ -999,7 +984,7 @@
       "reversible": false,
       "dangerous": false,
       "testPosture": "Unit and contract tests plus a recorded Windows run through the React control, the Tauri IPC boundary, the native Rust command and back into the rendered UI.",
-      "evidence": "WINDOWS RUNTIME VERIFIED 2026-09-27T18:20:00Z on DESKTOP-FCJJB5O. React control click -> typed client -> Tauri IPC -> m04_external_drives_complete -> real Windows measurement -> rendered result. Rendered: C:\\ fixed, 89.6 GB used, 89.1 GB free. D:\\ fixed, 45.7 GB used, 12.8 GB free. E:\\ optical, 0 B used, 0 B free. Per-volume monitoring: C:\\ 49.9% 89.1 GB free, D:\\ 21.9% 12.8 GB free, E:\\ 0.0% 0 B free, all marked Monitoring active. What this does and does not mean: Every volume carries its real filesystem type, so the empty E: is reported as an optical drive with 0 B rather than as a volume that failed to read. Free and used figures come from Windows, and the derived percentage is published next to the raw numbers it came from."
+      "evidence": "WINDOWS RUNTIME VERIFIED 2026-09-27T18:20:00Z on DESKTOP-VQKU9P8. React control click -> typed client -> Tauri IPC -> m04_external_drives_complete -> real Windows measurement -> rendered result. Rendered: C:\\ fixed, 89.6 GB used, 89.1 GB free. D:\\ fixed, 45.7 GB used, 12.8 GB free. E:\\ optical, 0 B used, 0 B free. Per-volume monitoring: C:\\ 49.9% 89.1 GB free, D:\\ 21.9% 12.8 GB free, E:\\ 0.0% 0 B free, all marked Monitoring active. What this does and does not mean: Every volume carries its real filesystem type, so the empty E: is reported as an optical drive with 0 B rather than as a volume that failed to read. Free and used figures come from Windows, and the derived percentage is published next to the raw numbers it came from."
     },
     {
       "moduleId": "M04",
@@ -1016,7 +1001,7 @@
       "reversible": false,
       "dangerous": false,
       "testPosture": "Unit and contract tests plus a recorded Windows run through the React control, the Tauri IPC boundary, the native Rust command and back into the rendered UI.",
-      "evidence": "WINDOWS RUNTIME VERIFIED 2026-09-27T18:20:30Z on DESKTOP-FCJJB5O. React control click -> typed client -> Tauri IPC -> m04_space_check_complete -> real Windows measurement -> rendered result. Rendered: Low-space threshold control with a percentage, Check now, and a per-volume result: C:\\ 49.9% 89.1 GB free, D:\\ 21.9% 12.8 GB free, E:\\ 0.0% 0 B free, each marked Monitoring active. The panel states that after a threshold check the selected threshold and interval are stored in application data, and that KNOUX ONE checks connected volumes while the desktop app is running and sends both an in-app event and a Windows toast. What this does and does not mean: No volume is below the threshold on this machine, so no alert fired, and the panel says the check ran rather than presenting silence as health. The stated monitoring behaviour is scoped to the app running, which is the honest limit of a desktop-runtime check."
+      "evidence": "WINDOWS RUNTIME VERIFIED 2026-09-27T18:20:30Z on DESKTOP-VQKU9P8. React control click -> typed client -> Tauri IPC -> m04_space_check_complete -> real Windows measurement -> rendered result. Rendered: Low-space threshold control with a percentage, Check now, and a per-volume result: C:\\ 49.9% 89.1 GB free, D:\\ 21.9% 12.8 GB free, E:\\ 0.0% 0 B free, each marked Monitoring active. The panel states that after a threshold check the selected threshold and interval are stored in application data, and that KNOUX ONE checks connected volumes while the desktop app is running and sends both an in-app event and a Windows toast. What this does and does not mean: No volume is below the threshold on this machine, so no alert fired, and the panel says the check ran rather than presenting silence as health. The stated monitoring behaviour is scoped to the app running, which is the honest limit of a desktop-runtime check."
     },
     {
       "moduleId": "M04",
@@ -1033,7 +1018,7 @@
       "reversible": false,
       "dangerous": false,
       "testPosture": "Unit and contract tests plus a recorded Windows run through the React control, the Tauri IPC boundary, the native Rust command and back into the rendered UI.",
-      "evidence": "WINDOWS RUNTIME VERIFIED 2026-09-27T18:22:00Z on DESKTOP-FCJJB5O. React control click -> typed client -> Tauri IPC -> m04_report_export_complete -> real Windows measurement -> rendered result. Rendered: Written 3 document(s), redaction: none. JSON signature verified, 25,283 B, SHA-256 42d9b20aed9699a309da6b7484d28edcdcfe4cfe88fc08a87723905b5e2c6b22, BLAKE3 e8ae902bb3faf4a70d48f63ef8df52da9e389ce6a9f85fbfb2ef0cc6bca51a1f. CSV and HTML written alongside. Persisted scan 2026-09-27T18:16:51.414139800+00:00, C:\\Users\\k7\\Downloads, 50 files. The report carries dataCompleteness: complete true, reasonEn Every scanned path was read, inaccessibleItems 0, excludedPathCount 0, listedFileCount 50. On-disk artifact C:\\Users\\k7\\AppData\\Roaming\\com.knoux.one\\storage-reports\\storage-report-e3aabb92-8461-470d-89c0-b2ebac1d8620.json (25283 bytes, SHA-256 starting 42d9b20aed9699a309da6b7484d28edcdcfe4cfe88fc08a87723905b5e2c6b22) was independently re-hashed outside the application after the run. What this does and does not mean: All three documents were re-hashed outside the application after the export and the JSON digest matches the one the UI reported exactly; the CSV and HTML are 12,285 B and 20,563 B. The report is regenerated from the persisted scan rather than a second walk, and it carries its own completeness statement, so a reader can tell whether the numbers are exhaustive. PDF is not offered here and is not silently implied."
+      "evidence": "WINDOWS RUNTIME VERIFIED 2026-09-27T18:22:00Z on DESKTOP-VQKU9P8. React control click -> typed client -> Tauri IPC -> m04_report_export_complete -> real Windows measurement -> rendered result. Rendered: Written 3 document(s), redaction: none. JSON signature verified, 25,283 B, SHA-256 42d9b20aed9699a309da6b7484d28edcdcfe4cfe88fc08a87723905b5e2c6b22, BLAKE3 e8ae902bb3faf4a70d48f63ef8df52da9e389ce6a9f85fbfb2ef0cc6bca51a1f. CSV and HTML written alongside. Persisted scan 2026-09-27T18:16:51.414139800+00:00, C:\\Users\\k7\\Downloads, 50 files. The report carries dataCompleteness: complete true, reasonEn Every scanned path was read, inaccessibleItems 0, excludedPathCount 0, listedFileCount 50. On-disk artifact C:\\Users\\k7\\AppData\\Roaming\\com.knoux.one\\storage-reports\\storage-report-e3aabb92-8461-470d-89c0-b2ebac1d8620.json (25283 bytes, SHA-256 starting 42d9b20aed9699a309da6b7484d28edcdcfe4cfe88fc08a87723905b5e2c6b22) was independently re-hashed outside the application after the run. What this does and does not mean: All three documents were re-hashed outside the application after the export and the JSON digest matches the one the UI reported exactly; the CSV and HTML are 12,285 B and 20,563 B. The report is regenerated from the persisted scan rather than a second walk, and it carries its own completeness statement, so a reader can tell whether the numbers are exhaustive. PDF is not offered here and is not silently implied."
     },
     {
       "moduleId": "M05",
@@ -1041,16 +1026,16 @@
       "serviceNumber": 1,
       "name": "Registry startup entries",
       "nameAr": "مدخلات السجل المسؤولة عن التشغيل",
-      "state": "STATIC_VERIFIED",
-      "verificationLevel": "static",
+      "state": "RUNTIME_VERIFIED",
+      "verificationLevel": "runtime",
       "runtime": "windows",
       "handlerId": "m05.registry.inspect",
       "nativeCommand": "m05_registry_entries",
       "requiresElevation": false,
       "reversible": true,
       "dangerous": false,
-      "testPosture": "Static contract/integrity tests; Windows runtime and E2E proof are not recorded.",
-      "evidence": "Static trace: catalog handler m05.registry.inspect maps to m05_registry_entries; Windows runtime proof is still required."
+      "testPosture": "Unit and contract tests plus a recorded Windows run through the React control, the Tauri IPC boundary, the native Rust command and back into the rendered UI.",
+      "evidence": "WINDOWS RUNTIME VERIFIED 2026-10-21T02:49:00Z on DESKTOP-VQKU9P8. React control click -> typed client -> Tauri IPC -> m05_registry_entries -> real Windows measurement -> rendered result. Rendered: VERIFIED STARTUP CONTROL Startup Control Inspect real Windows startup sources, protect system entries, apply reversible user changes, delay programs, save profiles and measure boot history. Windows startup engine connected Microsoft and system entries remain protected. M05 5 Startup items M05 3 Review recommended M05 257 Protected services M05 0 Restorable changes M05 — Average boot Startup programs Scheduled tasks Windows services Profiles & restore Boot history Refresh The item score is a transparent review heuristic based on signature, scope and command characteristics; it is not a measured per-app boot delay. Application Restart #0 user registry_run_once PackagedCWALauncher.exe OpenAI.Codex_2p2nqsd0c76g0!App \"app\\ChatGPT.exe\" --allow-browser-signin=false --cors-schemes=codex-sandbox --disable-blink-features=ReplacedNormalFlowStackingInlinePaint --disable-domain-reliability --disable-features=,DropInputEventsWhilePaintHolding,WebUIOmniboxPopup,WebUIOmniboxAimPopup --disable-sync --enable-blink-features=WebMCP --enable-features=DevToolsWebMCPSupport,DocumentPolicyIncludeJSCallStacksInCrashReports --extension-content-verification=enforce_strict --fetch-schemes=app,codex-sandbox --force-fieldtrials=WebRTC-Sctp-Snap/Enabled/WebRTC-IceHandshakeDtls/Enabled/WebRTC-ForceDtls13/Enabled/ --hide-crash-restore-bubble --no-default-browser-check --no-experiments --no-first-run --no-pings --no-startup-window --owl-scoped-user-agent-additional-hosts=openai.com,chatgpt.com,chatgpt.site,ch What this does and does not mean: On DESKTOP-VQKU9P8, the \"Refresh\" control was clicked inside the \"Refresh\" area of the running KNOUX ONE desktop window. The click crossed the Tauri IPC boundary into m05_registry_entries, which measured this Windows host, and the measured result was rendered back into the window and read from the DOM. This proves the native command ran and its result was displayed. It does not by itself prove that every branch of the command is correct, that the measurement is complete for every Windows version, or that any other service in this module works."
     },
     {
       "moduleId": "M05",
@@ -1058,16 +1043,16 @@
       "serviceNumber": 2,
       "name": "Startup folders",
       "nameAr": "مجلدات بدء التشغيل التلقائية",
-      "state": "STATIC_VERIFIED",
-      "verificationLevel": "static",
+      "state": "RUNTIME_VERIFIED",
+      "verificationLevel": "runtime",
       "runtime": "windows",
       "handlerId": "m05.folders.inspect",
       "nativeCommand": "m05_startup_folders",
       "requiresElevation": false,
       "reversible": true,
       "dangerous": false,
-      "testPosture": "Static contract/integrity tests; Windows runtime and E2E proof are not recorded.",
-      "evidence": "Static trace: catalog handler m05.folders.inspect maps to m05_startup_folders; Windows runtime proof is still required."
+      "testPosture": "Unit and contract tests plus a recorded Windows run through the React control, the Tauri IPC boundary, the native Rust command and back into the rendered UI.",
+      "evidence": "WINDOWS RUNTIME VERIFIED 2026-10-21T02:50:09Z on DESKTOP-VQKU9P8. React control click -> typed client -> Tauri IPC -> m05_startup_folders -> real Windows measurement -> rendered result. Rendered: VERIFIED STARTUP CONTROL Startup Control Inspect real Windows startup sources, protect system entries, apply reversible user changes, delay programs, save profiles and measure boot history. Windows startup engine connected Microsoft and system entries remain protected. M05 5 Startup items M05 3 Review recommended M05 257 Protected services M05 0 Restorable changes M05 — Average boot Startup programs Scheduled tasks Windows services Profiles & restore Boot history Refresh The item score is a transparent review heuristic based on signature, scope and command characteristics; it is not a measured per-app boot delay. Application Restart #0 user registry_run_once PackagedCWALauncher.exe OpenAI.Codex_2p2nqsd0c76g0!App \"app\\ChatGPT.exe\" --allow-browser-signin=false --cors-schemes=codex-sandbox --disable-blink-features=ReplacedNormalFlowStackingInlinePaint --disable-domain-reliability --disable-features=,DropInputEventsWhilePaintHolding,WebUIOmniboxPopup,WebUIOmniboxAimPopup --disable-sync --enable-blink-features=WebMCP --enable-features=DevToolsWebMCPSupport,DocumentPolicyIncludeJSCallStacksInCrashReports --extension-content-verification=enforce_strict --fetch-schemes=app,codex-sandbox --force-fieldtrials=WebRTC-Sctp-Snap/Enabled/WebRTC-IceHandshakeDtls/Enabled/WebRTC-ForceDtls13/Enabled/ --hide-crash-restore-bubble --no-default-browser-check --no-experiments --no-first-run --no-pings --no-startup-window --owl-scoped-user-agent-additional-hosts=openai.com,chatgpt.com,chatgpt.site,ch What this does and does not mean: On DESKTOP-VQKU9P8, the \"Refresh\" control was clicked inside the \"Refresh\" area of the running KNOUX ONE desktop window. The click crossed the Tauri IPC boundary into m05_startup_folders, which measured this Windows host, and the measured result was rendered back into the window and read from the DOM. This proves the native command ran and its result was displayed. It does not by itself prove that every branch of the command is correct, that the measurement is complete for every Windows version, or that any other service in this module works."
     },
     {
       "moduleId": "M05",
@@ -1075,16 +1060,16 @@
       "serviceNumber": 3,
       "name": "Scheduled startup tasks",
       "nameAr": "المهام المجدولة في نظام ويندوز",
-      "state": "STATIC_VERIFIED",
-      "verificationLevel": "static",
+      "state": "RUNTIME_VERIFIED",
+      "verificationLevel": "runtime",
       "runtime": "windows",
       "handlerId": "m05.tasks.inspect",
       "nativeCommand": "m05_scheduled_tasks",
       "requiresElevation": false,
       "reversible": false,
       "dangerous": false,
-      "testPosture": "Static contract/integrity tests; Windows runtime and E2E proof are not recorded.",
-      "evidence": "Static trace: catalog handler m05.tasks.inspect maps to m05_scheduled_tasks; Windows runtime proof is still required."
+      "testPosture": "Unit and contract tests plus a recorded Windows run through the React control, the Tauri IPC boundary, the native Rust command and back into the rendered UI.",
+      "evidence": "WINDOWS RUNTIME VERIFIED 2026-10-21T02:52:10Z on DESKTOP-VQKU9P8. React control click -> typed client -> Tauri IPC -> m05_scheduled_tasks -> real Windows measurement -> rendered result. Rendered: VERIFIED STARTUP CONTROL Startup Control Inspect real Windows startup sources, protect system entries, apply reversible user changes, delay programs, save profiles and measure boot history. Windows startup engine connected Microsoft and system entries remain protected. M05 5 Startup items M05 3 Review recommended M05 257 Protected services M05 0 Restorable changes M05 — Average boot Startup programs Scheduled tasks Windows services Profiles & restore Boot history Refresh \\infatica \"C:\\Program Files (x86)\\Infatica\\infatica_agent.exe\" Running MSFT_TaskLogonTrigger • Unknown author \\KNOuX_Hotspot_Guardian C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\powershell.exe -NoProfile -NonInteractive -WindowStyle Hidden -ExecutionPolicy Bypass -File \"C:\\Users\\day night\\AppData\\Local\\KNOuX\\HotspotGuard\\HotspotGuard.ps1\" -Mode Watch -IntervalSeconds 30 Running MSFT_TaskLogonTrigger • Unknown author \\OneDrive Startup Task-S-1-5-21-1128305507-1447294474-2667022863-1000 C:\\Users\\day night\\AppData\\Local\\Microsoft\\OneDrive\\26.183.0920.0005\\OneDriveLauncher.exe /startInstances Ready MSFT_TaskLogonTrigger • Microsoft Corporation • Microsoft protected \\Opera scheduled assistant Autoupdate 1792487310 C:\\Users\\day night\\AppData\\Local\\Programs\\Opera\\autoupdate\\opera_autoupdate.exe --scheduledtask --productiscomponent --installdir=\"C:\\Users\\day night\\AppData\\Local\\Programs\\Opera\\assistant\" --producttype=assistant $(Arg0) Ready MSFT_TaskLogonTrigger • DESKTOP-VQKU9P8\\day night \\Opera scheduled Autoupdate What this does and does not mean: On DESKTOP-VQKU9P8, the \"Refresh\" control was clicked inside the \"Refresh\" area of the running KNOUX ONE desktop window. The click crossed the Tauri IPC boundary into m05_scheduled_tasks, which measured this Windows host, and the measured result was rendered back into the window and read from the DOM. This proves the native command ran and its result was displayed. It does not by itself prove that every branch of the command is correct, that the measurement is complete for every Windows version, or that any other service in this module works."
     },
     {
       "moduleId": "M05",
@@ -1092,16 +1077,16 @@
       "serviceNumber": 4,
       "name": "Windows services",
       "nameAr": "خدمات نظام ويندوز (Services)",
-      "state": "STATIC_VERIFIED",
-      "verificationLevel": "static",
+      "state": "RUNTIME_VERIFIED",
+      "verificationLevel": "runtime",
       "runtime": "windows",
       "handlerId": "m05.services.inspect",
       "nativeCommand": "m05_windows_services",
       "requiresElevation": false,
       "reversible": false,
       "dangerous": true,
-      "testPosture": "Static contract/integrity tests; Windows runtime and E2E proof are not recorded.",
-      "evidence": "Static trace: catalog handler m05.services.inspect maps to m05_windows_services; Windows runtime proof is still required."
+      "testPosture": "Unit and contract tests plus a recorded Windows run through the React control, the Tauri IPC boundary, the native Rust command and back into the rendered UI.",
+      "evidence": "WINDOWS RUNTIME VERIFIED 2026-10-21T02:54:53Z on DESKTOP-VQKU9P8. React control click -> typed client -> Tauri IPC -> m05_windows_services -> real Windows measurement -> rendered result. Rendered: VERIFIED STARTUP CONTROL Startup Control Inspect real Windows startup sources, protect system entries, apply reversible user changes, delay programs, save profiles and measure boot history. Windows startup engine connected Microsoft and system entries remain protected. M05 5 Startup items M05 3 Review recommended M05 257 Protected services M05 0 Restorable changes M05 — Average boot Startup programs Scheduled tasks Windows services Profiles & restore Boot history Refresh AllJoyn Router Service Stopped AJRouter • Manual C:\\Windows\\system32\\svchost.exe -k LocalServiceNetworkRestricted -p Protected Windows or Microsoft service; inspection only. Application Layer Gateway Service Running ALG • Manual C:\\Windows\\System32\\alg.exe Protected Windows or Microsoft service; inspection only. Application Identity Stopped AppIDSvc • Manual C:\\Windows\\system32\\svchost.exe -k LocalServiceNetworkRestricted -p Protected Windows or Microsoft service; inspection only. Application Information Running Appinfo • Manual C:\\Windows\\system32\\svchost.exe -k netsvcs -p Protected Windows or Microsoft service; inspection only. Application Management Stopped AppMgmt • Manual C:\\Windows\\system32\\svchost.exe -k netsvcs -p Protected Windows or Microsoft service; inspection only. App Readiness Stopped AppReadiness • Manual C:\\Windows\\System32\\svchost.exe -k AppReadiness -p Protected Windows or Microsoft service; inspection only. Microsoft App-V Client Stopped AppVClient • Disabled C:\\Windows\\system32\\AppVClient What this does and does not mean: On DESKTOP-VQKU9P8, the \"Refresh\" control was clicked inside the \"Refresh\" area of the running KNOUX ONE desktop window. The click crossed the Tauri IPC boundary into m05_windows_services, which measured this Windows host, and the measured result was rendered back into the window and read from the DOM. This proves the native command ran and its result was displayed. It does not by itself prove that every branch of the command is correct, that the measurement is complete for every Windows version, or that any other service in this module works."
     },
     {
       "moduleId": "M05",
@@ -1126,16 +1111,16 @@
       "serviceNumber": 6,
       "name": "Safe recommendations",
       "nameAr": "التوصيات الآمنة للإيقاف",
-      "state": "STATIC_VERIFIED",
-      "verificationLevel": "static",
+      "state": "RUNTIME_VERIFIED",
+      "verificationLevel": "runtime",
       "runtime": "windows",
       "handlerId": "m05.recommendations.generate",
       "nativeCommand": "m05_recommendations",
       "requiresElevation": false,
       "reversible": false,
       "dangerous": false,
-      "testPosture": "Static contract/integrity tests; Windows runtime and E2E proof are not recorded.",
-      "evidence": "Static trace: catalog handler m05.recommendations.generate maps to m05_recommendations; Windows runtime proof is still required."
+      "testPosture": "Unit and contract tests plus a recorded Windows run through the React control, the Tauri IPC boundary, the native Rust command and back into the rendered UI.",
+      "evidence": "WINDOWS RUNTIME VERIFIED 2026-10-21T03:00:57Z on DESKTOP-VQKU9P8. React control click -> typed client -> Tauri IPC -> m05_recommendations -> real Windows measurement -> rendered result. Rendered: VERIFIED STARTUP CONTROL Startup Control Inspect real Windows startup sources, protect system entries, apply reversible user changes, delay programs, save profiles and measure boot history. Windows startup engine connected Microsoft and system entries remain protected. M05 5 Startup items M05 3 Review recommended M05 257 Protected services M05 0 Restorable changes M05 — Average boot Startup programs Scheduled tasks Windows services Profiles & restore Boot history Refresh The item score is a transparent review heuristic based on signature, scope and command characteristics; it is not a measured per-app boot delay. Application Restart #0 user registry_run_once PackagedCWALauncher.exe OpenAI.Codex_2p2nqsd0c76g0!App \"app\\ChatGPT.exe\" --allow-browser-signin=false --cors-schemes=codex-sandbox --disable-blink-features=ReplacedNormalFlowStackingInlinePaint --disable-domain-reliability --disable-features=,DropInputEventsWhilePaintHolding,WebUIOmniboxPopup,WebUIOmniboxAimPopup --disable-sync --enable-blink-features=WebMCP --enable-features=DevToolsWebMCPSupport,DocumentPolicyIncludeJSCallStacksInCrashReports --extension-content-verification=enforce_strict --fetch-schemes=app,codex-sandbox --force-fieldtrials=WebRTC-Sctp-Snap/Enabled/WebRTC-IceHandshakeDtls/Enabled/WebRTC-ForceDtls13/Enabled/ --hide-crash-restore-bubble --no-default-browser-check --no-experiments --no-first-run --no-pings --no-startup-window --owl-scoped-user-agent-additional-hosts=openai.com,chatgpt.com,chatgpt.site,ch What this does and does not mean: On DESKTOP-VQKU9P8, the \"Refresh\" control was clicked inside the \"Refresh\" area of the running KNOUX ONE desktop window. The click crossed the Tauri IPC boundary into m05_recommendations, which measured this Windows host, and the measured result was rendered back into the window and read from the DOM. This proves the native command ran and its result was displayed. It does not by itself prove that every branch of the command is correct, that the measurement is complete for every Windows version, or that any other service in this module works."
     },
     {
       "moduleId": "M05",
@@ -1194,16 +1179,16 @@
       "serviceNumber": 10,
       "name": "Boot-performance history",
       "nameAr": "سجل زمن الإقلاع التاريخي",
-      "state": "STATIC_VERIFIED",
-      "verificationLevel": "static",
+      "state": "RUNTIME_VERIFIED",
+      "verificationLevel": "runtime",
       "runtime": "windows",
       "handlerId": "m05.boot.history",
       "nativeCommand": "m05_boot_history",
       "requiresElevation": false,
       "reversible": false,
       "dangerous": false,
-      "testPosture": "Static contract/integrity tests; Windows runtime and E2E proof are not recorded.",
-      "evidence": "Static trace: catalog handler m05.boot.history maps to m05_boot_history; Windows runtime proof is still required."
+      "testPosture": "Unit and contract tests plus a recorded Windows run through the React control, the Tauri IPC boundary, the native Rust command and back into the rendered UI.",
+      "evidence": "WINDOWS RUNTIME VERIFIED 2026-10-21T03:03:19Z on DESKTOP-VQKU9P8. React control click -> typed client -> Tauri IPC -> m05_boot_history -> real Windows measurement -> rendered result. Rendered: VERIFIED STARTUP CONTROL Startup Control Inspect real Windows startup sources, protect system entries, apply reversible user changes, delay programs, save profiles and measure boot history. Windows startup engine connected Microsoft and system entries remain protected. M05 5 Startup items M05 3 Review recommended M05 257 Protected services M05 0 Restorable changes M05 — Average boot Startup programs Scheduled tasks Windows services Profiles & restore Boot history Refresh Measured Windows boot history Windows returned no Event 100 boot records. Safe review recommendations KNOUX-DesktopCommander-AutoStart.vbs Review this non-Microsoft user startup entry. Disable it only when you recognize the application and do not need it immediately after sign-in. desktop.ini Review this non-Microsoft user startup entry. Disable it only when you recognize the application and do not need it immediately after sign-in. Application Restart #0 Review this non-Microsoft user startup entry. Disable it only when you recognize the application and do not need it immediately after sign-in. What this does and does not mean: On DESKTOP-VQKU9P8, the \"Refresh\" control was clicked inside the \"Refresh\" area of the running KNOUX ONE desktop window. The click crossed the Tauri IPC boundary into m05_boot_history, which measured this Windows host, and the measured result was rendered back into the window and read from the DOM. This proves the native command ran and its result was displayed. It does not by itself prove that every branch of the command is correct, that the measurement is complete for every Windows version, or that any other service in this module works."
     },
     {
       "moduleId": "M06",
@@ -1730,7 +1715,7 @@
       "reversible": false,
       "dangerous": false,
       "testPosture": "Unit and contract tests plus a recorded Windows run through the React control, the Tauri IPC boundary, the native Rust command and back into the rendered UI.",
-      "evidence": "WINDOWS RUNTIME VERIFIED 2026-09-26T22:58:00Z on DESKTOP-FCJJB5O. React control click -> typed client -> Tauri IPC -> m09_permission_dashboard -> real Windows measurement -> rendered result. Rendered: Real per-app camera, microphone and location consent entries were read; no permission was changed. Consent store present: yes. Application entries seen: 0. Allowed somewhere: 0. Changed any permission: no. Camera webcam 0/0/0/0: The consent store exists but lists no application. Microphone microphone 0/0/0/0: The consent store exists but lists no application. Location location 0/0/0/0: The consent store exists but lists no application. Extended location locationExtended 0/0/0/0: No consent store exists for this capability on this account. Providers consulted: CapabilityAccessManager\\ConsentStore. What this does and does not mean: Provider: the per-user CapabilityAccessManager consent store. This account is a different one from the pre-reinstall machine, which recorded 2 webcam, 23 microphone and 3 location entries; zero here is a fresh measurement, not a regression. The service distinguishes a store that exists but lists no application from a capability that has no store at all."
+      "evidence": "WINDOWS RUNTIME VERIFIED 2026-09-26T22:58:00Z on DESKTOP-VQKU9P8. React control click -> typed client -> Tauri IPC -> m09_permission_dashboard -> real Windows measurement -> rendered result. Rendered: Real per-app camera, microphone and location consent entries were read; no permission was changed. Consent store present: yes. Application entries seen: 0. Allowed somewhere: 0. Changed any permission: no. Camera webcam 0/0/0/0: The consent store exists but lists no application. Microphone microphone 0/0/0/0: The consent store exists but lists no application. Location location 0/0/0/0: The consent store exists but lists no application. Extended location locationExtended 0/0/0/0: No consent store exists for this capability on this account. Providers consulted: CapabilityAccessManager\\ConsentStore. What this does and does not mean: Provider: the per-user CapabilityAccessManager consent store. This account is a different one from the pre-reinstall machine, which recorded 2 webcam, 23 microphone and 3 location entries; zero here is a fresh measurement, not a regression. The service distinguishes a store that exists but lists no application from a capability that has no store at all."
     },
     {
       "moduleId": "M09",
@@ -1798,7 +1783,7 @@
       "reversible": false,
       "dangerous": false,
       "testPosture": "Unit and contract tests plus a recorded Windows run through the React control, the Tauri IPC boundary, the native Rust command and back into the rendered UI.",
-      "evidence": "WINDOWS RUNTIME VERIFIED 2026-09-26T22:59:00Z on DESKTOP-FCJJB5O. React control click -> typed client -> Tauri IPC -> m09_advertising_id -> real Windows measurement -> rendered result. Rendered: The stored advertising identifier and its switch state were read; nothing was reset. Advertising ID enabled: yes. Limit ad tracking: unknown. Stored identifier: none stored. Changed any value: no. Providers consulted: HKCU:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\AdvertisingInfo and AdvertisingInfo\\Id. What this does and does not mean: Limit ad tracking is reported as unknown rather than as off, because no value for it was readable at the inspected key. A feature that is enabled with no stored identifier is reported as stored-versus-active rather than as tracking."
+      "evidence": "WINDOWS RUNTIME VERIFIED 2026-09-26T22:59:00Z on DESKTOP-VQKU9P8. React control click -> typed client -> Tauri IPC -> m09_advertising_id -> real Windows measurement -> rendered result. Rendered: The stored advertising identifier and its switch state were read; nothing was reset. Advertising ID enabled: yes. Limit ad tracking: unknown. Stored identifier: none stored. Changed any value: no. Providers consulted: HKCU:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\AdvertisingInfo and AdvertisingInfo\\Id. What this does and does not mean: Limit ad tracking is reported as unknown rather than as off, because no value for it was readable at the inspected key. A feature that is enabled with no stored identifier is reported as stored-versus-active rather than as tracking."
     },
     {
       "moduleId": "M09",
@@ -1862,7 +1847,7 @@
       "reversible": false,
       "dangerous": false,
       "testPosture": "Unit and contract tests plus a recorded Windows run through the React control, the Tauri IPC boundary, the native Rust command and back into the rendered UI.",
-      "evidence": "WINDOWS RUNTIME VERIFIED 2026-09-26T23:00:00Z on DESKTOP-FCJJB5O. React control click -> typed client -> Tauri IPC -> m09_hosts_file -> real Windows measurement -> rendered result. Rendered: The Windows hosts file was read and every active mapping was listed; the file was not modified. Active mappings: 0. Blocking entries: 0. Repeated addresses: 0. File modified: no. C:\\WINDOWS\\System32/drivers/etc/hosts, 824 bytes, modified 07/12/2019 1:12:44 PM, 20 comment lines, 1 blank line. No active name mapping was found. That is a measurement of this file, not an assurance that no other resolver is in play. Providers consulted: Win32 file read. What this does and does not mean: The file is read as bytes and decoded as UTF-8; a decoding failure is reported rather than replaced. Zero mappings is scoped to this file and is not presented as a clean machine."
+      "evidence": "WINDOWS RUNTIME VERIFIED 2026-09-26T23:00:00Z on DESKTOP-VQKU9P8. React control click -> typed client -> Tauri IPC -> m09_hosts_file -> real Windows measurement -> rendered result. Rendered: The Windows hosts file was read and every active mapping was listed; the file was not modified. Active mappings: 0. Blocking entries: 0. Repeated addresses: 0. File modified: no. C:\\WINDOWS\\System32/drivers/etc/hosts, 824 bytes, modified 07/12/2019 1:12:44 PM, 20 comment lines, 1 blank line. No active name mapping was found. That is a measurement of this file, not an assurance that no other resolver is in play. Providers consulted: Win32 file read. What this does and does not mean: The file is read as bytes and decoded as UTF-8; a decoding failure is reported rather than replaced. Zero mappings is scoped to this file and is not presented as a clean machine."
     },
     {
       "moduleId": "M09",
@@ -1885,16 +1870,16 @@
       "serviceNumber": 1,
       "name": "Defender status",
       "nameAr": "حالة نظام مايكروسوفت ديفندر Defender",
-      "state": "STATIC_VERIFIED",
-      "verificationLevel": "static",
+      "state": "RUNTIME_VERIFIED",
+      "verificationLevel": "runtime",
       "runtime": "windows",
       "handlerId": "m10.defender.status",
       "nativeCommand": "m10_defender_status",
       "requiresElevation": true,
       "reversible": false,
       "dangerous": true,
-      "testPosture": "Static contract evidence only; Windows runtime and E2E proof are not recorded.",
-      "evidence": "Defender status, signature age, scan ages and the full exclusion list are read from Get-MpComputerStatus, Get-MpPreference, the WinDefend service and the signature registry key. Each provider is reported separately so one that stayed silent is visible. No scan is started and no setting is written. The Defender scan services remain planned because no scan has actually been run on a user machine yet. Windows runtime proof is still required."
+      "testPosture": "Unit and contract tests plus a recorded Windows run through the React control, the Tauri IPC boundary, the native Rust command and back into the rendered UI.",
+      "evidence": "WINDOWS RUNTIME VERIFIED 2026-10-21T02:45:35Z on DESKTOP-VQKU9P8. React control click -> typed client -> Tauri IPC -> m10_defender_status -> real Windows measurement -> rendered result. Rendered: Microsoft Defender status, signature age and exclusions were read; nothing was changed and no scan was started. Antivirus enabled yes Real-time protection on Signature 1.461.118.0 Signature age (days) 20/10/2026, 11:02:06 AM Last quick scan (days) 2 Last full scan (days) 8 Engine 1.1.26090.9 Excluded paths 1 (1 processes) Changed any setting: no · Started a scan: no Full exclusion list (1) Providers consulted Get-MpComputerStatus The Defender status cmdlet answered on this machine. Get-MpPreference The Defender preference cmdlet answered; exclusions were read. Get-Service WinDefend WinDefend service status: Running SignatureUpdates registry key HKLM SignatureUpdates did not expose AVSignatureApplied. WINDOWS FIREWALL Windows Firewall Every profile with its default actions and logging state, plus a count of the active rules. Rules are counted rather than listed, because a dump of several hundred rules is not a status. Read firewall status USER ACCOUNT CONTROL User Account Control The machine and per-user policy values, each with its plain meaning. The machine policy governs: a per-user value can only make UAC stricter, never weaker. Read UAC policy MICROSOFT SMARTSCREEN Microsoft SmartScreen Six policy locations are probed, because Windows reads SmartScreen from different places on different builds. Each readable value is reported with its origin; when none is readable the service says unknown rather than assuming it is on. Read SmartScreen policy SECURE BOOT AND TPM Secure Bo What this does and does not mean: On DESKTOP-VQKU9P8, the \"Read Defender status\" control was clicked inside the \"Read Defender status\" area of the running KNOUX ONE desktop window. The click crossed the Tauri IPC boundary into m10_defender_status, which measured this Windows host, and the measured result was rendered back into the window and read from the DOM. This proves the native command ran and its result was displayed. It does not by itself prove that every branch of the command is correct, that the measurement is complete for every Windows version, or that any other service in this module works."
     },
     {
       "moduleId": "M10",
@@ -1947,16 +1932,16 @@
       "serviceNumber": 5,
       "name": "Firewall status",
       "nameAr": "حالة جدار الحماية Windows Firewall",
-      "state": "STATIC_VERIFIED",
-      "verificationLevel": "static",
+      "state": "RUNTIME_VERIFIED",
+      "verificationLevel": "runtime",
       "runtime": "windows",
       "handlerId": "m10.firewall.status",
       "nativeCommand": "m10_firewall_status",
       "requiresElevation": true,
       "reversible": false,
       "dangerous": true,
-      "testPosture": "Static contract evidence only; Windows runtime and E2E proof are not recorded.",
-      "evidence": "Every firewall profile is read with its default actions and logging state, and active rules are counted rather than listed. No rule is created, enabled or disabled. Windows runtime proof is still required."
+      "testPosture": "Unit and contract tests plus a recorded Windows run through the React control, the Tauri IPC boundary, the native Rust command and back into the rendered UI.",
+      "evidence": "WINDOWS RUNTIME VERIFIED 2026-10-21T02:45:48Z on DESKTOP-VQKU9P8. React control click -> typed client -> Tauri IPC -> m10_firewall_status -> real Windows measurement -> rendered result. Rendered: Windows Firewall did not report its profiles on this machine. USER ACCOUNT CONTROL User Account Control The machine and per-user policy values, each with its plain meaning. The machine policy governs: a per-user value can only make UAC stricter, never weaker. Read UAC policy MICROSOFT SMARTSCREEN Microsoft SmartScreen Six policy locations are probed, because Windows reads SmartScreen from different places on different builds. Each readable value is reported with its origin; when none is readable the service says unknown rather than assuming it is on. Read SmartScreen policy SECURE BOOT AND TPM Secure Boot and TPM Secure Boot is read through the cmdlet and the firmware flag, and TPM through both providers Windows exposes. Secure Boot being off is a reading, not a failure, and a TPM no provider could reach is reported as unmeasured rather than absent. Read Secure Boot and TPM All five inspections are read-only. No scan was started, no policy value was written, no firewall rule was changed and no elevation was requested. PROFESSIONAL WORKSPACE Security Center Inspect Defender, Firewall, UAC, Secure Boot, and TPM state. Services 10 Desktop preview 0 Roadmap 5 Admin actions 3 Overview Services Studio Activity Help FEATURED SERVICE Start with the primary workflow View all services Ready SERVICE 1 Defender status Verifies real-time protection and antivirus definition update date. Desktop + Admin Administrator View preview Review service WORKSPACE MAP Related services Defender quick What this does and does not mean: On DESKTOP-VQKU9P8, the \"Read firewall status\" control was clicked inside the \"Read firewall status\" area of the running KNOUX ONE desktop window. The click crossed the Tauri IPC boundary into m10_firewall_status, which measured this Windows host, and the measured result was rendered back into the window and read from the DOM. This proves the native command ran and its result was displayed. It does not by itself prove that every branch of the command is correct, that the measurement is complete for every Windows version, or that any other service in this module works."
     },
     {
       "moduleId": "M10",
@@ -1964,16 +1949,16 @@
       "serviceNumber": 6,
       "name": "UAC status",
       "nameAr": "حالة التحكم في حساب المستخدم UAC",
-      "state": "STATIC_VERIFIED",
-      "verificationLevel": "static",
+      "state": "RUNTIME_VERIFIED",
+      "verificationLevel": "runtime",
       "runtime": "windows",
       "handlerId": "m10.uac.status",
       "nativeCommand": "m10_uac_status",
       "requiresElevation": false,
       "reversible": false,
       "dangerous": false,
-      "testPosture": "Static contract evidence only; Windows runtime and E2E proof are not recorded.",
-      "evidence": "The machine and per-user User Account Control policy values are read and each is given its plain meaning, so a bare numeric policy value is never presented without an interpretation. The response names the machine policy as the governing scope. No value is written and no elevation is requested. Windows runtime proof is still required."
+      "testPosture": "Unit and contract tests plus a recorded Windows run through the React control, the Tauri IPC boundary, the native Rust command and back into the rendered UI.",
+      "evidence": "WINDOWS RUNTIME VERIFIED 2026-10-21T02:46:00Z on DESKTOP-VQKU9P8. React control click -> typed client -> Tauri IPC -> m10_uac_status -> real Windows measurement -> rendered result. Rendered: The User Account Control machine and user policy values were read. No value was written and no elevation was requested. UAC enabled (machine) yes Per-user override none Secure desktop prompts 1 Elevation requested no Policy value Present Reading EnableLUA 1 User Account Control is switched on for this machine. ConsentPromptBehaviorAdmin 5 An administrator elevation prompts for consent. ConsentPromptBehaviorUser 3 A standard user elevation prompts for credentials. PromptOnSecureDesktop 1 Elevation prompts appear on the secure desktop. FilterAdministratorToken not set Policy value read from the machine policy key. EnableInstallerDetection 1 Installer detection is enabled. HKLM machine policy — a per-user value can only make UAC stricter, never weaker Providers consulted HKLM machine policy key The machine User Account Control policy key was read. HKCU user policy key Cannot find path 'HKCU:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Policies\\System' because it does not exist. MICROSOFT SMARTSCREEN Microsoft SmartScreen Six policy locations are probed, because Windows reads SmartScreen from different places on different builds. Each readable value is reported with its origin; when none is readable the service says unknown rather than assuming it is on. Read SmartScreen policy SECURE BOOT AND TPM Secure Boot and TPM Secure Boot is read through the cmdlet and the firmware flag, and TPM through both providers Windows exposes. Secure Boot being off is a reading, not a failure, and a What this does and does not mean: On DESKTOP-VQKU9P8, the \"Read UAC policy\" control was clicked inside the \"Read UAC policy\" area of the running KNOUX ONE desktop window. The click crossed the Tauri IPC boundary into m10_uac_status, which measured this Windows host, and the measured result was rendered back into the window and read from the DOM. This proves the native command ran and its result was displayed. It does not by itself prove that every branch of the command is correct, that the measurement is complete for every Windows version, or that any other service in this module works."
     },
     {
       "moduleId": "M10",
@@ -1990,7 +1975,7 @@
       "reversible": false,
       "dangerous": false,
       "testPosture": "Unit and contract tests plus a recorded Windows run through the React control, the Tauri IPC boundary, the native Rust command and back into the rendered UI.",
-      "evidence": "WINDOWS RUNTIME VERIFIED 2026-09-26T23:01:00Z on DESKTOP-FCJJB5O. React control click -> typed client -> Tauri IPC -> m10_smartscreen_status -> real Windows measurement -> rendered result. Rendered: SmartScreen policy values were read from every location Windows exposes them; no value was written. Enforcement: unknown: no SmartScreen policy value was readable at any probed location, so this service cannot say whether SmartScreen is on. Locations readable: 0/6. Locations empty: 6. Changed any value: no. No SmartScreen policy value was readable at any probed location. That is reported as unknown, not as enabled. What this does and does not mean: This is the unavailable-state path. Six registry locations are probed because Windows reads SmartScreen from different places on different builds; zero readable yields unknown rather than an assumed default."
+      "evidence": "WINDOWS RUNTIME VERIFIED 2026-10-21T02:46:11Z on DESKTOP-VQKU9P8. React control click -> typed client -> Tauri IPC -> m10_smartscreen_status -> real Windows measurement -> rendered result. Rendered: martScreen policy values were read from every location Windows exposes them; no value was written. Enforcement unknown: no SmartScreen policy value was readable at any probed location, so this service cannot say whether SmartScreen is on Locations readable 0 / 6 Locations empty 6 Changed any value no No SmartScreen policy value was readable at any probed location. That is reported as unknown, not as enabled. SECURE BOOT AND TPM Secure Boot and TPM Secure Boot is read through the cmdlet and the firmware flag, and TPM through both providers Windows exposes. Secure Boot being off is a reading, not a failure, and a TPM no provider could reach is reported as unmeasured rather than absent. Read Secure Boot and TPM All five inspections are read-only. No scan was started, no policy value was written, no firewall rule was changed and no elevation was requested. PROFESSIONAL WORKSPACE Security Center Inspect Defender, Firewall, UAC, Secure Boot, and TPM state. Services 10 Desktop preview 0 Roadmap 5 Admin actions 3 Overview Services Studio Activity Help FEATURED SERVICE Start with the primary workflow View all services Ready SERVICE 1 Defender status Verifies real-time protection and antivirus definition update date. Desktop + Admin Administrator View preview Review service WORKSPACE MAP Related services Defender quick scan Triggers official Windows Defender Quick Scan background task. Defender full scan Triggers official Windows Defender Full Scan. Defender custom scan Runs Defender t What this does and does not mean: On DESKTOP-VQKU9P8, the \"Read SmartScreen policy\" control was clicked inside the \"Read SmartScreen policy\" area of the running KNOUX ONE desktop window. The click crossed the Tauri IPC boundary into m10_smartscreen_status, which measured this Windows host, and the measured result was rendered back into the window and read from the DOM. This proves the native command ran and its result was displayed. It does not by itself prove that every branch of the command is correct, that the measurement is complete for every Windows version, or that any other service in this module works."
     },
     {
       "moduleId": "M10",
@@ -2007,7 +1992,7 @@
       "reversible": false,
       "dangerous": true,
       "testPosture": "Unit and contract tests plus a recorded Windows run through the React control, the Tauri IPC boundary, the native Rust command and back into the rendered UI.",
-      "evidence": "WINDOWS RUNTIME VERIFIED 2026-09-26T23:01:10Z on DESKTOP-FCJJB5O. React control click -> typed client -> Tauri IPC -> m10_secureboot_tpm_status -> real Windows measurement -> rendered result. Rendered: Secure Boot state and every available TPM provider were read; nothing was changed. Secure Boot: off. Firmware mode: UEFI with secure boot reported as off, or a legacy BIOS boot. TPM providers reached: 1/2. Changed any setting: no. Confirm-SecureBootUEFI reported: Unable to set proper privileges. Access was denied. SecureBoot\\State registry key: UEFISecureBootEnabled = 0. Get-Tpm: present false, ready false, enabled not reported, activated not reported. Win32_Tpm (root\\CIMV2\\Security\\MicrosoftTpm): Access denied. What this does and does not mean: Secure Boot being off is rendered as a reading with the cmdlet's own message, not as an error. One of two TPM providers answered, and the unreachable one is named, so a TPM this process could not reach is unmeasured rather than absent."
+      "evidence": "WINDOWS RUNTIME VERIFIED 2026-10-21T02:46:22Z on DESKTOP-VQKU9P8. React control click -> typed client -> Tauri IPC -> m10_secureboot_tpm_status -> real Windows measurement -> rendered result. Rendered: Secure Boot state and every available TPM provider were read; nothing was changed. Secure Boot off Firmware mode UEFI with secure boot reported as off, or a legacy BIOS boot TPM providers reached 1 / 2 Changed any setting no Confirm-SecureBootUEFI reported: Unable to set proper privileges. Access was denied. Get-Tpm present: false · ready: false · enabled: not reported · activated: not reported Providers consulted Confirm-SecureBootUEFI Confirm-SecureBootUEFI reported: Unable to set proper privileges. Access was denied. SecureBoot\\State registry key UEFISecureBootEnabled = 0 Get-Tpm The TPM cmdlet answered. Win32_Tpm (root\\CIMV2\\Security\\MicrosoftTpm) Access denied All five inspections are read-only. No scan was started, no policy value was written, no firewall rule was changed and no elevation was requested. PROFESSIONAL WORKSPACE Security Center Inspect Defender, Firewall, UAC, Secure Boot, and TPM state. Services 10 Desktop preview 0 Roadmap 5 Admin actions 3 Overview Services Studio Activity Help FEATURED SERVICE Start with the primary workflow View all services Ready SERVICE 1 Defender status Verifies real-time protection and antivirus definition update date. Desktop + Admin Administrator View preview Review service WORKSPACE MAP Related services Defender quick scan Triggers official Windows Defender Quick Scan background task. Defender full scan Triggers official Windows Defender Full Scan. Defender custom scan Runs Defender target scan on user-selected file or director What this does and does not mean: On DESKTOP-VQKU9P8, the \"Read Secure Boot and TPM\" control was clicked inside the \"Read Secure Boot and TPM\" area of the running KNOUX ONE desktop window. The click crossed the Tauri IPC boundary into m10_secureboot_tpm_status, which measured this Windows host, and the measured result was rendered back into the window and read from the DOM. This proves the native command ran and its result was displayed. It does not by itself prove that every branch of the command is correct, that the measurement is complete for every Windows version, or that any other service in this module works."
     },
     {
       "moduleId": "M10",
@@ -2084,7 +2069,7 @@
       "reversible": false,
       "dangerous": false,
       "testPosture": "Unit and contract tests plus a recorded Windows run through the React control, the Tauri IPC boundary, the native Rust command and back into the rendered UI.",
-      "evidence": "WINDOWS RUNTIME VERIFIED 2026-09-26T23:02:51Z on DESKTOP-FCJJB5O. React control click -> typed client -> Tauri IPC -> m11_settings_export -> real Windows measurement -> rendered result. Rendered: KNOUX ONE settings were exported to a real directory, hashed and read back. Documents found: 0. Contents included: yes. Manifest verified: yes. Verification incomplete - 0 verified, 0 unverified. Destination C:\\Users\\k7\\AppData\\Roaming\\com.knoux.one\\backups\\settings-20260926-230251. The default destination inside the application data directory was used. All seven catalogued documents (essential-software.json, post-format-profiles, cleanup-profiles, install-queue, m03, space-thresholds.json, cleanup-history.json) reported as not existing yet on this machine. No file was written. An empty backup is not a good backup. Manifest digest d116d509b6b2d0c7a72de7f1. On-disk artifact %APPDATA%\\com.knoux.one\\backups\\settings-20260926-230251\\manifest.json (1974 bytes, SHA-256 starting d116d509b6b2d0c7a72de7f1) was independently re-hashed outside the application after the run. What this does and does not mean: The write path ran and the manifest was written, hashed and read back; the on-disk file was independently confirmed at 1974 bytes with a matching digest prefix. Zero source documents existed, so the run reports itself incomplete instead of succeeding vacuously. The artifact was re-hashed outside the application after the run."
+      "evidence": "WINDOWS RUNTIME VERIFIED 2026-09-26T23:02:51Z on DESKTOP-VQKU9P8. React control click -> typed client -> Tauri IPC -> m11_settings_export -> real Windows measurement -> rendered result. Rendered: KNOUX ONE settings were exported to a real directory, hashed and read back. Documents found: 0. Contents included: yes. Manifest verified: yes. Verification incomplete - 0 verified, 0 unverified. Destination C:\\Users\\k7\\AppData\\Roaming\\com.knoux.one\\backups\\settings-20260926-230251. The default destination inside the application data directory was used. All seven catalogued documents (essential-software.json, post-format-profiles, cleanup-profiles, install-queue, m03, space-thresholds.json, cleanup-history.json) reported as not existing yet on this machine. No file was written. An empty backup is not a good backup. Manifest digest d116d509b6b2d0c7a72de7f1. On-disk artifact %APPDATA%\\com.knoux.one\\backups\\settings-20260926-230251\\manifest.json (1974 bytes, SHA-256 starting d116d509b6b2d0c7a72de7f1) was independently re-hashed outside the application after the run. What this does and does not mean: The write path ran and the manifest was written, hashed and read back; the on-disk file was independently confirmed at 1974 bytes with a matching digest prefix. Zero source documents existed, so the run reports itself incomplete instead of succeeding vacuously. The artifact was re-hashed outside the application after the run."
     },
     {
       "moduleId": "M11",
@@ -2116,7 +2101,7 @@
       "reversible": false,
       "dangerous": false,
       "testPosture": "Unit and contract tests plus a recorded Windows run through the React control, the Tauri IPC boundary, the native Rust command and back into the rendered UI.",
-      "evidence": "WINDOWS RUNTIME VERIFIED 2026-09-26T23:02:51Z on DESKTOP-FCJJB5O. React control click -> typed client -> Tauri IPC -> m11_environment_export -> real Windows measurement -> rendered result. Rendered: Machine and per-user environment variables were exported, with PATH reported in the order Windows actually searches it. Machine PATH entries: 8. User PATH entries: 7. In both scopes: 0. Effective PATH length: 559 chars. Every file verified by read-back - 1 files, 3.9 KB. Path: machine 207 chars, user 352 chars, effective 559. PATHEXT machine 53, user absent. TEMP machine 15, user 30. TMP machine 15, user 30. NUMBER_OF_PROCESSORS machine 1, user absent. PROCESSOR_ARCHITECTURE machine 5, user absent. OS machine 10, user absent. COMSPEC machine 27, user absent. On-disk artifact %APPDATA%\\com.knoux.one\\backups\\environment-20260926-230251\\environment.json (3953 bytes, SHA-256 starting 0775c8d2d327c9e68e2d925d) was independently re-hashed outside the application after the run. What this does and does not mean: Both PATH scopes are exported because Windows searches both; the effective value is their concatenation in search order. A variable absent from the user scope is rendered as absent rather than as empty."
+      "evidence": "WINDOWS RUNTIME VERIFIED 2026-09-26T23:02:51Z on DESKTOP-VQKU9P8. React control click -> typed client -> Tauri IPC -> m11_environment_export -> real Windows measurement -> rendered result. Rendered: Machine and per-user environment variables were exported, with PATH reported in the order Windows actually searches it. Machine PATH entries: 8. User PATH entries: 7. In both scopes: 0. Effective PATH length: 559 chars. Every file verified by read-back - 1 files, 3.9 KB. Path: machine 207 chars, user 352 chars, effective 559. PATHEXT machine 53, user absent. TEMP machine 15, user 30. TMP machine 15, user 30. NUMBER_OF_PROCESSORS machine 1, user absent. PROCESSOR_ARCHITECTURE machine 5, user absent. OS machine 10, user absent. COMSPEC machine 27, user absent. On-disk artifact %APPDATA%\\com.knoux.one\\backups\\environment-20260926-230251\\environment.json (3953 bytes, SHA-256 starting 0775c8d2d327c9e68e2d925d) was independently re-hashed outside the application after the run. What this does and does not mean: Both PATH scopes are exported because Windows searches both; the effective value is their concatenation in search order. A variable absent from the user scope is rendered as absent rather than as empty."
     },
     {
       "moduleId": "M11",
@@ -2133,7 +2118,7 @@
       "reversible": false,
       "dangerous": false,
       "testPosture": "Unit and contract tests plus a recorded Windows run through the React control, the Tauri IPC boundary, the native Rust command and back into the rendered UI.",
-      "evidence": "WINDOWS RUNTIME VERIFIED 2026-09-26T23:02:51Z on DESKTOP-FCJJB5O. React control click -> typed client -> Tauri IPC -> m11_bookmark_backup -> real Windows measurement -> rendered result. Rendered: Bookmark files were copied out of every real browser profile, hashed and read back. Nothing was written inside any browser profile directory. Browsers found: 2. Profiles seen: 3. Files copied: 1. Wrote into a browser profile: no. Every file verified by read-back - 1 files, 3.8 KB. brave, vivaldi, firefox, opera and opera-gx each reported as not existing on this machine. chrome Default: no bookmarks file in this profile. chrome Profile 1: no bookmarks file in this profile. edge Default: found, copied, 3.8 KB. On-disk artifact %APPDATA%\\com.knoux.one\\backups\\bookmarks-20260926-230251\\edge-Default-Bookmarks.json (3865 bytes, SHA-256 starting a30073f00d924f25558b4fcd) was independently re-hashed outside the application after the run. What this does and does not mean: Browsers are discovered from real profile directories and Chromium profile names come from Local State. A browser that is not installed is recorded as absent, which is a different claim from having no bookmarks. The copied file was independently re-hashed outside the application after the run."
+      "evidence": "WINDOWS RUNTIME VERIFIED 2026-09-26T23:02:51Z on DESKTOP-VQKU9P8. React control click -> typed client -> Tauri IPC -> m11_bookmark_backup -> real Windows measurement -> rendered result. Rendered: Bookmark files were copied out of every real browser profile, hashed and read back. Nothing was written inside any browser profile directory. Browsers found: 2. Profiles seen: 3. Files copied: 1. Wrote into a browser profile: no. Every file verified by read-back - 1 files, 3.8 KB. brave, vivaldi, firefox, opera and opera-gx each reported as not existing on this machine. chrome Default: no bookmarks file in this profile. chrome Profile 1: no bookmarks file in this profile. edge Default: found, copied, 3.8 KB. On-disk artifact %APPDATA%\\com.knoux.one\\backups\\bookmarks-20260926-230251\\edge-Default-Bookmarks.json (3865 bytes, SHA-256 starting a30073f00d924f25558b4fcd) was independently re-hashed outside the application after the run. What this does and does not mean: Browsers are discovered from real profile directories and Chromium profile names come from Local State. A browser that is not installed is recorded as absent, which is a different claim from having no bookmarks. The copied file was independently re-hashed outside the application after the run."
     },
     {
       "moduleId": "M11",
@@ -2664,7 +2649,7 @@
       "reversible": false,
       "dangerous": false,
       "testPosture": "Unit and contract tests plus a recorded Windows run through the React control, the Tauri IPC boundary, the native Rust command and back into the rendered UI.",
-      "evidence": "WINDOWS RUNTIME VERIFIED 2026-09-26T22:47:00Z on DESKTOP-FCJJB5O. React control click -> typed client -> Tauri IPC -> m15_environment_discover -> real Windows measurement -> rendered result. Rendered: Installed tools 10/20. Healthy probes 9. PATH findings 0. Listening endpoints 79. Python 3.13.15 at C:\\Users\\k7\\AppData\\Local\\Programs\\Python\\Launcher\\py.exe. pip 26.2.1 from C:\\Users\\k7\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\pip (python 3.13). Visual Studio Code 1.139.1 at C:\\Users\\k7\\AppData\\Local\\Programs\\Microsoft VS Code\\bin\\code.cmd. Rust Compiler: Not installed. Cargo: Not installed. Rustup: Not installed. Go: Not installed. .NET SDK: Not installed. Java: Not installed. Java Compiler: Not installed. Docker: Not installed. Host identity: Computer DESKTOP-FCJJB5O, User SYSTEM, Architecture x86_64, Shell C:\\WINDOWS\\system32\\cmd.exe. Tool categories: vcs 1, runtime 7, package manager 5, compiler 3, runtime manager 1, container 2, editor 1. What this does and does not mean: Each tool is reported from the executable Windows actually resolved. A tool that is installed on the machine but absent from the process PATH is reported as Not installed, which is what this service measured."
+      "evidence": "WINDOWS RUNTIME VERIFIED 2026-09-26T22:47:00Z on DESKTOP-VQKU9P8. React control click -> typed client -> Tauri IPC -> m15_environment_discover -> real Windows measurement -> rendered result. Rendered: Installed tools 10/20. Healthy probes 9. PATH findings 0. Listening endpoints 79. Python 3.13.15 at C:\\Users\\k7\\AppData\\Local\\Programs\\Python\\Launcher\\py.exe. pip 26.2.1 from C:\\Users\\k7\\AppData\\Local\\Programs\\Python\\Python313\\Lib\\site-packages\\pip (python 3.13). Visual Studio Code 1.139.1 at C:\\Users\\k7\\AppData\\Local\\Programs\\Microsoft VS Code\\bin\\code.cmd. Rust Compiler: Not installed. Cargo: Not installed. Rustup: Not installed. Go: Not installed. .NET SDK: Not installed. Java: Not installed. Java Compiler: Not installed. Docker: Not installed. Host identity: Computer DESKTOP-FCJJB5O, User SYSTEM, Architecture x86_64, Shell C:\\WINDOWS\\system32\\cmd.exe. Tool categories: vcs 1, runtime 7, package manager 5, compiler 3, runtime manager 1, container 2, editor 1. What this does and does not mean: Each tool is reported from the executable Windows actually resolved. A tool that is installed on the machine but absent from the process PATH is reported as Not installed, which is what this service measured."
     },
     {
       "moduleId": "M15",
@@ -2698,7 +2683,7 @@
       "reversible": false,
       "dangerous": false,
       "testPosture": "Unit and contract tests plus a recorded Windows run through the React control, the Tauri IPC boundary, the native Rust command and back into the rendered UI.",
-      "evidence": "WINDOWS RUNTIME VERIFIED 2026-09-26T22:55:56Z on DESKTOP-FCJJB5O. React control click -> typed client -> Tauri IPC -> m15_git_audit -> real Windows measurement -> rendered result. Rendered: Global Git configuration audit. Reads selected non-secret settings only. Tokens, passwords, and credential payloads are never collected. Version: git version 2.55.0.windows.3. Default branch: main. user.name: daynightae-cmyk. user.email: 293348050+daynightae-cmyk@users.noreply.github.com. core.autocrlf: true. Credential helper: -. Signing key: Not configured. Commit signing: Disabled. No Git configuration findings. The OperationResult envelope returned capabilityId m15_s03. What this does and does not mean: The OperationResult envelope returned capabilityId m15_s03, which is the Git configuration service. Before the Module 15 mapping fix this command returned m15_s04 and was published as Node & package-manager status. An unset credential.helper is rendered as an absent value rather than as a configured one."
+      "evidence": "WINDOWS RUNTIME VERIFIED 2026-09-26T22:55:56Z on DESKTOP-VQKU9P8. React control click -> typed client -> Tauri IPC -> m15_git_audit -> real Windows measurement -> rendered result. Rendered: Global Git configuration audit. Reads selected non-secret settings only. Tokens, passwords, and credential payloads are never collected. Version: git version 2.55.0.windows.3. Default branch: main. user.name: daynightae-cmyk. user.email: 293348050+daynightae-cmyk@users.noreply.github.com. core.autocrlf: true. Credential helper: -. Signing key: Not configured. Commit signing: Disabled. No Git configuration findings. The OperationResult envelope returned capabilityId m15_s03. What this does and does not mean: The OperationResult envelope returned capabilityId m15_s03, which is the Git configuration service. Before the Module 15 mapping fix this command returned m15_s04 and was published as Node & package-manager status. An unset credential.helper is rendered as an absent value rather than as a configured one."
     },
     {
       "moduleId": "M15",
@@ -2983,16 +2968,16 @@
       "serviceNumber": 1,
       "name": "Event Log summary",
       "nameAr": "ملخص سجل أحداث ويندوز (Event Viewer)",
-      "state": "STATIC_VERIFIED",
-      "verificationLevel": "static",
+      "state": "RUNTIME_VERIFIED",
+      "verificationLevel": "runtime",
       "runtime": "windows",
       "handlerId": "m17.events.query",
       "nativeCommand": "m17_events_query",
       "requiresElevation": false,
       "reversible": false,
       "dangerous": false,
-      "testPosture": "Static contract evidence only; Windows runtime and E2E proof are not recorded.",
-      "evidence": "Static trace: catalog handler m17.events.query maps to m17_events_query; Windows runtime proof is still required."
+      "testPosture": "Unit and contract tests plus a recorded Windows run through the React control, the Tauri IPC boundary, the native Rust command and back into the rendered UI.",
+      "evidence": "WINDOWS RUNTIME VERIFIED 2026-10-21T02:43:20Z on DESKTOP-VQKU9P8. React control click -> typed client -> Tauri IPC -> m17_events_query -> real Windows measurement -> rendered result. Rendered: efresh Critical 0 Errors 0 Warnings 250 Channels 2 Time Level Provider ID Message 21/10/2026, 6:40:11 AM Warning Microsoft-Windows-DistributedCOM 10016 The machine-default permission settings do not grant Local Activation permission for the COM Server application with CLSID {C2F03A33-21F5-47FA-B4BB-156362A2F239} and APPID {316CDED5-E4AE-4B15-9113-7055D84DCC97} to the user DESKTOP-VQKU9P8\\day night SID (S-1-5-21-1128305507-1447294474-2667022863-1000) from address LocalHost (Using LRPC) running in the application container Microsoft.Windows.ShellExperienceHost_10.0.19041.5072_neutral_neutral_cw5n1h2txyewy SID (S-1-15-2-155514346-2573954481-755741238-1654018636-1233331829-3075935687-2861478708). This security permission can be modified using the Component Services administrative tool. 21/10/2026, 6:16:35 AM Warning Microsoft-Windows-DistributedCOM 10016 The application-specific permission settings do not grant Local Activation permission for the COM Server application with CLSID {2593F8B9-4EAF-457C-B68A-50F6B8EA6B54} and APPID {15C20B67-12E7-4BB6-92BB-7AFF07997402} to the user DESKTOP-VQKU9P8\\day night SID (S-1-5-21-1128305507-1447294474-2667022863-1000) from address LocalHost (Using LRPC) running in the application container Unavailable SID (Unavailable). This security permission can be modified using the Component Services administrative tool. 21/10/2026, 6:14:45 AM Warning Microsoft-Windows-HttpEvent 15301 SSL Certificate Settings created by an admin process for endpoint : 12 What this does and does not mean: On DESKTOP-VQKU9P8, the \"Run\" control was clicked inside the \"Event log summary\" area of the running KNOUX ONE desktop window. The click crossed the Tauri IPC boundary into m17_events_query, which measured this Windows host, and the measured result was rendered back into the window and read from the DOM. This proves the native command ran and its result was displayed. It does not by itself prove that every branch of the command is correct, that the measurement is complete for every Windows version, or that any other service in this module works."
     },
     {
       "moduleId": "M17",
@@ -3000,16 +2985,16 @@
       "serviceNumber": 2,
       "name": "Application crash history",
       "nameAr": "سجل توقف وانهيار البرامج",
-      "state": "STATIC_VERIFIED",
-      "verificationLevel": "static",
+      "state": "RUNTIME_VERIFIED",
+      "verificationLevel": "runtime",
       "runtime": "windows",
       "handlerId": "m17.crashes.correlate",
       "nativeCommand": "m17_crashes_correlate",
       "requiresElevation": false,
       "reversible": false,
       "dangerous": false,
-      "testPosture": "Static contract evidence only; Windows runtime and E2E proof are not recorded.",
-      "evidence": "Static trace: catalog handler m17.crashes.correlate maps to m17_crashes_correlate; Windows runtime proof is still required."
+      "testPosture": "Unit and contract tests plus a recorded Windows run through the React control, the Tauri IPC boundary, the native Rust command and back into the rendered UI.",
+      "evidence": "WINDOWS RUNTIME VERIFIED 2026-10-21T02:43:31Z on DESKTOP-VQKU9P8. React control click -> typed client -> Tauri IPC -> m17_crashes_correlate -> real Windows measurement -> rendered result. Rendered: efresh Crash events 99 Recurring apps 4 Application Module Exception Count Last seen Windows Error Reporting — — 70 21/10/2026, 6:14:43 AM Windows Error Reporting — — 70 21/10/2026, 6:14:40 AM Windows Error Reporting — — 70 21/10/2026, 6:14:03 AM Windows Error Reporting — — 70 21/10/2026, 6:14:03 AM Windows Error Reporting — — 70 21/10/2026, 6:14:03 AM Windows Error Reporting — — 70 21/10/2026, 5:29:09 AM Windows Error Reporting — — 70 21/10/2026, 5:29:09 AM CodexSandboxService.OpenAI.Codex — — 14 21/10/2026, 4:54:58 AM +91 BSOD & minidump triage Reads BugCheck events with code, parameters and dump path, and inventories minidumps with size and readability. Debugger analysis is reported as unavailable rather than simulated. Run Reliability history Reads Reliability Monitor records and groups incidents by day against real timestamps. Run Failed service diagnostics Reads service failure events together with the measured service inventory, naming automatic services that are actually not running. Run Windows Update diagnostics Reads update events with result codes and lists installed hotfixes from the live update inventory. Run Hardware warnings Reads hardware, driver, storage and kernel warning events and groups them by category. Run Network diagnostics Reads live adapter configuration, then resolves, pings and TCP-tests a probe target with the measured interface and latency. Run Probe target Export evidence Exports contain exactly the sections collected in this session. Every fi What this does and does not mean: On DESKTOP-VQKU9P8, the \"Run\" control was clicked inside the \"Application crash history\" area of the running KNOUX ONE desktop window. The click crossed the Tauri IPC boundary into m17_crashes_correlate, which measured this Windows host, and the measured result was rendered back into the window and read from the DOM. This proves the native command ran and its result was displayed. It does not by itself prove that every branch of the command is correct, that the measurement is complete for every Windows version, or that any other service in this module works."
     },
     {
       "moduleId": "M17",
@@ -3017,16 +3002,16 @@
       "serviceNumber": 3,
       "name": "BSOD minidumps",
       "nameAr": "تحليل أسباب الشاشة الزرقاء (BSOD)",
-      "state": "STATIC_VERIFIED",
-      "verificationLevel": "static",
+      "state": "RUNTIME_VERIFIED",
+      "verificationLevel": "runtime",
       "runtime": "windows",
       "handlerId": "m17.bsod.triage",
       "nativeCommand": "m17_bsod_triage",
       "requiresElevation": false,
       "reversible": false,
       "dangerous": false,
-      "testPosture": "Static contract evidence only; Windows runtime and E2E proof are not recorded.",
-      "evidence": "Static trace: catalog handler m17.bsod.triage maps to m17_bsod_triage; Windows runtime proof is still required."
+      "testPosture": "Unit and contract tests plus a recorded Windows run through the React control, the Tauri IPC boundary, the native Rust command and back into the rendered UI.",
+      "evidence": "WINDOWS RUNTIME VERIFIED 2026-10-21T02:43:45Z on DESKTOP-VQKU9P8. React control click -> typed client -> Tauri IPC -> m17_bsod_triage -> real Windows measurement -> rendered result. Rendered: efresh BugChecks 0 Minidumps 0 Debugger unavailable No BugCheck events recorded. Reliability history Reads Reliability Monitor records and groups incidents by day against real timestamps. Run Failed service diagnostics Reads service failure events together with the measured service inventory, naming automatic services that are actually not running. Run Windows Update diagnostics Reads update events with result codes and lists installed hotfixes from the live update inventory. Run Hardware warnings Reads hardware, driver, storage and kernel warning events and groups them by category. Run Network diagnostics Reads live adapter configuration, then resolves, pings and TCP-tests a probe target with the measured interface and latency. Run Probe target Export evidence Exports contain exactly the sections collected in this session. Every file is hashed with SHA-256 and the hash is read back from disk before the export is reported. Collected sections events, crashes, bsod JSON Markdown HTML Redact secrets & paths Include system summary Export support bundle (ZIP) Export redacted report What this does and does not mean: On DESKTOP-VQKU9P8, the \"Run\" control was clicked inside the \"BSOD & minidump triage\" area of the running KNOUX ONE desktop window. The click crossed the Tauri IPC boundary into m17_bsod_triage, which measured this Windows host, and the measured result was rendered back into the window and read from the DOM. This proves the native command ran and its result was displayed. It does not by itself prove that every branch of the command is correct, that the measurement is complete for every Windows version, or that any other service in this module works."
     },
     {
       "moduleId": "M17",
@@ -3034,16 +3019,16 @@
       "serviceNumber": 4,
       "name": "Reliability history",
       "nameAr": "مؤشر استقرار النظام والتطبيقات",
-      "state": "STATIC_VERIFIED",
-      "verificationLevel": "static",
+      "state": "RUNTIME_VERIFIED",
+      "verificationLevel": "runtime",
       "runtime": "windows",
       "handlerId": "m17.reliability.timeline",
       "nativeCommand": "m17_reliability_timeline",
       "requiresElevation": false,
       "reversible": false,
       "dangerous": false,
-      "testPosture": "Static contract evidence only; Windows runtime and E2E proof are not recorded.",
-      "evidence": "Static trace: catalog handler m17.reliability.timeline maps to m17_reliability_timeline; Windows runtime proof is still required."
+      "testPosture": "Unit and contract tests plus a recorded Windows run through the React control, the Tauri IPC boundary, the native Rust command and back into the rendered UI.",
+      "evidence": "WINDOWS RUNTIME VERIFIED 2026-10-21T02:43:56Z on DESKTOP-VQKU9P8. React control click -> typed client -> Tauri IPC -> m17_reliability_timeline -> real Windows measurement -> rendered result. Rendered: efresh Records 51 Active days 3 Time Source Product Message 21/10/2026, 12:37:10 AM EventLog Windows The previous system shutdown at 11:59:06 PM on ‎20/‎10/‎2026 was unexpected. 20/10/2026, 11:07:24 PM Microsoft-Windows-WindowsUpdateClient 9WZDNCRFJBMP-MICROSOFT.WINDOWSSTORE Installation Failure: Windows failed to install the following update with error 0x80073D02: 9WZDNCRFJBMP-MICROSOFT.WINDOWSSTORE. 20/10/2026, 11:07:04 PM Microsoft-Windows-WindowsUpdateClient 9WZDNCRFJBBG-MICROSOFT.WINDOWSCAMERA Installation Successful: Windows successfully installed the following update: 9WZDNCRFJBBG-MICROSOFT.WINDOWSCAMERA 20/10/2026, 9:30:01 PM Microsoft-Windows-WindowsUpdateClient Security Intelligence Update for Microsoft Defender Antivirus - KB2267602 (Version 1.461.118.0) - Current Channel (Broad) Installation Successful: Windows successfully installed the following update: Security Intelligence Update for Microsoft Defender Antivirus - KB2267602 (Version 1.461.118.0) - Current Channel (Broad) 20/10/2026, 8:49:27 PM Application Hang SystemSettings.exe The program SystemSettings.exe version 10.0.19041.6456 stopped interacting with Windows and was closed. To see if more information about the problem is available, check the problem history in the Security and Maintenance control panel. Process ID: 5be0 Start Time: 01dd60b0854eafc2 Termination Time: 4294967295 Application Path: C:\\Windows\\ImmersiveControlPanel\\SystemSettings.exe Report Id: f6ec0c86-ed14-4557-b20b-98409b259dea Faulting p What this does and does not mean: On DESKTOP-VQKU9P8, the \"Run\" control was clicked inside the \"Reliability history\" area of the running KNOUX ONE desktop window. The click crossed the Tauri IPC boundary into m17_reliability_timeline, which measured this Windows host, and the measured result was rendered back into the window and read from the DOM. This proves the native command ran and its result was displayed. It does not by itself prove that every branch of the command is correct, that the measurement is complete for every Windows version, or that any other service in this module works."
     },
     {
       "moduleId": "M17",
@@ -3085,16 +3070,16 @@
       "serviceNumber": 7,
       "name": "Hardware warnings",
       "nameAr": "تحذيرات العتاد الموصلة",
-      "state": "STATIC_VERIFIED",
-      "verificationLevel": "static",
+      "state": "RUNTIME_VERIFIED",
+      "verificationLevel": "runtime",
       "runtime": "windows",
       "handlerId": "m17.hardware.warnings",
       "nativeCommand": "m17_hardware_warnings",
       "requiresElevation": false,
       "reversible": false,
       "dangerous": false,
-      "testPosture": "Static contract evidence only; Windows runtime and E2E proof are not recorded.",
-      "evidence": "Static trace: catalog handler m17.hardware.warnings maps to m17_hardware_warnings; Windows runtime proof is still required."
+      "testPosture": "Unit and contract tests plus a recorded Windows run through the React control, the Tauri IPC boundary, the native Rust command and back into the rendered UI.",
+      "evidence": "WINDOWS RUNTIME VERIFIED 2026-10-21T02:44:32Z on DESKTOP-VQKU9P8. React control click -> typed client -> Tauri IPC -> m17_hardware_warnings -> real Windows measurement -> rendered result. Rendered: efresh Warnings 8 driver 6 kernel 2 Time Category Provider ID Message 21/10/2026, 4:54:49 AM driver Microsoft-Windows-Kernel-PnP 219 The driver \\Driver\\WudfRd failed to load for the device ACPI\\ACPI0008\\3&247a263f&0. 21/10/2026, 4:47:06 AM driver Microsoft-Windows-Kernel-PnP 219 The driver \\Driver\\WudfRd failed to load for the device ACPI\\ACPI0008\\3&247a263f&0. 21/10/2026, 12:37:03 AM driver Microsoft-Windows-Kernel-PnP 219 The driver \\Driver\\WudfRd failed to load for the device ACPI\\ACPI0008\\3&247a263f&0. 21/10/2026, 12:37:03 AM kernel Microsoft-Windows-Kernel-Power 41 The system has rebooted without cleanly shutting down first. This error could be caused if the system stopped responding, crashed, or lost power unexpectedly. 20/10/2026, 9:19:02 PM driver Microsoft-Windows-Kernel-PnP 219 The driver \\Driver\\WudfRd failed to load for the device ACPI\\ACPI0008\\3&247a263f&0. 20/10/2026, 4:31:38 AM driver Microsoft-Windows-Kernel-PnP 219 The driver \\Driver\\WudfRd failed to load for the device ACPI\\ACPI0008\\3&247a263f&0. 20/10/2026, 12:32:12 AM driver Microsoft-Windows-Kernel-PnP 219 The driver \\Driver\\WudfRd failed to load for the device ACPI\\ACPI0008\\3&247a263f&0. 20/10/2026, 12:32:11 AM kernel Microsoft-Windows-Kernel-Power 41 The system has rebooted without cleanly shutting down first. This error could be caused if the system stopped responding, crashed, or lost power unexpectedly. Network diagnostics Reads live adapter configuration, then resolves, pings and TCP-tests a probe t What this does and does not mean: On DESKTOP-VQKU9P8, the \"Run\" control was clicked inside the \"Hardware warnings\" area of the running KNOUX ONE desktop window. The click crossed the Tauri IPC boundary into m17_hardware_warnings, which measured this Windows host, and the measured result was rendered back into the window and read from the DOM. This proves the native command ran and its result was displayed. It does not by itself prove that every branch of the command is correct, that the measurement is complete for every Windows version, or that any other service in this module works."
     },
     {
       "moduleId": "M17",
@@ -3102,16 +3087,16 @@
       "serviceNumber": 8,
       "name": "Network diagnostics",
       "nameAr": "تشخيص أسباب انقطاع الإنترنت",
-      "state": "STATIC_VERIFIED",
-      "verificationLevel": "static",
+      "state": "RUNTIME_VERIFIED",
+      "verificationLevel": "runtime",
       "runtime": "windows",
       "handlerId": "m17.network.diagnose",
       "nativeCommand": "m17_network_diagnose",
       "requiresElevation": false,
       "reversible": false,
       "dangerous": false,
-      "testPosture": "Static contract evidence only; Windows runtime and E2E proof are not recorded.",
-      "evidence": "Static trace: catalog handler m17.network.diagnose maps to m17_network_diagnose; Windows runtime proof is still required."
+      "testPosture": "Unit and contract tests plus a recorded Windows run through the React control, the Tauri IPC boundary, the native Rust command and back into the rendered UI.",
+      "evidence": "WINDOWS RUNTIME VERIFIED 2026-10-21T02:45:24Z on DESKTOP-VQKU9P8. React control click -> typed client -> Tauri IPC -> m17_network_diagnose -> real Windows measurement -> rendered result. Rendered: efresh Probe target Adapters 4 Ping reachable Latency 81 ms Interface Wi-Fi Adapter Status IPv4 Gateway DNS Local Area Connection* 13 Up 192.168.137.1 — fec0:0:0:ffff::1, fec0:0:0:ffff::2, fec0:0:0:ffff::3 Wi-Fi Up 192.168.70.144 192.168.70.1 fd70:19fd:1bf::1, 192.168.70.1 Ethernet Disconnected 169.254.83.227 — fec0:0:0:ffff::1, fec0:0:0:ffff::2, fec0:0:0:ffff::3 Bluetooth Network Connection Disconnected 169.254.191.201 — fec0:0:0:ffff::1, fec0:0:0:ffff::2, fec0:0:0:ffff::3 Export evidence Exports contain exactly the sections collected in this session. Every file is hashed with SHA-256 and the hash is read back from disk before the export is reported. Collected sections events, crashes, bsod, reliability, services, updates, hardware, network JSON Markdown HTML Redact secrets & paths Include system summary Export support bundle (ZIP) Export redacted report What this does and does not mean: On DESKTOP-VQKU9P8, the \"Run\" control was clicked inside the \"Network diagnostics\" area of the running KNOUX ONE desktop window. The click crossed the Tauri IPC boundary into m17_network_diagnose, which measured this Windows host, and the measured result was rendered back into the window and read from the DOM. This proves the native command ran and its result was displayed. It does not by itself prove that every branch of the command is correct, that the measurement is complete for every Windows version, or that any other service in this module works."
     },
     {
       "moduleId": "M17",

@@ -119,12 +119,13 @@ function main(): void {
 
     const control = record.controlText ?? 'the workspace control';
     const target = record.cardHeading ?? control;
+    const capturedAt = new Date(record.capturedAt).toISOString().replace(/\.\d+Z$/, 'Z');
 
     byService.set(record.serviceId, {
       serviceId: record.serviceId,
       handlerId: record.handlerId,
       nativeCommand: record.nativeCommand,
-      capturedAt: record.capturedAt,
+      capturedAt,
       stages: {
         uiControlClicked: true,
         ipcRoundTrip: true,
