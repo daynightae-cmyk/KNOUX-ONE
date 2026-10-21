@@ -16,15 +16,19 @@ struct RawAdapter {
     status: Option<String>,
     link_speed: Option<String>,
     mac_address: Option<String>,
-    ipv4: Option<Vec<String>>,
-    gateways: Option<Vec<String>>,
-    dns_servers: Option<Vec<String>>,
+    #[serde(default, deserialize_with = "crate::diagnostics::json::string_array")]
+    ipv4: Vec<String>,
+    #[serde(default, deserialize_with = "crate::diagnostics::json::string_array")]
+    gateways: Vec<String>,
+    #[serde(default, deserialize_with = "crate::diagnostics::json::string_array")]
+    dns_servers: Vec<String>,
 }
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct RawProbe {
     target: Option<String>,
-    resolved_addresses: Option<Vec<String>>,
+    #[serde(default, deserialize_with = "crate::diagnostics::json::string_array")]
+    resolved_addresses: Vec<String>,
     ping_succeeded: Option<bool>,
     tcp_succeeded: Option<bool>,
     remote_port: Option<u16>,
@@ -91,7 +95,7 @@ $warnings=@();$adapters=@();$events=@();$probe=$null;$start=(Get-Date).AddHours(
 try {{
   Get-NetIPConfiguration -ErrorAction Stop | ForEach-Object {{
     $adapter=Get-NetAdapter -InterfaceIndex $_.InterfaceIndex -ErrorAction SilentlyContinue
-    $adapters += [pscustomobject]@{{name=[string]$_.InterfaceAlias;description=[string]$adapter.InterfaceDescription;status=[string]$adapter.Status;linkSpeed=[string]$adapter.LinkSpeed;macAddress=[string]$adapter.MacAddress;ipv4=@($_.IPv4Address|ForEach-Object{{$_.IPAddress}});gateways=@($_.IPv4DefaultGateway|ForEach-Object{{$_.NextHop}});dnsServers=@($_.DNSServer.ServerAddresses)}}
+    $adapters += [pscustomobject]@{{name=[string]$_.InterfaceAlias;description=[string]$adapter.InterfaceDescription;status=[string]$adapter.Status;linkSpeed=[string]$adapter.LinkSpeed;macAddress=[string]$adapter.MacAddress;ipv4=@($_.IPv4Address|ForEach-Object{{$_.IPAddress}}|Where-Object{{$null-ne$_}});gateways=@($_.IPv4DefaultGateway|ForEach-Object{{$_.NextHop}}|Where-Object{{$null-ne$_}});dnsServers=@($_.DNSServer.ServerAddresses|Where-Object{{$null-ne$_}})}}
   }}
 }} catch {{$warnings += "Adapter inventory: $($_.Exception.Message)"}}
 try {{
@@ -147,14 +151,14 @@ pub fn diagnose(
             status: item.status.unwrap_or_default(),
             link_speed: item.link_speed.filter(|v| !v.is_empty()),
             mac_address: item.mac_address.filter(|v| !v.is_empty()),
-            ipv4: item.ipv4.unwrap_or_default(),
-            gateways: item.gateways.unwrap_or_default(),
-            dns_servers: item.dns_servers.unwrap_or_default(),
+            ipv4: item.ipv4,
+            gateways: item.gateways,
+            dns_servers: item.dns_servers,
         })
         .collect();
     let probe = raw.probe.map(|item| NetworkProbe {
         target: item.target.unwrap_or(target),
-        resolved_addresses: item.resolved_addresses.unwrap_or_default(),
+        resolved_addresses: item.resolved_addresses,
         ping_succeeded: item.ping_succeeded.unwrap_or(false),
         tcp_succeeded: item.tcp_succeeded,
         remote_port: item.remote_port,

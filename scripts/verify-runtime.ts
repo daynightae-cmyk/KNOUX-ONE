@@ -243,7 +243,12 @@ type ClickResult = {
 async function clickWithRetry(cdp: Cdp, script: string): Promise<ClickResult> {
   let result = await cdp.evaluate<ClickResult>(script);
   let attempt = 0;
-  while (!result.ok && attempt < 40) {
+  // A control can be missing for a moment while its workspace is loaded, and
+  // it can be disabled for as long as the measurement behind it runs. On the
+  // cycle host a startup measurement takes longer than a minute, so the wait
+  // is generous: a control that never becomes usable is still recorded as
+  // missing.
+  while (!result.ok && attempt < 150) {
     attempt += 1;
     await sleep(1000);
     result = await cdp.evaluate<ClickResult>(script);
@@ -277,16 +282,18 @@ async function main(): Promise<void> {
   for (const step of plan) {
     const startedAt = new Date().toISOString();
 
+    if (step.reset) {
+      await clickWithRetry(cdp, TEXT_CLICK_SCRIPT(step.reset));
+      await sleep(1400);
+    }
+
     // When the step wants the whole rendered workspace as evidence, the page
-    // text has to be captured before the workspace is entered.
+    // text has to be captured on a different workspace, so that the delta
+    // covers the whole target workspace rather than only the part that changed
+    // in place. The reset above is what makes that possible.
     let before = '';
     if (step.beforeNavigate) {
       before = await cdp.evaluate<string>(BODY_TEXT_SCRIPT);
-    }
-
-    if (step.reset) {
-      await cdp.evaluate(TEXT_CLICK_SCRIPT(step.reset));
-      await sleep(1400);
     }
 
     if (step.navigate) {
