@@ -317,6 +317,28 @@ and take 15 to 30 seconds each here. The command is dispatched with
 `spawn_blocking`, so the window stays responsive and shows the measurement
 in progress rather than freezing.
 
+**`invalid type: null, expected a string` — an adapter without a gateway broke
+the whole network result.**
+
+With the probe bounded, the network query finally answered, and the answer
+was rejected:
+
+```
+powershell_json_failed: invalid type: null, expected a string at line 1 column 218
+stdout={"adapters":[{"name":"Local Area Connection* 13",...,"gateways":[null],...}]}
+```
+
+In PowerShell, `$null | ForEach-Object { ... }` runs the block **once**, with
+`$_` set to `$null`. An adapter that has no default gateway therefore wrote
+`"gateways": [null]` rather than an empty array, and a null is not a string,
+so the whole result was unreadable. Any host with a virtual or disconnected
+adapter produced it.
+
+The script now drops the missing entries, and the Rust side reads an array of
+strings leniently, so one absent entry cannot discard the rest of the
+measurement. The same treatment is applied to the address list and the DNS
+server list, which are built the same way.
+
 ### Observation recorded, not a defect
 `M05-S09` is named "Change restoration" and owns `m05.restore.manage`. The
 startup workspace also uses `m05.startup.change` to disable an entry, and that
