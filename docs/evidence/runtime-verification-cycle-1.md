@@ -348,4 +348,15 @@ restoration only. Renaming it to "Startup change & restoration" would describe
 both directions. This is a wording refinement, not a false claim, so it is not
 treated as a defect in this cycle.
 
+### Observation recorded, not promoted
+`M06` live monitoring was attempted twice in this batch. The Performance
+workspace does render one real measurement on this host (CPU 84.0%, memory
+82.4%, four core series) when the page is read directly after a run, but in the
+driver runs the card settles at `CPU Usage 0.0%` with "CPU measurements have not
+arrived yet". A direct `invoke('m06_cpu_monitor')` from the page did not resolve
+within 90 seconds, and several PowerShell child processes were left running.
+The five M06 records are therefore excluded from this batch: they are neither
+promoted nor claimed. The module remains `STATIC_VERIFIED` pending a clean
+re-run after the blocking command path is addressed.
+
 

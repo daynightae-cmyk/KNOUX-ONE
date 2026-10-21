@@ -16,10 +16,10 @@ The generated service-reality baseline is the detailed evidence authority. Run `
 |---|---:|
 | Modules | 19 |
 | Services | 190 |
-| Statically verified native paths | 89 |
+| Statically verified native paths | 74 |
 | Partial native paths with documented limits | 0 |
 | Planned, non-executable | 72 |
-| Runtime verified on Windows in repository evidence | 29 |
+| Runtime verified on Windows in repository evidence | 44 |
 <!-- service-reality:end -->
 
 **This table is generated.** `scripts/generate-service-reality.ts` rewrites the block above from the same counts that produce the baseline, and `services:check` fails when the two disagree, so the README cannot drift away from the evidence it summarises.

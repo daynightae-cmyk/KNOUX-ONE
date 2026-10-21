@@ -14,8 +14,8 @@ export const PARTIAL_SERVICE_IDS = new Set<string>([]);
  * `docs/services/service-reality-baseline.json`.
  *
  * This set exists so the interface can stop presenting runtime-verified services as
- * merely statically verified. `implemented` covers both kinds, so a count of 101 does
- * not mean 101 verified services — it means 29 driven on Windows and 72 proven only
+ * merely statically verified. `implemented` covers both kinds, so a count of 118 does
+ * not mean 118 verified services — it means 44 driven on Windows and 74 proven only
  * statically.
  *
  * Ids are catalog ids (`m01_s01`). The generated baseline writes them as `M01-S01`, and
@@ -42,9 +42,18 @@ export const RUNTIME_VERIFIED_SERVICE_IDS = new Set<string>([
   'm04_s08',
   'm04_s09',
   'm04_s10',
+  'm05_s01',
+  'm05_s02',
+  'm05_s03',
+  'm05_s04',
+  'm05_s06',
+  'm05_s10',
   'm09_s01',
   'm09_s05',
   'm09_s09',
+  'm10_s01',
+  'm10_s05',
+  'm10_s06',
   'm10_s07',
   'm10_s08',
   'm11_s03',
@@ -52,4 +61,10 @@ export const RUNTIME_VERIFIED_SERVICE_IDS = new Set<string>([
   'm11_s06',
   'm15_s01',
   'm15_s03',
+  'm17_s01',
+  'm17_s02',
+  'm17_s03',
+  'm17_s04',
+  'm17_s07',
+  'm17_s08',
 ]);
