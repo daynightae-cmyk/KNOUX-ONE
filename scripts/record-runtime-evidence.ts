@@ -16,7 +16,8 @@
  * nothing changed on screen, or when the rendered text carries a failure marker.
  *
  * Usage:
- *   bun scripts/record-runtime-evidence.ts --records <driver output> --host <machine name>
+ *   bun scripts/record-runtime-evidence.ts --records <driver output> --host <machine name> \
+ *     --sha256 <binary hash> --size <binary size> --note <what this build changed>
  */
 
 import { readFileSync, writeFileSync } from 'node:fs';
@@ -51,7 +52,14 @@ type EvidenceRecord = {
   controlText?: string;
 };
 
-type Args = { records: string; host: string; evidence: string };
+type Args = {
+  records: string;
+  host: string;
+  evidence: string;
+  sha256: string;
+  size: string;
+  note: string;
+};
 
 function parseArgs(argv: string[]): Args {
   const get = (flag: string, fallback: string): string => {
@@ -62,6 +70,9 @@ function parseArgs(argv: string[]): Args {
     records: get('--records', 'runtime-records.json'),
     host: get('--host', 'unknown-host'),
     evidence: get('--evidence', 'docs/evidence/windows-runtime-evidence.json'),
+    sha256: get('--sha256', ''),
+    size: get('--size', ''),
+    note: get('--note', ''),
   };
 }
 
@@ -77,6 +88,23 @@ function main(): void {
 
   if (existing.schemaVersion !== 1) {
     throw new Error(`Unexpected runtime evidence schemaVersion ${existing.schemaVersion}`);
+  }
+
+  // The binary that produced the records is named, so a record can be traced
+  // to the build it came from.
+  const host: Record<string, unknown> = { ...existing.host, machine: args.host };
+  if (args.sha256) {
+    host.applicationSha256 = args.sha256;
+    host.applicationSizeBytes = Number(args.size) || existing.host.applicationSizeBytes;
+    const binaries = Array.isArray(existing.host.binaries)
+      ? [...(existing.host.binaries as Record<string, unknown>[])]
+      : [];
+    binaries.push({
+      applicationSha256: args.sha256,
+      applicationSizeBytes: Number(args.size) || 0,
+      note: args.note || 'Verification build for the recorded run.',
+    });
+    host.binaries = binaries;
   }
 
   const byService = new Map(existing.records.map(record => [record.serviceId, record]));
@@ -118,7 +146,7 @@ function main(): void {
 
   const updated = {
     schemaVersion: 1,
-    host: { ...existing.host, machine: args.host },
+    host,
     method: existing.method,
     records: Array.from(byService.values()),
   };
